@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head＞
-<link rel="icon" href="./index.png?v=1"/>
+<head>
+<link rel="icon" type="image/png" href="./index.png?v=1"/>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Windows 11 · 网站导航桌面</title>
+<title>守禄的win11</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -67,6 +67,7 @@ body.dragging iframe { pointer-events: none; }
 
 #desktop { position: fixed; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; }
 
+/* ============ 壁纸 ============ */
 #wallpaper {
   position: absolute; left: 0; top: 0; right: 0; bottom: 0;
   background: #06101f;
@@ -90,6 +91,7 @@ body.dragging iframe { pointer-events: none; }
   background: radial-gradient(125% 95% at 50% 42%, transparent 38%, rgba(0, 0, 0, .55));
 }
 
+/* ============ 桌面图标层 ============ */
 #icon-layer {
   position: absolute;
   left: 14px; top: 14px; right: 14px; bottom: 66px;
@@ -170,6 +172,7 @@ body.dragging iframe { pointer-events: none; }
   word-break: break-word;
 }
 
+/* ============ 窗口层 ============ */
 #windows {
   position: absolute;
   left: 0; top: 0; right: 0; bottom: 52px;
@@ -179,7 +182,8 @@ body.dragging iframe { pointer-events: none; }
 
 .window {
   position: absolute;
-  left: 0; top: 0;
+  left: 0;
+  top: 0;
   transform: translate3d(0, 0, 0);
   display: flex;
   flex-direction: column;
@@ -343,10 +347,110 @@ body.dragging iframe { pointer-events: none; }
 }
 body.mobile .resize-handle { width: 32px; height: 32px; }
 
+/* ============ Edge 浏览器 ============ */
 .edge-page {
   flex: 1; display: flex; flex-direction: column; min-height: 0;
   background: var(--win-bg); color: var(--win-text);
 }
+
+/* ---- 多标签栏 ---- */
+.edge-tabbar {
+  height: 38px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 6px 8px 0;
+  border-bottom: 1px solid var(--win-border);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.edge-tabbar::-webkit-scrollbar { display: none; }
+
+.edge-tabs {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+  min-width: 0;
+}
+
+.edge-tab {
+  position: relative;
+  height: 28px;
+  min-width: 100px;
+  max-width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 6px 0 10px;
+  border-radius: 6px 6px 0 0;
+  font-size: 11.5px;
+  color: var(--win-text);
+  cursor: pointer;
+  transition: background .12s;
+  user-select: none;
+}
+.edge-tab:hover { background: var(--tb-hover); }
+.edge-tab.active {
+  background: var(--field-bg);
+  box-shadow: 0 -1px 0 var(--win-border), 1px 0 0 var(--win-border), -1px 0 0 var(--win-border);
+}
+.edge-tab.active::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 1px;
+  background: var(--field-bg);
+}
+.edge-tab-favicon {
+  width: 14px; height: 14px;
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 3px;
+  color: var(--win-sub);
+  overflow: hidden;
+}
+.edge-tab-title {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.edge-tab-close {
+  width: 18px; height: 18px;
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+  opacity: .55;
+  transition: background .12s, opacity .12s;
+}
+.edge-tab-close:hover {
+  background: var(--tb-active);
+  opacity: 1;
+}
+
+.edge-newtab {
+  width: 26px; height: 26px;
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  border: none;
+  background: transparent;
+  border-radius: 5px;
+  color: inherit;
+  cursor: pointer;
+  margin-bottom: 1px;
+  transition: background .12s;
+}
+.edge-newtab:hover { background: var(--tb-hover); }
+
+/* ---- 工具栏 ---- */
 .edge-toolbar {
   height: 44px; flex-shrink: 0;
   display: flex; align-items: center; gap: 4px;
@@ -387,6 +491,7 @@ body.mobile .resize-handle { width: 32px; height: 32px; }
 }
 .edge-addr-input::placeholder { color: var(--win-sub); }
 
+/* ---- 内容区 ---- */
 .edge-body {
   flex: 1; position: relative;
   min-height: 0;
@@ -396,10 +501,11 @@ body.mobile .resize-handle { width: 32px; height: 32px; }
 .edge-frame {
   position: absolute; left: 0; top: 0; right: 0; bottom: 0;
   width: 100%; height: 100%;
-  border: none; display: block;
+  border: none;
   background: var(--frame-bg);
+  display: none;
 }
-.edge-frame[hidden] { display: none; }
+.edge-frame.active { display: block; }
 
 .edge-start {
   position: absolute; left: 0; top: 0; right: 0; bottom: 0;
@@ -483,6 +589,7 @@ body.dark .edge-start {
   opacity: .8;
 }
 
+/* ============ 此电脑 ============ */
 .explorer {
   flex: 1; display: flex; flex-direction: column; min-height: 0;
   background: var(--win-bg); color: var(--win-text);
@@ -620,6 +727,7 @@ body.dark .exp-side-item .si.gray { color: #9ca3af; }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
+/* ============ 任务栏 ============ */
 #taskbar {
   position: absolute;
   left: 0; right: 0; bottom: 0;
@@ -697,6 +805,7 @@ body.dark .exp-side-item .si.gray { color: #9ca3af; }
 #clock .t { font-size: 12px; }
 #clock .d { font-size: 11px; opacity: .75; }
 
+/* ============ 开始菜单 ============ */
 #startMenu {
   position: absolute;
   left: 50%; bottom: 62px;
@@ -803,6 +912,7 @@ body.dark .exp-side-item .si.gray { color: #9ca3af; }
 }
 .sm-hint { color: var(--menu-sub); font-size: 11px; }
 
+/* ============ 右键菜单 ============ */
 #ctxMenu {
   position: absolute;
   min-width: 210px;
@@ -832,6 +942,7 @@ body.dark .exp-side-item .si.gray { color: #9ca3af; }
 .ctx-item .ci-icon { width: 16px; display: grid; place-items: center; opacity: .8; }
 .ctx-sep { height: 1px; margin: 4px 8px; background: var(--menu-field-border); }
 
+/* ============ 提示条 ============ */
 #toast {
   position: absolute;
   left: 50%; bottom: 76px;
@@ -849,6 +960,9 @@ body.dark .exp-side-item .si.gray { color: #9ca3af; }
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* =========================================================
+   移动端降级
+   ========================================================= */
 body.mobile #wallpaper::before {
   filter: none;
   background:
@@ -858,6 +972,7 @@ body.mobile #wallpaper::before {
     radial-gradient(50% 45% at 18% 78%, rgba(29, 78, 216, .8), transparent 70%),
     #06101f;
 }
+
 body.mobile .window,
 body.mobile #taskbar,
 body.mobile #startMenu,
@@ -957,19 +1072,25 @@ if (isMobile) document.body.classList.add('mobile');
 /* =========================================================
    ★ 站点配置
    ---------------------------------------------------------------------------
-   name 字段现在只是「初始占位名」，页面加载时会被对应 HTML 文件的
-   <title> 自动覆盖。fetch 失败（如 file:// 协议下）时保留这个默认值。
+   后 4 个位置为本地 HTML 快捷方式：
+     name  —— 默认名（启动后会被对应 HTML 的 <title> 覆盖）
+     url   —— 点击后加载的本地 HTML 文件
+     icon  —— 图标 PNG 文件名（与本页面同目录）
+     color —— 备用主题色（图标加载失败时用于 SVG 降级）
+
+   需准备文件（同目录）：
+     site1.html  site1.png
+     site2.html  site2.png
+     site3.html  site3.png
+     site4.html  site4.png
    ========================================================= */
 const SITES = [
-  /* 系统图标（保持原样） */
   { type: 'edge',   name: 'Microsoft Edge', color: '#0F82D8' },
   { type: 'thispc', name: '此电脑',          color: '#1E6FB8' },
-
-  /* 本地 HTML 快捷方式（name 会被 <title> 覆盖） */
-  { type: 'local', name: 'site1', url: 'site1.html', icon: 'site1.png', color: '#8b5cf6' },
-  { type: 'local', name: 'site2', url: 'site2.html', icon: 'site2.png', color: '#10b981' },
-  { type: 'local', name: 'site3', url: 'site3.html', icon: 'site3.png', color: '#f59e0b' },
-  { type: 'local', name: 'site4', url: 'site4.html', icon: 'site4.png', color: '#ef4444' },
+  { type: 'local',  name: 'site1', url: 'site1.html', icon: 'site1.png', color: '#8b5cf6' },
+  { type: 'local',  name: 'site2', url: 'site2.html', icon: 'site2.png', color: '#10b981' },
+  { type: 'local',  name: 'site3', url: 'site3.html', icon: 'site3.png', color: '#f59e0b' },
+  { type: 'local',  name: 'site4', url: 'site4.html', icon: 'site4.png', color: '#ef4444' },
 ];
 
 /* ================= 图标库 ================= */
@@ -1056,7 +1177,7 @@ const isEmptySlot = s =>
   && (!s.name || !s.url);
 
 /* =========================================================
-   ★ 从本地 HTML 文件的 <title> 提取名称
+   从本地 HTML 提取 <title>
    ========================================================= */
 async function extractLocalTitles() {
   const tasks = sites.map(async (s) => {
@@ -1067,13 +1188,8 @@ async function extractLocalTitles() {
       const text = await res.text();
       const doc  = new DOMParser().parseFromString(text, 'text/html');
       const title = (doc.querySelector('title')?.textContent || '').trim();
-      if (title) {
-        s.name = title;
-        // 记住原始 title，可用于窗口标题（此处暂时与显示名一致）
-        s._title = title;
-      }
+      if (title) s.name = title;
     } catch (err) {
-      // 读取失败（含 file:// 下 CORS 拒绝），保留默认 name
       console.warn(`[导航] 无法读取 ${s.url} 的标题：`, err.message);
     }
   });
@@ -1246,7 +1362,9 @@ function bindWindowBase(el, w) {
   handle.addEventListener('pointerdown', e => startResize(e, w));
 }
 
-/* ================= 本地 HTML / 网页窗口 ================= */
+/* =========================================================
+   本地 HTML / 网页窗口
+   ========================================================= */
 function createWebWin(site) {
   const bodyHTML = `
     <div class="toolbar">
@@ -1304,7 +1422,6 @@ function createWebWin(site) {
 
   iframe.addEventListener('load', () => {
     setTimeout(() => loader.classList.add('hide'), 120);
-    // 尝试从 iframe 内同步 title（同源时有效）
     try {
       const inner = iframe.contentDocument?.title?.trim();
       if (inner && inner !== w.site.name) {
@@ -1318,10 +1435,18 @@ function createWebWin(site) {
   });
 }
 
-/* ================= Edge 浏览器 ================= */
+/* =========================================================
+   Edge 浏览器（多标签）
+   ========================================================= */
 function createEdgeWin(site) {
   const bodyHTML = `
     <div class="edge-page">
+      <div class="edge-tabbar">
+        <div class="edge-tabs"></div>
+        <button class="edge-newtab" title="新建标签页（Ctrl+T）">
+          ${svgIcon('plus', 13, 2.2)}
+        </button>
+      </div>
       <div class="edge-toolbar">
         <button class="edge-btn" data-edge="back" title="后退" disabled>
           ${svgIcon('back', 16, 2)}
@@ -1361,8 +1486,6 @@ function createEdgeWin(site) {
             若页面空白可点击右上角「在新标签页打开」按钮。
           </div>
         </div>
-        <iframe class="edge-frame" data-edge-view="page"
-                referrerpolicy="no-referrer" hidden></iframe>
       </div>
     </div>
   `;
@@ -1376,11 +1499,13 @@ function createEdgeWin(site) {
 
   const el = w.el;
 
-  const startView = el.querySelector('[data-edge-view="start"]');
-  const frameView = el.querySelector('[data-edge-view="page"]');
-  const addrInput = el.querySelector('.edge-addr-input');
-  const searchIn  = el.querySelector('.edge-search-input');
-  const tilesEl   = el.querySelector('.edge-tiles');
+  const tabsBar    = el.querySelector('.edge-tabs');
+  const newTabBtn  = el.querySelector('.edge-newtab');
+  const bodyEl     = el.querySelector('.edge-body');
+  const startView  = el.querySelector('.edge-start');
+  const addrInput  = el.querySelector('.edge-addr-input');
+  const searchIn   = el.querySelector('.edge-search-input');
+  const tilesEl    = el.querySelector('.edge-tiles');
 
   const backBtn    = el.querySelector('[data-edge="back"]');
   const forwardBtn = el.querySelector('[data-edge="forward"]');
@@ -1388,13 +1513,9 @@ function createEdgeWin(site) {
   const homeBtn    = el.querySelector('[data-edge="home"]');
   const externalBtn= el.querySelector('[data-edge="external"]');
 
-  const history = [];
-  let historyIndex = -1;
-
-  function updateNavButtons() {
-    backBtn.disabled    = historyIndex <= 0;
-    forwardBtn.disabled = historyIndex >= history.length - 1;
-  }
+  const tabs = [];
+  let activeTabId = null;
+  let tabSeq = 0;
 
   function normalizeUrl(v) {
     v = (v || '').trim();
@@ -1404,72 +1525,242 @@ function createEdgeWin(site) {
     return 'https://www.bing.com/search?q=' + encodeURIComponent(v);
   }
 
-  function showStart() {
-    startView.hidden = false;
-    frameView.hidden = true;
-    frameView.removeAttribute('src');
-    addrInput.value = '';
+  function extractHostname(url) {
+    try {
+      return new URL(url).hostname.replace(/^www\./, '');
+    } catch (_) {
+      return url;
+    }
   }
 
-  function loadUrl(url) {
-    startView.hidden = true;
-    frameView.hidden = false;
-    frameView.src = url;
+  function getActiveTab() {
+    return tabs.find(t => t.id === activeTabId) || null;
+  }
+
+  function updateTabBar() {
+    tabsBar.replaceChildren();
+    tabs.forEach(tab => {
+      const tabEl = document.createElement('div');
+      tabEl.className = 'edge-tab' + (tab.id === activeTabId ? ' active' : '');
+      tabEl.dataset.tabId = tab.id;
+      tabEl.title = tab.title;
+
+      const faviconHTML = svgIcon('globe', 12, 2.2);
+
+      tabEl.innerHTML = `
+        <span class="edge-tab-favicon">${faviconHTML}</span>
+        <span class="edge-tab-title">${escapeHTML(tab.title)}</span>
+        <button class="edge-tab-close" title="关闭标签页">
+          ${svgIcon('close', 10, 2.6)}
+        </button>
+      `;
+
+      tabEl.addEventListener('click', e => {
+        if (e.target.closest('.edge-tab-close')) {
+          e.stopPropagation();
+          closeTab(tab.id);
+        } else {
+          activateTab(tab.id);
+        }
+      });
+
+      tabsBar.appendChild(tabEl);
+      tab.tabEl = tabEl;
+    });
+  }
+
+  function escapeHTML(str) {
+    return String(str).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function updateTabTitle(tab) {
+    if (!tab.tabEl) return;
+    const titleEl = tab.tabEl.querySelector('.edge-tab-title');
+    if (titleEl) titleEl.textContent = tab.title;
+    tab.tabEl.title = tab.title;
+  }
+
+  function createTab(initialUrl = null) {
+    const id = 't' + (++tabSeq);
+
+    const iframe = document.createElement('iframe');
+    iframe.className = 'edge-frame';
+    iframe.dataset.tabId = id;
+    iframe.referrerPolicy = 'no-referrer';
+    bodyEl.appendChild(iframe);
+
+    const tab = {
+      id,
+      title: '新标签页',
+      url: '',
+      history: [],
+      historyIndex: -1,
+      iframe,
+      tabEl: null,
+    };
+
+    iframe.addEventListener('load', () => {
+      try {
+        const innerTitle = iframe.contentDocument?.title?.trim();
+        if (innerTitle && innerTitle !== tab.title) {
+          tab.title = innerTitle;
+          updateTabTitle(tab);
+        }
+      } catch (_) { /* 跨域忽略 */ }
+    });
+
+    tabs.push(tab);
+    updateTabBar();
+
+    if (initialUrl) {
+      navigateInTab(tab, initialUrl, true);
+    } else {
+      activateTab(id);
+    }
+
+    return tab;
+  }
+
+  function closeTab(id) {
+    const idx = tabs.findIndex(t => t.id === id);
+    if (idx < 0) return;
+
+    const tab = tabs[idx];
+    tab.iframe.remove();
+    tabs.splice(idx, 1);
+
+    if (tabs.length === 0) {
+      createTab();
+      return;
+    }
+
+    if (activeTabId === id) {
+      const next = tabs[Math.min(idx, tabs.length - 1)];
+      activateTab(next.id);
+    } else {
+      updateTabBar();
+    }
+  }
+
+  function activateTab(id) {
+    const tab = tabs.find(t => t.id === id);
+    if (!tab) return;
+    activeTabId = id;
+
+    tabs.forEach(t => {
+      if (t.tabEl) t.tabEl.classList.toggle('active', t.id === id);
+      t.iframe.classList.toggle('active', t.id === id && !!t.url);
+    });
+
+    startView.hidden = !!tab.url;
+    addrInput.value = tab.url || '';
+    updateNavButtons();
+  }
+
+  function navigateInTab(tab, url, push) {
+    if (!url) return;
+
+    if (push) {
+      tab.history.splice(tab.historyIndex + 1);
+      tab.history.push(url);
+      tab.historyIndex = tab.history.length - 1;
+    }
+
+    tab.url = url;
+    tab.title = extractHostname(url) || '加载中…';
+    updateTabTitle(tab);
+
+    tab.iframe.src = url;
+
+    if (tab.id === activeTabId) {
+      startView.hidden = true;
+      tabs.forEach(t => {
+        t.iframe.classList.toggle('active', t.id === activeTabId && !!t.url);
+      });
+      addrInput.value = url;
+      updateNavButtons();
+    }
   }
 
   function navigate(url, push) {
-    if (!url) return;
-    if (push) {
-      history.splice(historyIndex + 1);
-      history.push(url);
-      historyIndex = history.length - 1;
+    const tab = getActiveTab();
+    if (tab) navigateInTab(tab, url, push);
+  }
+
+  function updateNavButtons() {
+    const tab = getActiveTab();
+    if (!tab) {
+      backBtn.disabled = true;
+      forwardBtn.disabled = true;
+      return;
     }
-    loadUrl(url);
+    backBtn.disabled    = tab.historyIndex <= 0;
+    forwardBtn.disabled = tab.historyIndex >= tab.history.length - 1;
+  }
+
+  function goBack() {
+    const tab = getActiveTab();
+    if (!tab || tab.historyIndex <= 0) return;
+    tab.historyIndex--;
+    const url = tab.history[tab.historyIndex];
+    tab.url = url;
+    tab.title = extractHostname(url);
+    updateTabTitle(tab);
+    tab.iframe.src = url;
     addrInput.value = url;
     updateNavButtons();
   }
 
-  function goBack() {
-    if (historyIndex <= 0) return;
-    historyIndex--;
-    loadUrl(history[historyIndex]);
-    addrInput.value = history[historyIndex];
-    updateNavButtons();
-  }
-
   function goForward() {
-    if (historyIndex >= history.length - 1) return;
-    historyIndex++;
-    loadUrl(history[historyIndex]);
-    addrInput.value = history[historyIndex];
+    const tab = getActiveTab();
+    if (!tab || tab.historyIndex >= tab.history.length - 1) return;
+    tab.historyIndex++;
+    const url = tab.history[tab.historyIndex];
+    tab.url = url;
+    tab.title = extractHostname(url);
+    updateTabTitle(tab);
+    tab.iframe.src = url;
+    addrInput.value = url;
     updateNavButtons();
   }
 
   function reload() {
-    if (frameView.hidden || !frameView.src) return;
-    frameView.src = frameView.src;
+    const tab = getActiveTab();
+    if (!tab || !tab.url) return;
+    tab.iframe.src = tab.iframe.src;
   }
 
   function goHome() {
-    history.length = 0;
-    historyIndex = -1;
-    showStart();
+    const tab = getActiveTab();
+    if (!tab) return;
+    tab.url = '';
+    tab.history = [];
+    tab.historyIndex = -1;
+    tab.title = '新标签页';
+    updateTabTitle(tab);
+    tab.iframe.classList.remove('active');
+    tab.iframe.removeAttribute('src');
+    startView.hidden = false;
+    addrInput.value = '';
     updateNavButtons();
   }
 
   backBtn.addEventListener('click', e => { e.stopPropagation(); goBack(); });
   forwardBtn.addEventListener('click', e => { e.stopPropagation(); goForward(); });
-  reloadBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    if (frameView.hidden) return;
-    reload();
-  });
+  reloadBtn.addEventListener('click', e => { e.stopPropagation(); reload(); });
   homeBtn.addEventListener('click', e => { e.stopPropagation(); goHome(); });
   externalBtn.addEventListener('click', e => {
     e.stopPropagation();
-    const u = frameView.hidden ? '' : frameView.src;
-    if (u) window.open(u, '_blank', 'noopener');
+    const tab = getActiveTab();
+    if (tab && tab.url) window.open(tab.url, '_blank', 'noopener');
     else showToast('当前未打开任何网页');
+  });
+
+  newTabBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    createTab();
   });
 
   addrInput.addEventListener('keydown', e => {
@@ -1491,10 +1782,10 @@ function createEdgeWin(site) {
   searchIn.addEventListener('pointerdown', e => e.stopPropagation());
 
   const tiles = [
-    { name: '必应',     url: 'https://www.bing.com',   bg: 'linear-gradient(145deg,#0F82D8,#23B8A6)', letter: 'B' },
-    { name: '百度',     url: 'https://www.baidu.com',  bg: 'linear-gradient(145deg,#3B7CFF,#2932E1)', letter: '百' },
-    { name: 'GitHub',   url: 'https://github.com',     bg: 'linear-gradient(145deg,#4b5563,#111827)', letter: 'G' },
-    { name: '知乎',     url: 'https://www.zhihu.com',  bg: 'linear-gradient(145deg,#38bdf8,#0084ff)', letter: '知' },
+    { name: '必应',   url: 'https://www.bing.com',  bg: 'linear-gradient(145deg,#0F82D8,#23B8A6)', letter: 'B' },
+    { name: '百度',   url: 'https://www.baidu.com', bg: 'linear-gradient(145deg,#3B7CFF,#2932E1)', letter: '百' },
+    { name: 'GitHub', url: 'https://github.com',    bg: 'linear-gradient(145deg,#4b5563,#111827)', letter: 'G' },
+    { name: '知乎',   url: 'https://www.zhihu.com', bg: 'linear-gradient(145deg,#38bdf8,#0084ff)', letter: '知' },
   ];
   tiles.forEach(t => {
     const d = document.createElement('div');
@@ -1509,7 +1800,18 @@ function createEdgeWin(site) {
     tilesEl.appendChild(d);
   });
 
-  updateNavButtons();
+  el.addEventListener('keydown', e => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    if (e.key.toLowerCase() === 't') {
+      e.preventDefault();
+      createTab();
+    } else if (e.key.toLowerCase() === 'w') {
+      e.preventDefault();
+      if (activeTabId) closeTab(activeTabId);
+    }
+  });
+
+  createTab();
   if (!isMobile) setTimeout(() => searchIn.focus(), 180);
 }
 
@@ -1924,9 +2226,6 @@ document.addEventListener('pointerdown', e => {
   if (!e.target.closest('#ctxMenu')) hideCtx();
 }, true);
 
-/* =========================================================
-   ★ 刷新标题：重新读取所有本地 HTML 的 <title>
-   ========================================================= */
 async function refreshTitles() {
   showToast('正在读取本地 HTML 标题…');
   await extractLocalTitles();
@@ -1941,12 +2240,12 @@ function toggleTheme() {
   const isDark = !document.body.classList.contains('dark');
   document.body.classList.toggle('dark', isDark);
   document.getElementById('themeBtn').innerHTML = svgIcon(isDark ? 'sun' : 'moon', 15, 2);
-  try { localStorage.setItem('win11nav-theme-v11', isDark ? 'dark' : 'light'); } catch(_) {}
+  try { localStorage.setItem('win11nav-theme-v12', isDark ? 'dark' : 'light'); } catch(_) {}
 }
 
 (function initTheme() {
   let saved = null;
-  try { saved = localStorage.getItem('win11nav-theme-v11'); } catch(_) {}
+  try { saved = localStorage.getItem('win11nav-theme-v12'); } catch(_) {}
   const isDark = saved ? saved === 'dark' : true;
   document.body.classList.toggle('dark', isDark);
   document.getElementById('themeBtn').innerHTML = svgIcon(isDark ? 'sun' : 'moon', 15, 2);
@@ -2009,7 +2308,7 @@ document.getElementById('avatarIco').innerHTML = svgIcon('user', 14, 2);
 document.getElementById('smHint').textContent = `${sites.filter(s => !isEmptySlot(s)).length} / ${SLOT_COUNT} 已配置`;
 
 /* =========================================================
-   ★ 启动：先渲染一遍（用默认名），再异步读取本地 HTML 标题
+   启动：先渲染默认名，再异步读取本地 HTML 标题
    ========================================================= */
 (async function boot() {
   renderIcons();
