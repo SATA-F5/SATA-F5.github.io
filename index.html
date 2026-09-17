@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Windows 11 · 网站导航桌面</title>
+<title>守禄的win11</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1432,46 +1432,127 @@ function createWebWin(site) {
 }
 
 /* =========================================================
-   ★ 给 iframe 注入链接拦截器
-   同源 iframe 内的 target="_blank" 链接、Ctrl/Cmd+点击
-   改为在 Edge 内部新开标签，不走外部浏览器
+   ★ 给 iframe 注入链接拦截器（全面版）
+   ---------------------------------------------------------------------------
+   同源 iframe 内的所有跳转行为都在 Edge 内部新标签打开，
+   并掐断向外部浏览器发送的打开请求。
+
+   覆盖：
+     - <a> 点击（任意 target）
+     - <area> 图片地图
+     - JS 调用 a.click()
+     - window.open(...)
+     - <form target="_blank"> 提交
+
+   不覆盖：
+     - 跨域 iframe（同源策略限制，前端无法突破）
    ========================================================= */
 function injectLinkInterceptor(iframe, openInNewTab) {
   try {
     const doc = iframe.contentDocument;
     const win = iframe.contentWindow;
     if (!doc || !win) return;
-    if (win.__edgeInjected) return;
-    win.__edgeInjected = true;
 
+    // 用 document 级标志，document.open() 重写后仍能重新注入
+    if (doc.__edgeInjected) return;
+    doc.__edgeInjected = true;
+
+    const baseUrl = iframe.src || doc.baseURI || location.href;
     const normalize = (url) => {
-      try { return new URL(url, iframe.src).href; }
+      try { return new URL(url, baseUrl).href; }
       catch (_) { return url; }
     };
+    const isHttp = (url) => /^https?:/i.test(url || '');
 
-    // 1. 覆盖 window.open —— JS 调用也走 Edge 内部新标签
-    win.open = function (url) {
-      if (url) openInNewTab(normalize(url), true);
-      return null;
-    };
+    // ---------- 1. 覆盖 window.open ----------
+    if (!win.__edgeOpenPatched) {
+      win.__edgeOpenPatched = true;
+      const origOpen = win.open;
+      win.open = function (url, target, features) {
+        if (url && isHttp(normalize(url))) {
+          openInNewTab(normalize(url), true);
+          return null;
+        }
+        return origOpen.call(this, url, target, features);
+      };
+    }
 
-    // 2. 拦截 <a> 点击
+    // ---------- 2. 拦截 <a> 点击（捕获阶段，抢先处理） ----------
     doc.addEventListener('click', function (e) {
       const a = e.target && e.target.closest && e.target.closest('a');
-      if (!a || !a.href) return;
-      if (!/^https?:/i.test(a.href)) return;
+      if (!a) return;
+      if (!a.hasAttribute('href')) return;
 
-      const isBlank    = a.target === '_blank';
-      const isModified = e.ctrlKey || e.metaKey || e.shiftKey;
+      const raw = a.getAttribute('href') || '';
+      if (!raw) return;
+      if (raw.startsWith('#')) return;             // 纯锚点：交给浏览器默认滚动
+      if (raw.startsWith('javascript:')) return;   // JS 伪协议：不拦
+      if (!isHttp(a.href)) return;                 // mailto / tel / ftp 等：不拦
 
-      if (isBlank || isModified) {
-        e.preventDefault();
-        e.stopPropagation();
-        openInNewTab(normalize(a.href), true);
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+
+      openInNewTab(normalize(a.href), true);
+    }, true);
+
+    // ---------- 3. 拦截 <area> 图片地图 ----------
+    doc.addEventListener('click', function (e) {
+      const area = e.target && e.target.closest && e.target.closest('area');
+      if (!area) return;
+      if (!isHttp(area.href)) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      openInNewTab(normalize(area.href), true);
+    }, true);
+
+    // ---------- 4. 覆盖 HTMLAnchorElement.prototype.click ----------
+    // 防止页面 JS 主动调用 a.click() 绕过监听
+    try {
+      const AProto = win.HTMLAnchorElement && win.HTMLAnchorElement.prototype;
+      if (AProto && !AProto.__edgePatched) {
+        AProto.__edgePatched = true;
+        const origClick = AProto.click;
+        AProto.click = function () {
+          if (this.href && isHttp(this.href)) {
+            openInNewTab(normalize(this.href), true);
+            return;
+          }
+          return origClick.apply(this, arguments);
+        };
+      }
+    } catch (_) {}
+
+    // ---------- 5. 拦截 <form target="_blank"> 提交 ----------
+    doc.addEventListener('submit', function (e) {
+      const form = e.target;
+      if (!form || form.tagName !== 'FORM') return;
+      if (form.target !== '_blank') return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+
+      try {
+        const action = form.action || baseUrl;
+        const method = (form.method || 'get').toLowerCase();
+        let url = action;
+        if (method === 'get') {
+          const params = new URLSearchParams(new FormData(form)).toString();
+          if (params) {
+            url = action + (action.includes('?') ? '&' : '?') + params;
+          }
+        }
+        openInNewTab(normalize(url), true);
+      } catch (_) {
+        openInNewTab(normalize(form.action || baseUrl), true);
       }
     }, true);
+
   } catch (_) {
-    // 跨域 iframe 会抛异常，静默忽略
+    // 跨域 iframe 会抛异常 —— 静默忽略
   }
 }
 
@@ -2292,12 +2373,12 @@ function toggleTheme() {
   const isDark = !document.body.classList.contains('dark');
   document.body.classList.toggle('dark', isDark);
   document.getElementById('themeBtn').innerHTML = svgIcon(isDark ? 'sun' : 'moon', 15, 2);
-  try { localStorage.setItem('win11nav-theme-v13', isDark ? 'dark' : 'light'); } catch(_) {}
+  try { localStorage.setItem('win11nav-theme-v14', isDark ? 'dark' : 'light'); } catch(_) {}
 }
 
 (function initTheme() {
   let saved = null;
-  try { saved = localStorage.getItem('win11nav-theme-v13'); } catch(_) {}
+  try { saved = localStorage.getItem('win11nav-theme-v14'); } catch(_) {}
   const isDark = saved ? saved === 'dark' : true;
   document.body.classList.toggle('dark', isDark);
   document.getElementById('themeBtn').innerHTML = svgIcon(isDark ? 'sun' : 'moon', 15, 2);
