@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCAC服务器 - 探索无限可能</title>
+    <!-- 本地图标：请确保 index.png 与 html 文件在同一目录 -->
+    <link rel="icon" type="image/png" href="./index.png?v=1"/>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- AOS Animation -->
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#52A552',
+                        secondary: '#3D7D3D',
+                        dark: '#1A1A1A',
+                        light: '#F5F5F5'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            }
+            .bg-blur {
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+            }
+            .glass {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            .btn-hover {
+                transition: all 0.3s ease;
+            }
+            .btn-hover:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            }
+        }
+    </style>
+
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        .hero-bg {
+            position: relative;
+            /* 本地背景图，与 html 文件同级 */
+            background-image: url('./index.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #1A1A1A; /* 图片未加载时的兜底底色 */
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #52A552;
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .screenshot-card {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .screenshot-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .screenshot-card img {
+            transition: transform 0.5s ease;
+        }
+
+        .social-icon {
+            transition: all 0.3s ease;
+        }
+
+        .social-icon:hover {
+            transform: translateY(-3px);
+            color: #52A552;
+        }
+
+        .faq-card {
+            background: rgba(30, 30, 30, 0.8);
+            border: 1px solid rgba(82, 165, 82, 0.2);
+            transition: all 0.3s ease;
+        }
+        .faq-card:hover {
+            border-color: #52A552;
+            box-shadow: 0 0 15px rgba(82, 165, 82, 0.1);
+        }
+        .faq-question {
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .faq-question:hover {
+            color: #52A552;
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, padding 0.5s ease;
+        }
+        .faq-answer.open {
+            max-height: 500px;
+            padding-top: 1rem;
+        }
+
+        /* 站点 Logo 统一显示样式，避免图片比例异常 */
+        .site-logo {
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            .mobile-menu {
+                display: none;
+            }
+            .mobile-menu.active {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: rgba(0,0,0,0.9);
+                padding: 20px;
+                gap: 15px;
+            }
+            .menu-toggle {
+                display: block !important;
+            }
+        }
+        .menu-toggle {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-dark text-light">
+    <nav class="fixed top-0 left-0 w-full z-50 bg-blur glass">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <img src="./index.png" alt="MCAC服务器 Logo" class="site-logo h-10 w-10 mr-3">
+                    <span class="text-xl font-bold text-primary">MCAC服务器</span>
+                </div>
+
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="nav-link text-white hover:text-primary">首页</a>
+                    <a href="#features" class="nav-link text-white hover:text-primary">服务器特点</a>
+                    <a href="#faq" class="nav-link text-white hover:text-primary">疑难解答</a>
+                </div>
+
+                <button id="menu-toggle" class="menu-toggle text-white text-2xl">
+                    <i class="fa fa-bars"></i>
+                </button>
+            </div>
+
+            <div id="mobile-menu" class="mobile-menu mt-2">
+                <a href="#home" class="nav-link text-white hover:text-primary">首页</a>
+                <a href="#features" class="nav-link text-white hover:text-primary">服务器特点</a>
+                <a href="#faq" class="nav-link text-white hover:text-primary">疑难解答</a>
+            </div>
+        </div>
+    </nav>
+
+    <section id="home" class="hero-bg flex items-center justify-center">
+        <div class="hero-content text-center px-4">
+            <h1 class="text-5xl md:text-6xl font-bold mb-6 text-shadow" data-aos="fade-up" data-aos-duration="1000">探索无限可能</h1>
+            <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-shadow" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">加入我们的 MCAC服务器，与全球玩家一起创造、探索和冒险！</p>
+            <div class="flex flex-col md:flex-row justify-center gap-4" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="400">
+                <a href="#features" class="btn-hover bg-primary hover:bg-secondary text-white font-bold py-3 px-8 rounded-full">了解更多</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 服务器信息 -->
+    <section class="py-16 bg-gray-900">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="md:w-1/2 mb-8 md:mb-0" data-aos="fade-right">
+                    <h2 class="text-3xl font-bold mb-4 text-primary">服务器信息</h2>
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <div class="flex items-center mb-4">
+                            <i class="fa fa-server text-primary mr-3 text-xl"></i>
+                            <div>
+                                <p class="text-sm text-gray-400">服务器地址</p>
+                                <p class="font-mono">10.126.126.1:25565</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center mb-4">
+                            <i class="fa fa-gamepad text-primary mr-3 text-xl"></i>
+                            <div>
+                                <p class="text-sm text-gray-400">游戏版本</p>
+                                <p>1.20.1 forge整合包</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:w-1/2 md:pl-12" data-aos="fade-left">
+                    <h2 class="text-3xl font-bold mb-4 text-primary">欢迎加入</h2>
+                    <p class="mb-6 text-lg">我们的MCAC服务器提供全新的游戏体验，拥有丰富的玩法、无论你是喜欢建造、探险还是PVP，这里都能满足你的需求。</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>游戏模式：生存</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>changed与机械动力的独特玩法</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>公平的反作弊系统</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check-circle text-primary mt-1 mr-2"></i>
+                            <span>活跃的管理团队和友好的社区</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 服务器特点 -->
+    <section id="features" class="py-16 bg-dark">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-12 text-primary" data-aos="fade-up">服务器特点</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- 特点卡片 1 -->
+                <div class="feature-card bg-gray-800 rounded-lg p-6 shadow-lg" data-aos="fade-up" data-aos-delay="100">
+                    <div class="bg-primary rounded-full w-16 h-16 flex items-center justify-center mb-4">
+                        <i class="fa fa-cubes text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">自定义世界</h3>
+                    <p class="text-gray-400">探索精心设计的自定义世界，包含独特的地形、结构和隐藏宝藏。每个世界都有其独特的主题和挑战。</p>
+                </div>
+                <!-- 特点卡片 2 -->
+                <div class="feature-card bg-gray-800 rounded-lg p-6 shadow-lg" data-aos="fade-up" data-aos-delay="300">
+                    <div class="bg-primary rounded-full w-16 h-16 flex items-center justify-center mb-4">
+                        <i class="fa fa-plug text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">丰富玩法</h3>
+                    <p class="text-gray-400">搭载机械动力这种多玩法插件，优化生存体验、增加趣味玩法，无冗余模组保证服务器流畅运行。</p>
+                </div>
+                <!-- 特点卡片 3 -->
+                <div class="feature-card bg-gray-800 rounded-lg p-6 shadow-lg" data-aos="fade-up" data-aos-delay="600">
+                    <div class="bg-primary rounded-full w-16 h-16 flex items-center justify-center mb-4">
+                        <i class="fa fa-headphones text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">24小时支持</h3>
+                    <p class="text-gray-400">我们的管理团队全天候在线，确保服务器稳定运行并及时解决玩家问题。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 疑难解答FAQ板块 -->
+    <section id="faq" class="py-16 bg-dark">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-12 text-primary" data-aos="fade-up">疑难解答</h2>
+            <div class="max-w-4xl mx-auto space-y-6" data-aos="fade-up" data-aos-delay="200">
+                <!-- FAQ问题1 -->
+                <div class="faq-card rounded-lg p-6">
+                    <div class="faq-question flex justify-between items-center w-full">
+                        <h3 class="text-xl font-semibold">无法连接到服务器怎么办？</h3>
+                        <i class="fa fa-plus-circle text-primary text-xl transition-all"></i>
+                    </div>
+                    <div class="faq-answer text-gray-300 border-t border-gray-700 mt-2">
+                        1. 检查游戏版本是否为1.20.1 fabric，版本不一致会导致连接失败；<br>
+                        2. 确认服务器地址输入正确，无多余空格；<br>
+                        3. 检查网络连接，尝试重启路由器或切换网络；<br>
+                        4. 关闭加速器/防火墙后重试，部分防护软件会拦截服务器连接；<br>
+                        5. 若仍无法连接，联系管理团队提供报错截图。
+                    </div>
+                </div>
+                <!-- FAQ问题2 -->
+                <div class="faq-card rounded-lg p-6">
+                    <div class="faq-question flex justify-between items-center w-full">
+                        <h3 class="text-xl font-semibold">进入服务器后卡顿/闪退如何解决？</h3>
+                        <i class="fa fa-plus-circle text-primary text-xl transition-all"></i>
+                    </div>
+                    <div class="faq-answer text-gray-300 border-t border-gray-700 mt-2">
+                        1. 降低游戏画质（关闭光影、降低渲染距离至8-12）；<br>
+                        2. 关闭fabric无关模组，仅保留服务器要求的基础模组；<br>
+                        3. 分配更多游戏内存（建议4G及以上）；<br>
+                        4. 检查电脑显卡驱动是否为最新版本；<br>
+                        5. 服务器高峰期可稍等片刻再进入，避免多人同屏卡顿。
+                    </div>
+                </div>
+                <!-- FAQ问题3 -->
+                <div class="faq-card rounded-lg p-6">
+                    <div class="faq-question flex justify-between items-center w-full">
+                        <h3 class="text-xl font-semibold">角色数据丢失/物品消失怎么处理？</h3>
+                        <i class="fa fa-plus-circle text-primary text-xl transition-all"></i>
+                    </div>
+                    <div class="faq-answer text-gray-300 border-t border-gray-700 mt-2">
+                        1. 服务器开启自动备份，数据丢失可联系管理团队申请恢复；<br>
+                        2. 物品消失先检查是否为背包满了掉落，或被服务器插件保护；<br>
+                        3. 请勿使用第三方作弊软件，否则数据丢失不予恢复；<br>
+                        4. 恢复数据需提供角色名、丢失时间、大致丢失物品，管理员会在24小时内处理。
+                    </div>
+                </div>
+                <!-- FAQ问题4 -->
+                <div class="faq-card rounded-lg p-6">
+                    <div class="faq-question flex justify-between items-center w-full">
+                        <h3 class="text-xl font-semibold">服务器有哪些禁止的行为？</h3>
+                        <i class="fa fa-plus-circle text-primary text-xl transition-all"></i>
+                    </div>
+                    <div class="faq-answer text-gray-300 border-t border-gray-700 mt-2">
+                        1. 禁止使用作弊模组、外挂、透视等第三方软件，一经发现永久封号；<br>
+                        2. 禁止恶意破坏其他玩家建筑、偷取物品（服务器有领地保护插件，建议及时圈地）；<br>
+                        3. 禁止刷屏、辱骂、人身攻击其他玩家，违者禁言/封号处理；<br>
+                        4. 禁止利用服务器漏洞刷物品/刷经验，发现漏洞请及时反馈管理员，奖励游戏道具。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 底部区域 -->
+    <footer class="bg-dark py-8 border-t border-gray-800">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center">
+                        <img src="./index.png" alt="MCAC服务器 Logo" class="site-logo h-8 w-8 mr-2">
+                        <span class="text-lg font-bold text-primary">MCAC服务器</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mt-2">© 2026 MCAC服务器. 保留所有权利。</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="social-icon text-gray-400 hover:text-primary">
+                        <i class="fa fa-facebook-square text-2xl"></i>
+                    </a>
+                    <a href="#" class="social-icon text-gray-400 hover:text-primary">
+                        <i class="fa fa-twitter-square text-2xl"></i>
+                    </a>
+                    <a href="#" class="social-icon text-gray-400 hover:text-primary">
+                        <i class="fa fa-instagram text-2xl"></i>
+                    </a>
+                    <a href="#" class="social-icon text-gray-400 hover:text-primary">
+                        <i class="fa fa-youtube-play text-2xl"></i>
+                    </a>
+                    <a href="#" class="social-icon text-gray-400 hover:text-primary">
+                        <i class="fa fa-discord text-2xl"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="mt-6 pt-6 border-t border-gray-800 text-center text-sm text-gray-500">
+                <p>Minecraft是Mojang AB的商标。本网站与Mojang AB无关联。</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 初始化AOS动画库
+        document.addEventListener('DOMContentLoaded', function() {
+            AOS.init({
+                duration: 800,
+                easing: 'ease-in-out',
+                once: true
+            });
+
+            // 移动端菜单切换
+            const menuToggle = document.getElementById('menu-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (menuToggle && mobileMenu) {
+                menuToggle.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('active');
+                    const icon = this.querySelector('i');
+                    if (mobileMenu.classList.contains('active')) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    } else {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+            }
+
+            // 平滑滚动
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                        if (mobileMenu && mobileMenu.classList.contains('active')) {
+                            mobileMenu.classList.remove('active');
+                            const icon = menuToggle.querySelector('i');
+                            icon.classList.remove('fa-times');
+                            icon.classList.add('fa-bars');
+                        }
+                    }
+                });
+            });
+
+            // FAQ 展开/收起
+            const faqQuestions = document.querySelectorAll('.faq-question');
+            faqQuestions.forEach(question => {
+                question.addEventListener('click', function() {
+                    const answer = this.nextElementSibling;
+                    const icon = this.querySelector('i');
+
+                    // 关闭其他已展开的FAQ
+                    document.querySelectorAll('.faq-answer.open').forEach(openAnswer => {
+                        if (openAnswer !== answer) {
+                            openAnswer.classList.remove('open');
+                            openAnswer.previousElementSibling.querySelector('i').classList.remove('fa-minus-circle');
+                            openAnswer.previousElementSibling.querySelector('i').classList.add('fa-plus-circle');
+                        }
+                    });
+
+                    // 切换当前答案显示
+                    answer.classList.toggle('open');
+                    if (answer.classList.contains('open')) {
+                        icon.classList.remove('fa-plus-circle');
+                        icon.classList.add('fa-minus-circle');
+                    } else {
+                        icon.classList.remove('fa-minus-circle');
+                        icon.classList.add('fa-plus-circle');
+                    }
+                });
+            });
+
+            // 监听滚动，修改导航栏背景
+            window.addEventListener('scroll', function() {
+                const nav = document.querySelector('nav');
+                if (window.scrollY > 50) {
+                    nav.classList.add('bg-dark/95');
+                    nav.classList.remove('glass');
+                } else {
+                    nav.classList.remove('bg-dark/95');
+                    nav.classList.add('glass');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
