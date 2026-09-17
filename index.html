@@ -1079,7 +1079,8 @@ if (isMobile) document.body.classList.add('mobile');
      color —— 备用主题色（图标加载失败时用于 SVG 降级）
 
    需准备文件（同目录）：
-     site1.html  site1.png
+     index.html  index.png (作为 site1 的图标)
+     site1.html  (使用 index.png 作为图标)
      site2.html  site2.png
      site3.html  site3.png
      site4.html  site4.png
@@ -1087,7 +1088,7 @@ if (isMobile) document.body.classList.add('mobile');
 const SITES = [
   { type: 'edge',   name: 'Microsoft Edge', color: '#0F82D8' },
   { type: 'thispc', name: '此电脑',          color: '#1E6FB8' },
-  { type: 'local',  name: 'site1', url: 'site1.html', icon: 'site1.png', color: '#8b5cf6' },
+  { type: 'local',  name: 'site1', url: 'site1.html', icon: 'index.png', color: '#8b5cf6' }, // 这里改成 index.png
   { type: 'local',  name: 'site2', url: 'site2.html', icon: 'site2.png', color: '#10b981' },
   { type: 'local',  name: 'site3', url: 'site3.html', icon: 'site3.png', color: '#f59e0b' },
   { type: 'local',  name: 'site4', url: 'site4.html', icon: 'site4.png', color: '#ef4444' },
