@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<link rel="icon" type="image/png" href="./index.png?v=1"/>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>守禄的win11</title>
+<title>Windows 11 · 网站导航桌面</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -353,7 +352,6 @@ body.mobile .resize-handle { width: 32px; height: 32px; }
   background: var(--win-bg); color: var(--win-text);
 }
 
-/* ---- 多标签栏 ---- */
 .edge-tabbar {
   height: 38px;
   flex-shrink: 0;
@@ -450,7 +448,6 @@ body.mobile .resize-handle { width: 32px; height: 32px; }
 }
 .edge-newtab:hover { background: var(--tb-hover); }
 
-/* ---- 工具栏 ---- */
 .edge-toolbar {
   height: 44px; flex-shrink: 0;
   display: flex; align-items: center; gap: 4px;
@@ -491,7 +488,6 @@ body.mobile .resize-handle { width: 32px; height: 32px; }
 }
 .edge-addr-input::placeholder { color: var(--win-sub); }
 
-/* ---- 内容区 ---- */
 .edge-body {
   flex: 1; position: relative;
   min-height: 0;
@@ -1076,11 +1072,10 @@ if (isMobile) document.body.classList.add('mobile');
      name  —— 默认名（启动后会被对应 HTML 的 <title> 覆盖）
      url   —— 点击后加载的本地 HTML 文件
      icon  —— 图标 PNG 文件名（与本页面同目录）
-     color —— 备用主题色（图标加载失败时用于 SVG 降级）
+     color —— 备用主题色
 
    需准备文件（同目录）：
-     index.html  index.png (作为 site1 的图标)
-     site1.html  (使用 index.png 作为图标)
+     site1.html  site1.png
      site2.html  site2.png
      site3.html  site3.png
      site4.html  site4.png
@@ -1088,7 +1083,7 @@ if (isMobile) document.body.classList.add('mobile');
 const SITES = [
   { type: 'edge',   name: 'Microsoft Edge', color: '#0F82D8' },
   { type: 'thispc', name: '此电脑',          color: '#1E6FB8' },
-  { type: 'local',  name: 'site1', url: 'site1.html', icon: 'index.png', color: '#8b5cf6' }, // 这里改成 index.png
+  { type: 'local',  name: 'site1', url: 'site1.html', icon: 'site1.png', color: '#8b5cf6' },
   { type: 'local',  name: 'site2', url: 'site2.html', icon: 'site2.png', color: '#10b981' },
   { type: 'local',  name: 'site3', url: 'site3.html', icon: 'site3.png', color: '#f59e0b' },
   { type: 'local',  name: 'site4', url: 'site4.html', icon: 'site4.png', color: '#ef4444' },
@@ -1437,7 +1432,51 @@ function createWebWin(site) {
 }
 
 /* =========================================================
-   Edge 浏览器（多标签）
+   ★ 给 iframe 注入链接拦截器
+   同源 iframe 内的 target="_blank" 链接、Ctrl/Cmd+点击
+   改为在 Edge 内部新开标签，不走外部浏览器
+   ========================================================= */
+function injectLinkInterceptor(iframe, openInNewTab) {
+  try {
+    const doc = iframe.contentDocument;
+    const win = iframe.contentWindow;
+    if (!doc || !win) return;
+    if (win.__edgeInjected) return;
+    win.__edgeInjected = true;
+
+    const normalize = (url) => {
+      try { return new URL(url, iframe.src).href; }
+      catch (_) { return url; }
+    };
+
+    // 1. 覆盖 window.open —— JS 调用也走 Edge 内部新标签
+    win.open = function (url) {
+      if (url) openInNewTab(normalize(url), true);
+      return null;
+    };
+
+    // 2. 拦截 <a> 点击
+    doc.addEventListener('click', function (e) {
+      const a = e.target && e.target.closest && e.target.closest('a');
+      if (!a || !a.href) return;
+      if (!/^https?:/i.test(a.href)) return;
+
+      const isBlank    = a.target === '_blank';
+      const isModified = e.ctrlKey || e.metaKey || e.shiftKey;
+
+      if (isBlank || isModified) {
+        e.preventDefault();
+        e.stopPropagation();
+        openInNewTab(normalize(a.href), true);
+      }
+    }, true);
+  } catch (_) {
+    // 跨域 iframe 会抛异常，静默忽略
+  }
+}
+
+/* =========================================================
+   Edge 浏览器（多标签 + 链接拦截）
    ========================================================= */
 function createEdgeWin(site) {
   const bodyHTML = `
@@ -1538,6 +1577,12 @@ function createEdgeWin(site) {
     return tabs.find(t => t.id === activeTabId) || null;
   }
 
+  function escapeHTML(str) {
+    return String(str).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
   function updateTabBar() {
     tabsBar.replaceChildren();
     tabs.forEach(tab => {
@@ -1570,17 +1615,19 @@ function createEdgeWin(site) {
     });
   }
 
-  function escapeHTML(str) {
-    return String(str).replace(/[&<>"']/g, c => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[c]));
-  }
-
   function updateTabTitle(tab) {
     if (!tab.tabEl) return;
     const titleEl = tab.tabEl.querySelector('.edge-tab-title');
     if (titleEl) titleEl.textContent = tab.title;
     tab.tabEl.title = tab.title;
+  }
+
+  /* ---------- 在 Edge 内新建标签打开 URL ---------- */
+  function openInNewTab(url, activate = true) {
+    if (!url) return;
+    const tab = createTab();
+    navigateInTab(tab, url, true);
+    if (activate) activateTab(tab.id);
   }
 
   function createTab(initialUrl = null) {
@@ -1603,6 +1650,7 @@ function createEdgeWin(site) {
     };
 
     iframe.addEventListener('load', () => {
+      // 提取标题（同源）
       try {
         const innerTitle = iframe.contentDocument?.title?.trim();
         if (innerTitle && innerTitle !== tab.title) {
@@ -1610,6 +1658,9 @@ function createEdgeWin(site) {
           updateTabTitle(tab);
         }
       } catch (_) { /* 跨域忽略 */ }
+
+      // ★ 注入链接拦截器
+      injectLinkInterceptor(iframe, openInNewTab);
     });
 
     tabs.push(tab);
@@ -2241,12 +2292,12 @@ function toggleTheme() {
   const isDark = !document.body.classList.contains('dark');
   document.body.classList.toggle('dark', isDark);
   document.getElementById('themeBtn').innerHTML = svgIcon(isDark ? 'sun' : 'moon', 15, 2);
-  try { localStorage.setItem('win11nav-theme-v12', isDark ? 'dark' : 'light'); } catch(_) {}
+  try { localStorage.setItem('win11nav-theme-v13', isDark ? 'dark' : 'light'); } catch(_) {}
 }
 
 (function initTheme() {
   let saved = null;
-  try { saved = localStorage.getItem('win11nav-theme-v12'); } catch(_) {}
+  try { saved = localStorage.getItem('win11nav-theme-v13'); } catch(_) {}
   const isDark = saved ? saved === 'dark' : true;
   document.body.classList.toggle('dark', isDark);
   document.getElementById('themeBtn').innerHTML = svgIcon(isDark ? 'sun' : 'moon', 15, 2);
@@ -2309,7 +2360,7 @@ document.getElementById('avatarIco').innerHTML = svgIcon('user', 14, 2);
 document.getElementById('smHint').textContent = `${sites.filter(s => !isEmptySlot(s)).length} / ${SLOT_COUNT} 已配置`;
 
 /* =========================================================
-   启动：先渲染默认名，再异步读取本地 HTML 标题
+   启动
    ========================================================= */
 (async function boot() {
   renderIcons();
