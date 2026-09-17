@@ -1,0 +1,2025 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Windows 11 · 网站导航桌面</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --accent: #0067c0;
+  --win-bg: rgba(249, 249, 249, .94);
+  --win-text: #1a1a1a;
+  --win-sub: #5f5f5f;
+  --win-border: rgba(255, 255, 255, .55);
+  --win-shadow: 0 26px 70px rgba(0, 0, 0, .42), 0 2px 8px rgba(0, 0, 0, .22);
+  --win-shadow-focus: 0 32px 84px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .15);
+  --field-bg: rgba(255, 255, 255, .72);
+  --field-border: rgba(0, 0, 0, .1);
+  --sidebar-bg: rgba(0, 0, 0, .025);
+  --frame-bg: #ffffff;
+  --tb-bg: rgba(22, 22, 26, .82);
+  --tb-text: #f2f2f2;
+  --tb-hover: rgba(255, 255, 255, .075);
+  --tb-active: rgba(255, 255, 255, .13);
+  --tb-border: rgba(255, 255, 255, .085);
+  --menu-bg: rgba(30, 30, 34, .95);
+  --menu-text: #f2f2f2;
+  --menu-sub: #a8a8a8;
+  --menu-border: rgba(255, 255, 255, .1);
+  --menu-field-bg: rgba(255, 255, 255, .07);
+  --menu-field-border: rgba(255, 255, 255, .13);
+  --menu-scroll: rgba(255, 255, 255, .25);
+}
+
+body.dark {
+  --accent: #4cc2ff;
+  --win-bg: rgba(32, 32, 34, .95);
+  --win-text: #f2f2f2;
+  --win-sub: #b0b0b0;
+  --win-border: rgba(255, 255, 255, .1);
+  --win-shadow: 0 26px 70px rgba(0, 0, 0, .7), 0 2px 8px rgba(0, 0, 0, .5);
+  --win-shadow-focus: 0 32px 84px rgba(0, 0, 0, .8), 0 0 0 1px rgba(255, 255, 255, .18);
+  --field-bg: rgba(255, 255, 255, .07);
+  --field-border: rgba(255, 255, 255, .13);
+  --sidebar-bg: rgba(255, 255, 255, .025);
+  --frame-bg: #1e1e20;
+}
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system,
+               "Microsoft YaHei", "PingFang SC", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  color: var(--win-text);
+  background: #06101f;
+  overscroll-behavior: none;
+}
+
+body.dragging iframe { pointer-events: none; }
+
+#desktop { position: fixed; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; }
+
+#wallpaper {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  background: #06101f;
+  overflow: hidden;
+  z-index: 0;
+}
+#wallpaper::before {
+  content: "";
+  position: absolute;
+  left: -25%; top: -25%; right: -25%; bottom: -25%;
+  background:
+    radial-gradient(45% 45% at 22% 28%, #2563eb 0%, transparent 65%),
+    radial-gradient(40% 40% at 78% 18%, #7c3aed 0%, transparent 65%),
+    radial-gradient(45% 45% at 72% 82%, #0ea5e9 0%, transparent 65%),
+    radial-gradient(40% 40% at 18% 78%, #1d4ed8 0%, transparent 65%);
+  filter: blur(60px) saturate(1.15);
+}
+#wallpaper::after {
+  content: "";
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  background: radial-gradient(125% 95% at 50% 42%, transparent 38%, rgba(0, 0, 0, .55));
+}
+
+#icon-layer {
+  position: absolute;
+  left: 14px; top: 14px; right: 14px; bottom: 66px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(auto-fill, 108px);
+  grid-auto-columns: 106px;
+  align-content: start;
+  justify-content: start;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.dicon {
+  width: 106px;
+  height: 108px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  padding: 10px 4px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background .13s, border-color .13s;
+}
+.dicon:hover {
+  background: rgba(255, 255, 255, .13);
+  border-color: rgba(255, 255, 255, .17);
+}
+.dicon:active {
+  background: rgba(255, 255, 255, .22);
+  border-color: rgba(255, 255, 255, .4);
+}
+
+.dicon-glyph {
+  width: 48px; height: 48px;
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(145deg, #6f7bff, #3a48c0);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, .38), inset 0 1px 0 rgba(255, 255, 255, .3);
+  overflow: hidden;
+}
+.dicon-glyph svg { display: block; }
+
+.dicon-glyph.edge {
+  background: linear-gradient(145deg, #0F82D8 0%, #23B8A6 55%, #7BE49B 100%);
+}
+.dicon-glyph.thispc {
+  background: linear-gradient(145deg, #5BB0F0 0%, #1E6FB8 100%);
+}
+.dicon-glyph.plain {
+  background: transparent;
+  box-shadow: none;
+}
+.dicon-glyph.plain img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 10px;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .4));
+}
+
+.dicon-label {
+  max-width: 96px;
+  font-size: 11.5px;
+  line-height: 1.28;
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .8), 0 0 10px rgba(0, 0, 0, .5);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+#windows {
+  position: absolute;
+  left: 0; top: 0; right: 0; bottom: 52px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.window {
+  position: absolute;
+  left: 0; top: 0;
+  transform: translate3d(0, 0, 0);
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+  min-height: 200px;
+  border-radius: 9px;
+  background: var(--win-bg);
+  color: var(--win-text);
+  border: 1px solid var(--win-border);
+  box-shadow: var(--win-shadow);
+  overflow: hidden;
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  pointer-events: auto;
+  transition: box-shadow .15s ease, opacity .18s ease,
+              background .25s ease, color .25s ease, border-color .25s ease;
+}
+.window.focused { box-shadow: var(--win-shadow-focus); }
+.window.dragging {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+  will-change: transform;
+}
+.window.resizing {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+  will-change: width, height;
+}
+.window.maximized {
+  transform: none !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0;
+  border: none;
+}
+.window.minimized { opacity: 0; pointer-events: none; }
+.window.closing {
+  opacity: 0;
+  transform: scale(.94) translateY(8px);
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+}
+.window.opening { animation: winFade .18s ease-out; }
+@keyframes winFade { from { opacity: 0; } }
+
+.titlebar {
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 9px;
+  cursor: default;
+  touch-action: none;
+}
+.tb-app { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.tb-app-icon {
+  width: 18px; height: 18px;
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 4px;
+  color: #fff;
+  background: linear-gradient(145deg, var(--c), color-mix(in srgb, var(--c) 62%, #000));
+  overflow: hidden;
+}
+.tb-app-icon.edge { background: linear-gradient(145deg, #0F82D8, #23B8A6); }
+.tb-app-icon.thispc { background: linear-gradient(145deg, #5BB0F0, #1E6FB8); }
+.tb-app-icon.plain { background: transparent; }
+.tb-app-icon.plain img {
+  width: 100%; height: 100%;
+  object-fit: contain; display: block;
+  border-radius: 4px;
+}
+.tb-title {
+  font-size: 12.5px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tb-actions { display: flex; height: 100%; }
+
+.wbtn {
+  width: 44px; height: 100%;
+  display: grid; place-items: center;
+  border: none; background: transparent;
+  color: inherit; cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.wbtn:hover { background: var(--tb-hover); }
+.wbtn.close:hover { background: #c42b1c; color: #fff; }
+
+.toolbar {
+  height: 38px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 5px;
+  padding: 0 9px 8px;
+}
+.nav-btn {
+  width: 28px; height: 28px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border: none; border-radius: 5px;
+  background: transparent; color: inherit;
+  cursor: pointer;
+  transition: background .12s;
+}
+.nav-btn:hover { background: var(--tb-hover); }
+
+.address {
+  flex: 1; min-width: 0; height: 30px;
+  display: flex; align-items: center; gap: 7px;
+  padding: 0 10px; border-radius: 5px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  transition: border-color .15s, background .25s;
+}
+.address:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.address .lock { display: grid; place-items: center; opacity: .65; flex-shrink: 0; }
+.address input {
+  flex: 1; min-width: 0;
+  border: none; outline: none; background: transparent;
+  font-family: inherit; font-size: 12.5px; color: inherit;
+}
+
+.frame-wrap {
+  flex: 1; position: relative;
+  background: var(--frame-bg);
+  overflow: hidden;
+}
+.frame-wrap iframe {
+  width: 100%; height: 100%;
+  border: none; display: block;
+  background: var(--frame-bg);
+}
+.loader {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  display: grid; place-items: center;
+  background: var(--win-bg);
+  color: var(--win-sub);
+  font-size: 12.5px; gap: 12px;
+  transition: opacity .25s;
+}
+.loader.hide { opacity: 0; pointer-events: none; }
+.spinner {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2.5px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-top-color: var(--accent);
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.resize-handle {
+  position: absolute; right: 0; bottom: 0;
+  width: 22px; height: 22px;
+  cursor: nwse-resize;
+  z-index: 6;
+  touch-action: none;
+}
+body.mobile .resize-handle { width: 32px; height: 32px; }
+
+.edge-page {
+  flex: 1; display: flex; flex-direction: column; min-height: 0;
+  background: var(--win-bg); color: var(--win-text);
+}
+.edge-toolbar {
+  height: 44px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 4px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--win-border);
+}
+.edge-btn {
+  width: 32px; height: 32px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border: none; border-radius: 6px;
+  background: transparent; color: inherit;
+  cursor: pointer;
+  transition: background .12s, opacity .12s;
+}
+.edge-btn:hover:not(:disabled) { background: var(--tb-hover); }
+.edge-btn:active:not(:disabled) { background: var(--tb-active); }
+.edge-btn:disabled { opacity: .3; cursor: default; pointer-events: none; }
+.edge-btn svg { display: block; }
+
+.edge-address {
+  flex: 1; min-width: 0; height: 32px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 12px; border-radius: 16px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  font-size: 12.5px;
+  transition: border-color .15s, box-shadow .15s, background .25s;
+}
+.edge-address:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.edge-address .lock { display: grid; place-items: center; opacity: .6; flex-shrink: 0; }
+.edge-addr-input {
+  flex: 1; min-width: 0;
+  border: none; outline: none; background: transparent;
+  font-family: inherit; font-size: 12.5px; color: inherit;
+}
+.edge-addr-input::placeholder { color: var(--win-sub); }
+
+.edge-body {
+  flex: 1; position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--frame-bg);
+}
+.edge-frame {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  width: 100%; height: 100%;
+  border: none; display: block;
+  background: var(--frame-bg);
+}
+.edge-frame[hidden] { display: none; }
+
+.edge-start {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  overflow-y: auto;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 54px 24px 30px;
+  background:
+    radial-gradient(55% 45% at 50% 22%, rgba(15, 130, 216, .1), transparent 70%),
+    radial-gradient(50% 40% at 70% 90%, rgba(35, 184, 166, .08), transparent 70%),
+    var(--win-bg);
+}
+body.dark .edge-start {
+  background:
+    radial-gradient(55% 45% at 50% 22%, rgba(35, 184, 166, .1), transparent 70%),
+    radial-gradient(50% 40% at 70% 90%, rgba(15, 130, 216, .09), transparent 70%),
+    var(--win-bg);
+}
+.edge-start[hidden] { display: none; }
+
+.edge-brand { display: flex; align-items: center; gap: 14px; margin-bottom: 26px; }
+.edge-brand-badge {
+  width: 48px; height: 48px;
+  display: grid; place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #0F82D8, #23B8A6);
+}
+.edge-brand-name { font-size: 22px; font-weight: 600; letter-spacing: .2px; }
+
+.edge-searchbox {
+  width: min(540px, 92%); height: 44px;
+  display: flex; align-items: center; gap: 11px;
+  padding: 0 16px; border-radius: 22px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+  transition: border-color .15s, box-shadow .15s;
+}
+.edge-searchbox:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.edge-searchbox .s-ico { display: grid; place-items: center; opacity: .6; flex-shrink: 0; }
+.edge-search-input {
+  flex: 1; min-width: 0;
+  border: none; outline: none; background: transparent;
+  font-family: inherit; font-size: 14px; color: inherit;
+}
+.edge-search-input::placeholder { color: var(--win-sub); }
+
+.edge-tiles {
+  margin-top: 38px;
+  display: grid; grid-template-columns: repeat(4, 96px);
+  gap: 10px; justify-content: center;
+}
+.edge-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+  padding: 14px 6px; border-radius: 9px;
+  cursor: pointer;
+  transition: background .14s;
+}
+.edge-tile:hover { background: var(--tb-hover); }
+.edge-tile-icon {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: 9px; color: #fff;
+  font-size: 15px; font-weight: 700;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .22);
+}
+.edge-tile-name {
+  font-size: 11.5px; max-width: 84px; text-align: center;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.edge-hint {
+  margin-top: 30px;
+  font-size: 11.5px;
+  color: var(--win-sub);
+  text-align: center;
+  line-height: 1.6;
+  max-width: 480px;
+  opacity: .8;
+}
+
+.explorer {
+  flex: 1; display: flex; flex-direction: column; min-height: 0;
+  background: var(--win-bg); color: var(--win-text);
+  font-size: 12.5px;
+}
+.exp-toolbar {
+  height: 44px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 4px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--win-border);
+}
+.exp-nav {
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border: none; border-radius: 5px;
+  background: transparent; color: inherit;
+  cursor: pointer; opacity: .85;
+  transition: background .12s;
+}
+.exp-nav:hover { background: var(--tb-hover); opacity: 1; }
+.exp-nav.dim { opacity: .32; pointer-events: none; }
+
+.exp-address {
+  flex: 1; min-width: 0; height: 30px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 11px; border-radius: 5px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  font-size: 12.5px;
+}
+.exp-address .crumb { opacity: .85; }
+
+.exp-search {
+  width: 190px; height: 30px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 11px; border-radius: 5px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  font-size: 12px; color: var(--win-sub);
+}
+
+.exp-body { flex: 1; display: flex; min-height: 0; }
+
+.exp-sidebar {
+  width: 200px; flex-shrink: 0;
+  padding: 8px 6px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--win-border);
+  overflow-y: auto;
+}
+.exp-side-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 10px; border-radius: 5px;
+  cursor: default;
+  transition: background .12s;
+}
+.exp-side-item:hover { background: var(--tb-hover); }
+.exp-side-item.active { background: var(--tb-active); }
+.exp-side-item .si {
+  width: 16px; display: grid; place-items: center;
+  flex-shrink: 0; opacity: .9;
+}
+.exp-side-item .si.gold  { color: #d9a53b; }
+.exp-side-item .si.blue  { color: #3b82f6; }
+.exp-side-item .si.green { color: #10b981; }
+.exp-side-item .si.pink  { color: #ec4899; }
+.exp-side-item .si.purple{ color: #a855f7; }
+.exp-side-item .si.red   { color: #ef4444; }
+.exp-side-item .si.gray  { color: #8a8a8a; }
+body.dark .exp-side-item .si.blue { color: #60a5fa; }
+body.dark .exp-side-item .si.green{ color: #34d399; }
+body.dark .exp-side-item .si.gold { color: #fbbf24; }
+body.dark .exp-side-item .si.pink { color: #f472b6; }
+body.dark .exp-side-item .si.purple{color: #c084fc; }
+body.dark .exp-side-item .si.red  { color: #f87171; }
+body.dark .exp-side-item .si.gray { color: #9ca3af; }
+
+.exp-divider { height: 1px; margin: 7px 10px; background: var(--field-border); }
+
+.exp-main {
+  flex: 1; min-width: 0;
+  overflow-y: auto;
+  padding: 16px 20px 24px;
+}
+.exp-group-title { font-size: 12.5px; font-weight: 600; margin-bottom: 10px; }
+.exp-group + .exp-group { margin-top: 26px; }
+
+.exp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 4px;
+}
+
+.drive {
+  display: flex; align-items: center; gap: 13px;
+  padding: 11px 12px; border-radius: 7px;
+  cursor: default; transition: background .13s;
+}
+.drive:hover { background: var(--tb-hover); }
+.drive-icon {
+  width: 42px; height: 42px; flex-shrink: 0;
+  display: grid; place-items: center; border-radius: 8px;
+  background: linear-gradient(145deg, #5BB0F0, #1E6FB8);
+  color: #fff; box-shadow: 0 3px 10px rgba(0, 0, 0, .22);
+}
+.drive-info { flex: 1; min-width: 0; }
+.drive-name {
+  font-size: 12.5px; font-weight: 500; margin-bottom: 5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.drive-bar {
+  height: 5px; border-radius: 3px;
+  background: var(--field-border); overflow: hidden; margin-bottom: 5px;
+}
+.drive-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+}
+.drive-meta { font-size: 11px; color: var(--win-sub); }
+
+.folder {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 12px; border-radius: 7px;
+  cursor: default; transition: background .13s;
+}
+.folder:hover { background: var(--tb-hover); }
+.folder-icon {
+  width: 34px; height: 34px; flex-shrink: 0;
+  display: grid; place-items: center; border-radius: 6px;
+  color: #f5b93c;
+  background: rgba(245, 185, 60, .16);
+}
+.folder-name {
+  font-size: 12.5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+#taskbar {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 52px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px;
+  padding: 0 156px 0 8px;
+  background: var(--tb-bg);
+  color: var(--tb-text);
+  border-top: 1px solid var(--tb-border);
+  backdrop-filter: blur(34px) saturate(180%);
+  -webkit-backdrop-filter: blur(34px) saturate(180%);
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, .28);
+  z-index: 500;
+}
+
+.tb-btn, .task-item {
+  position: relative;
+  width: 40px; height: 40px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border: none; border-radius: 7px;
+  background: transparent; color: inherit;
+  cursor: default;
+  transition: background .13s;
+}
+.tb-btn:hover, .task-item:hover { background: var(--tb-hover); }
+
+.task-item::after {
+  content: "";
+  position: absolute; bottom: 2px; left: 50%;
+  width: 0; height: 3px; border-radius: 2px;
+  background: var(--accent);
+  transform: translateX(-50%);
+  transition: width .18s ease, opacity .18s;
+}
+.task-item.running::after { width: 14px; }
+.task-item.minimized::after { width: 6px; opacity: .55; }
+.task-item.active { background: var(--tb-active); }
+
+.task-item .ti-badge {
+  width: 22px; height: 22px;
+  display: grid; place-items: center;
+  border-radius: 5px; color: #fff;
+  background: linear-gradient(145deg, var(--c), color-mix(in srgb, var(--c) 62%, #000));
+  overflow: hidden;
+}
+.task-item .ti-badge.edge { background: linear-gradient(145deg, #0F82D8, #23B8A6); }
+.task-item .ti-badge.thispc { background: linear-gradient(145deg, #5BB0F0, #1E6FB8); }
+.task-item .ti-badge.plain { background: transparent; }
+.task-item .ti-badge.plain img {
+  width: 100%; height: 100%;
+  object-fit: contain; display: block;
+  border-radius: 5px;
+}
+
+#tray {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  display: flex; align-items: center; gap: 2px;
+  padding-right: 14px; font-size: 11.5px;
+}
+#tray .tray-btn {
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border: none; background: transparent; color: inherit;
+  cursor: pointer; border-radius: 5px;
+  transition: background .12s;
+}
+#tray .tray-btn:hover { background: var(--tb-hover); }
+
+#clock {
+  display: flex; flex-direction: column; align-items: flex-end;
+  line-height: 1.25; cursor: default; padding-left: 8px;
+}
+#clock .t { font-size: 12px; }
+#clock .d { font-size: 11px; opacity: .75; }
+
+#startMenu {
+  position: absolute;
+  left: 50%; bottom: 62px;
+  width: min(600px, calc(100vw - 24px));
+  height: min(580px, calc(100vh - 130px));
+  display: flex; flex-direction: column;
+  padding: 22px 24px 14px;
+  border-radius: 10px;
+  background: var(--menu-bg);
+  color: var(--menu-text);
+  border: 1px solid var(--menu-border);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .62);
+  backdrop-filter: blur(46px) saturate(180%);
+  -webkit-backdrop-filter: blur(46px) saturate(180%);
+  z-index: 600;
+  opacity: 0; pointer-events: none;
+  transform: translateX(-50%) translateY(16px) scale(.98);
+  transition: opacity .18s ease, transform .24s cubic-bezier(.2, .9, .3, 1.05);
+}
+#startMenu.open {
+  opacity: 1; pointer-events: auto;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+#startSearch {
+  height: 34px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 9px;
+  padding: 0 13px; margin-bottom: 18px;
+  border-radius: 17px;
+  background: var(--menu-field-bg);
+  border: 1px solid var(--menu-field-border);
+}
+#startSearch:focus-within {
+  background: rgba(255, 255, 255, .1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+#startSearch .ico { display: grid; place-items: center; opacity: .65; }
+#startSearch input {
+  flex: 1; min-width: 0;
+  border: none; outline: none; background: transparent;
+  font-family: inherit; font-size: 13px; color: inherit;
+}
+#startSearch input::placeholder { color: var(--menu-sub); }
+
+.sm-title { font-size: 12.5px; font-weight: 600; margin-bottom: 10px; flex-shrink: 0; }
+
+#startGrid {
+  flex: 1; overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 3px; align-content: start; padding-right: 4px;
+}
+
+.start-item {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 12px 4px; border-radius: 7px;
+  cursor: pointer;
+  transition: background .13s;
+}
+.start-item:hover { background: var(--tb-hover); }
+.start-item .si-icon {
+  width: 38px; height: 38px;
+  display: grid; place-items: center;
+  border-radius: 9px; color: #fff;
+  background: linear-gradient(145deg, var(--c), color-mix(in srgb, var(--c) 62%, #000));
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .4);
+  overflow: hidden;
+}
+.start-item .si-icon.edge { background: linear-gradient(145deg, #0F82D8, #23B8A6); }
+.start-item .si-icon.thispc { background: linear-gradient(145deg, #5BB0F0, #1E6FB8); }
+.start-item .si-icon.plain {
+  background: transparent;
+  box-shadow: none;
+}
+.start-item .si-icon.plain img {
+  width: 100%; height: 100%;
+  object-fit: contain; display: block;
+  border-radius: 9px;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .4));
+}
+.start-item .si-name {
+  font-size: 11.5px; text-align: center; line-height: 1.3;
+  max-width: 86px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.sm-footer {
+  flex-shrink: 0; height: 46px; margin-top: 10px; padding-top: 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--menu-field-border);
+  font-size: 12px;
+}
+.sm-user {
+  display: flex; align-items: center; gap: 9px;
+  padding: 5px 9px; border-radius: 6px;
+  cursor: default;
+}
+.sm-avatar {
+  width: 26px; height: 26px;
+  display: grid; place-items: center; border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(145deg, #6ea8fe, #3b5bdb);
+}
+.sm-hint { color: var(--menu-sub); font-size: 11px; }
+
+#ctxMenu {
+  position: absolute;
+  min-width: 210px;
+  padding: 5px; border-radius: 8px;
+  background: var(--menu-bg);
+  color: var(--menu-text);
+  border: 1px solid var(--menu-border);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .58);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  z-index: 900;
+  opacity: 0; pointer-events: none;
+  transform: scale(.97);
+  transform-origin: top left;
+  transition: opacity .12s ease, transform .12s ease;
+}
+#ctxMenu.open { opacity: 1; pointer-events: auto; transform: scale(1); }
+
+.ctx-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 8px 11px; border-radius: 5px;
+  font-size: 12.5px; cursor: default;
+  transition: background .1s;
+}
+.ctx-item:hover { background: var(--tb-hover); }
+.ctx-item.disabled { opacity: .55; pointer-events: none; }
+.ctx-item .ci-icon { width: 16px; display: grid; place-items: center; opacity: .8; }
+.ctx-sep { height: 1px; margin: 4px 8px; background: var(--menu-field-border); }
+
+#toast {
+  position: absolute;
+  left: 50%; bottom: 76px;
+  transform: translateX(-50%) translateY(16px);
+  padding: 11px 20px; border-radius: 8px;
+  background: var(--menu-bg);
+  color: var(--menu-text);
+  border: 1px solid var(--menu-border);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, .55);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  font-size: 12.5px; z-index: 1000;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s ease, transform .26s cubic-bezier(.2, .9, .3, 1.05);
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+body.mobile #wallpaper::before {
+  filter: none;
+  background:
+    radial-gradient(60% 45% at 28% 30%, rgba(37, 99, 235, .85), transparent 70%),
+    radial-gradient(50% 45% at 75% 20%, rgba(124, 58, 237, .75), transparent 70%),
+    radial-gradient(55% 45% at 72% 82%, rgba(14, 165, 233, .7), transparent 70%),
+    radial-gradient(50% 45% at 18% 78%, rgba(29, 78, 216, .8), transparent 70%),
+    #06101f;
+}
+body.mobile .window,
+body.mobile #taskbar,
+body.mobile #startMenu,
+body.mobile #ctxMenu,
+body.mobile #toast {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body.mobile .window { box-shadow: 0 4px 14px rgba(0, 0, 0, .35); }
+body.mobile .window.focused { box-shadow: 0 6px 20px rgba(0, 0, 0, .5); }
+body.mobile .window.dragging,
+body.mobile .window.resizing { box-shadow: none !important; }
+body.mobile #taskbar {
+  background: rgba(22, 22, 26, .96);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, .4);
+}
+body.mobile #startMenu,
+body.mobile #ctxMenu,
+body.mobile #toast { background: rgba(30, 30, 34, .98); }
+body.mobile .dicon { width: 96px; height: 106px; }
+body.mobile .dicon-glyph { width: 46px; height: 46px; }
+
+@media (max-width: 720px) {
+  #icon-layer { left: 10px; top: 10px; right: 8px; bottom: 62px; grid-auto-columns: 96px; grid-template-rows: repeat(auto-fill, 106px); }
+  .dicon { width: 96px; height: 106px; }
+  .dicon-glyph { width: 46px; height: 46px; }
+  .dicon-label { max-width: 88px; font-size: 11px; }
+  #taskbar { padding: 0 8px; justify-content: flex-start; overflow-x: auto; }
+  #tray { display: none; }
+  #startMenu { width: calc(100vw - 16px); height: calc(100vh - 110px); }
+  .exp-sidebar { display: none; }
+  .edge-tiles { grid-template-columns: repeat(2, 96px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+</style>
+</head>
+<body class="dark">
+
+<div id="desktop">
+  <div id="wallpaper"></div>
+  <div id="icon-layer"></div>
+  <div id="windows"></div>
+
+  <div id="taskbar">
+    <button class="tb-btn" id="startBtn" title="开始">
+      <svg width="19" height="19" viewBox="0 0 16 16" fill="currentColor">
+        <rect x="0" y="0" width="7" height="7" rx="1.2"/>
+        <rect x="9" y="0" width="7" height="7" rx="1.2"/>
+        <rect x="0" y="9" width="7" height="7" rx="1.2"/>
+        <rect x="9" y="9" width="7" height="7" rx="1.2"/>
+      </svg>
+    </button>
+    <div id="tasklist" style="display:flex;gap:6px;"></div>
+
+    <div id="tray">
+      <button class="tray-btn" id="themeBtn" title="切换窗口主题"></button>
+      <button class="tray-btn" id="closeAllBtn" title="关闭全部窗口"></button>
+      <div id="clock">
+        <span class="t">--:--</span>
+        <span class="d">----/--/--</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="startMenu">
+    <div id="startSearch">
+      <span class="ico" id="searchIco"></span>
+      <input type="text" id="startInput" placeholder="搜索快捷方式…" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="sm-title">全部快捷方式</div>
+    <div id="startGrid"></div>
+    <div class="sm-footer">
+      <div class="sm-user">
+        <div class="sm-avatar" id="avatarIco"></div>
+        <span>Admin</span>
+      </div>
+      <span class="sm-hint" id="smHint"></span>
+    </div>
+  </div>
+
+  <div id="ctxMenu"></div>
+  <div id="toast"></div>
+</div>
+
+<script>
+/* ============ 设备检测 ============ */
+const isMobile = matchMedia('(hover: none) and (pointer: coarse)').matches
+  || /Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(navigator.userAgent);
+if (isMobile) document.body.classList.add('mobile');
+
+/* =========================================================
+   ★ 站点配置
+   ---------------------------------------------------------------------------
+   name 字段现在只是「初始占位名」，页面加载时会被对应 HTML 文件的
+   <title> 自动覆盖。fetch 失败（如 file:// 协议下）时保留这个默认值。
+   ========================================================= */
+const SITES = [
+  /* 系统图标（保持原样） */
+  { type: 'edge',   name: 'Microsoft Edge', color: '#0F82D8' },
+  { type: 'thispc', name: '此电脑',          color: '#1E6FB8' },
+
+  /* 本地 HTML 快捷方式（name 会被 <title> 覆盖） */
+  { type: 'local', name: 'site1', url: 'site1.html', icon: 'site1.png', color: '#8b5cf6' },
+  { type: 'local', name: 'site2', url: 'site2.html', icon: 'site2.png', color: '#10b981' },
+  { type: 'local', name: 'site3', url: 'site3.html', icon: 'site3.png', color: '#f59e0b' },
+  { type: 'local', name: 'site4', url: 'site4.html', icon: 'site4.png', color: '#ef4444' },
+];
+
+/* ================= 图标库 ================= */
+const ICONS = {
+  globe:   '<circle cx="12" cy="12" r="9"/><path d="M3.2 9h17.6M3.2 15h17.6"/><path d="M12 3c2.4 3.3 2.4 14.7 0 18M12 3c-2.4 3.3-2.4 14.7 0 18"/>',
+  code:    '<path d="M8.5 6.5 3 12l5.5 5.5M15.5 6.5 21 12l-5.5 5.5"/>',
+  palette: '<path d="M12 3a9 9 0 1 0 0 18h1.3a2 2 0 0 0 1.5-3.3 2 2 0 0 1 1.5-3.3H19a2 2 0 0 0 2-2A9 9 0 0 0 12 3z"/><circle cx="7.8" cy="11.2" r="1.1"/><circle cx="10.2" cy="7.3" r="1.1"/><circle cx="14.4" cy="7.8" r="1.1"/>',
+  spark:   '<path d="M12 3.5 13.9 9.6 20 11.5l-6.1 1.9L12 19.5l-1.9-6.1L4 11.5l6.1-1.9z"/>',
+  tool:    '<path d="M9.6 3.6a5 5 0 0 1 6.5 6.5l4.9 4.9-2 2-1.5-1.5-2 2-1.5-1.5-4.4-4.4a5 5 0 0 1-6.5-6.5l2.7 2.7 2.3-2.3z"/>',
+  play:    '<circle cx="12" cy="12" r="9"/><path d="M10 8.6 16 12l-6 3.4z"/>',
+  book:    '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v18H6.5A2.5 2.5 0 0 1 4 18.5z"/><path d="M8 3v18"/>',
+  chat:    '<path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 21l1.5-4.6A8.5 8.5 0 1 1 20.5 12z"/>',
+  music:   '<circle cx="7" cy="18" r="2.5"/><circle cx="18" cy="16" r="2.5"/><path d="M9.5 18V7l11-2v11"/>',
+  game:    '<rect x="2.5" y="7" width="19" height="10.5" rx="4"/><path d="M7 10.5v3M5.5 12h3M15.5 11h.01M18 13.5h.01"/>',
+  video:   '<rect x="2.5" y="5.5" width="14" height="13" rx="2.5"/><path d="m16.5 10.5 5-3v9l-5-3z"/>',
+  plus:    '<path d="M12 5.5v13M5.5 12h13"/>',
+  monitor: '<rect x="3" y="4.5" width="18" height="12.5" rx="1.8"/><path d="M9.2 20.5h5.6M12 17v3.5"/>',
+  search:  '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/>',
+  user:    '<circle cx="12" cy="8" r="3.7"/><path d="M4.8 20.4a7.5 7.5 0 0 1 14.4 0"/>',
+  sun:     '<circle cx="12" cy="12" r="4"/><path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M18.7 5.3l-1.5 1.5M6.8 17.2l-1.5 1.5"/>',
+  moon:    '<path d="M20.5 13.6A8.5 8.5 0 1 1 10.4 3.5a6.8 6.8 0 0 0 10.1 10.1z"/>',
+  power:   '<path d="M12 3.6v8.2"/><path d="M6.9 6.9a7.4 7.4 0 1 0 10.2 0"/>',
+  refresh: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4.2v6.9h-6.9"/>',
+  back:    '<path d="M19 12H5"/><path d="M11 19l-7-7 7-7"/>',
+  forward: '<path d="M5 12h14"/><path d="M13 5l7 7-7 7"/>',
+  home:    '<path d="m3.5 11 8.5-7 8.5 7"/><path d="M5.8 9.8V20h12.4V9.8"/><path d="M10 20v-5.4h4V20"/>',
+  layers:  '<path d="m12 3 9 4.5-9 4.5-9-4.5z"/><path d="m3 12.4 9 4.5 9-4.5"/>',
+  info:    '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.6M12 7.7h.01"/>',
+  close:   '<path d="M5.2 5.2 18.8 18.8M18.8 5.2 5.2 18.8"/>',
+  external:'<path d="M14 4h6v6"/><path d="M20 4 10.5 13.5"/><path d="M18.5 14v5.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5.5"/>',
+  lock:    '<rect x="4.5" y="10" width="15" height="10.5" rx="2"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/>',
+  gallery: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="8.6" cy="9.6" r="1.5"/><path d="m4 17 4.5-4.5 3 3 3.2-3.2L20 16.6"/>',
+  down:    '<path d="M12 4v11"/><path d="m7.8 11 4.2 4.2L16.2 11"/><path d="M4.5 20h15"/>',
+  doc:     '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>',
+  image:   '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="8.6" cy="9.6" r="1.5"/><path d="m4 17 4.5-4.5 3 3 3.2-3.2L20 16.6"/>',
+  note:    '<circle cx="7" cy="18" r="2.5"/><circle cx="18" cy="16" r="2.5"/><path d="M9.5 18V7l11-2v11"/>',
+  film:    '<rect x="2.5" y="5.5" width="14" height="13" rx="2.5"/><path d="m16.5 10.5 5-3v9l-5-3z"/>',
+  hdd:     '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="16.5" cy="12" r="1.2"/>',
+  net:     '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.2 2.6 2.2 14.4 0 17M12 3.5c-2.2 2.6-2.2 14.4 0 17"/>',
+  dots:    '<circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/>',
+};
+
+function svgIcon(name, size = 24, sw = 1.8) {
+  const path = ICONS[name] || ICONS.globe;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" stroke-width="${sw}" stroke-linecap="round"
+    stroke-linejoin="round">${path}</svg>`;
+}
+
+const EDGE_LOGO = `<svg viewBox="0 0 64 64" width="32" height="32" fill="none">
+  <circle cx="32" cy="32" r="26" fill="#25B2C8"/>
+  <circle cx="32" cy="32" r="20" fill="#23B8A6" opacity="0.55"/>
+  <path d="M11 41 Q 22 27, 35 30 Q 48 32, 53 24 Q 52 47, 32 52 Q 16 52, 11 41 Z" fill="#ffffff" opacity="0.96"/>
+  <path d="M17 28 Q 26 20, 38 22 Q 48 25, 52 19 Q 46 13, 34 14 Q 21 15, 17 28 Z" fill="#ffffff" opacity="0.5"/>
+</svg>`;
+
+const EXPLORER_SMALL = `<svg viewBox="0 0 48 48" width="30" height="30" fill="none">
+  <rect x="6" y="10" width="36" height="24" rx="2.2" fill="#ffffff" opacity="0.95"/>
+  <rect x="10" y="14" width="28" height="16" rx="1" fill="#1E6FB8"/>
+  <path d="M10 14 L38 14 L38 20 L10 20 Z" fill="#ffffff" opacity="0.12"/>
+  <rect x="20" y="35" width="8" height="3" rx="1" fill="#ffffff" opacity="0.95"/>
+  <rect x="12" y="39" width="24" height="2.6" rx="1.3" fill="#ffffff" opacity="0.95"/>
+</svg>`;
+
+/* ================= 元素引用 ================= */
+const iconLayer = document.getElementById('icon-layer');
+const winLayer  = document.getElementById('windows');
+const tasklist  = document.getElementById('tasklist');
+const startMenu = document.getElementById('startMenu');
+const startGrid = document.getElementById('startGrid');
+const startInput= document.getElementById('startInput');
+const ctxMenu   = document.getElementById('ctxMenu');
+const toastEl   = document.getElementById('toast');
+const clockT    = document.querySelector('#clock .t');
+const clockD    = document.querySelector('#clock .d');
+
+const SLOT_COUNT = 6;
+const sites = SITES.slice(0, SLOT_COUNT);
+while (sites.length < SLOT_COUNT) {
+  sites.push({ name: '', url: '', icon: 'globe', color: '#0078d4' });
+}
+const isEmptySlot = s =>
+  s.type !== 'edge' && s.type !== 'thispc' && s.type !== 'local'
+  && (!s.name || !s.url);
+
+/* =========================================================
+   ★ 从本地 HTML 文件的 <title> 提取名称
+   ========================================================= */
+async function extractLocalTitles() {
+  const tasks = sites.map(async (s) => {
+    if (s.type !== 'local' || !s.url) return;
+    try {
+      const res = await fetch(s.url, { cache: 'no-cache' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const text = await res.text();
+      const doc  = new DOMParser().parseFromString(text, 'text/html');
+      const title = (doc.querySelector('title')?.textContent || '').trim();
+      if (title) {
+        s.name = title;
+        // 记住原始 title，可用于窗口标题（此处暂时与显示名一致）
+        s._title = title;
+      }
+    } catch (err) {
+      // 读取失败（含 file:// 下 CORS 拒绝），保留默认 name
+      console.warn(`[导航] 无法读取 ${s.url} 的标题：`, err.message);
+    }
+  });
+  await Promise.all(tasks);
+}
+
+/* ================= 提示条 ================= */
+let toastTimer = null;
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
+}
+
+/* ================= 图标渲染工具 ================= */
+function glyphHTML(s, size = 24, sw = 1.8) {
+  if (s.type === 'edge')   return { html: EDGE_LOGO,      cls: 'edge'   };
+  if (s.type === 'thispc') return { html: EXPLORER_SMALL, cls: 'thispc' };
+  if (s.type === 'local')  return {
+    html: `<img src="${s.icon}" alt="${s.name}">`,
+    cls: 'plain'
+  };
+  if (isEmptySlot(s)) return { html: svgIcon('plus', 24, 2.2), cls: '' };
+  return { html: svgIcon(s.icon, size, sw), cls: '' };
+}
+
+function smallGlyphHTML(s, size = 12, sw = 2.4) {
+  if (s.type === 'edge')   return { html: svgIcon('globe', size, sw),   cls: 'edge'   };
+  if (s.type === 'thispc') return { html: svgIcon('monitor', size, sw), cls: 'thispc' };
+  if (s.type === 'local')  return {
+    html: `<img src="${s.icon}" alt="">`,
+    cls: 'plain'
+  };
+  return { html: svgIcon(s.icon || 'globe', size, sw), cls: '' };
+}
+
+function attachImgFallback(container, fallbackName = 'globe', size = 24, sw = 1.8) {
+  const img = container.querySelector('img');
+  if (!img) return;
+  img.addEventListener('error', () => {
+    container.classList.remove('plain');
+    container.innerHTML = svgIcon(fallbackName, size, sw);
+  }, { once: true });
+}
+
+/* ================= 窗口管理 ================= */
+const wins = new Map();
+let zTop = 100;
+let seq = 0;
+let activeId = null;
+
+function slotVisual(s, i) {
+  if (s.type === 'edge')   return { label: 'Microsoft Edge', ...glyphHTML(s), color: '#0F82D8', cls: 'edge' };
+  if (s.type === 'thispc') return { label: '此电脑',          ...glyphHTML(s), color: '#1E6FB8', cls: 'thispc' };
+  if (s.type === 'local')  return { label: s.name,            ...glyphHTML(s), color: s.color || '#0078d4' };
+  if (isEmptySlot(s))      return { label: '添加快捷方式',     ...glyphHTML(s), color: s.color || '#0078d4' };
+  return { label: s.name, ...glyphHTML(s), color: s.color || '#0078d4' };
+}
+
+function openSlot(s, i) {
+  if (s.type === 'edge')   return createEdgeWin(s);
+  if (s.type === 'thispc') return createThisPCWin(s);
+  if (isEmptySlot(s)) {
+    showToast(`空位 ${i - 1}：请在代码 SITES[${i}] 中填写`);
+    return;
+  }
+  for (const w of wins.values()) {
+    if (w.site.url === s.url) { focusWin(w.id); return; }
+  }
+  createWebWin(s);
+}
+
+function applyWinLayout(w) {
+  if (w.maximized) return;
+  const el = w.el;
+  el.style.transform = `translate3d(${w.pos.x}px, ${w.pos.y}px, 0)`;
+  el.style.width  = w.pos.w + 'px';
+  el.style.height = w.pos.h + 'px';
+}
+
+function buildWindow({ site, title, color, bodyHTML, extraClass = '' }) {
+  const id = 'w' + (++seq);
+  const el = document.createElement('div');
+  el.className = 'window opening ' + extraClass;
+  el.dataset.id = id;
+
+  const W = Math.min(940, Math.max(isMobile ? 280 : 380, window.innerWidth - 170));
+  const H = Math.min(640, Math.max(isMobile ? 200 : 280, window.innerHeight - 210));
+  const n = wins.size;
+  const left = Math.max(14, Math.round((window.innerWidth  - W) / 2 - 110 + (n % 6) * 32));
+  const top  = Math.max(14, Math.round((window.innerHeight - 52 - H) / 2 - 60 + (n % 6) * 28));
+
+  el.style.zIndex = ++zTop;
+
+  const g = smallGlyphHTML(site, 11, 2.4);
+  const badge = `<div class="tb-app-icon ${g.cls}" style="--c:${color}">${g.html}</div>`;
+
+  el.innerHTML = `
+    <div class="titlebar">
+      <div class="tb-app">
+        ${badge}
+        <div class="tb-title">${title}</div>
+      </div>
+      <div class="tb-actions">
+        <button class="wbtn" data-act="min" title="最小化">
+          <svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5h10" stroke="currentColor" stroke-width="1"/></svg>
+        </button>
+        <button class="wbtn" data-act="max" title="最大化">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <rect x="0.5" y="0.5" width="9" height="9" rx="1.5" stroke="currentColor"/>
+          </svg>
+        </button>
+        <button class="wbtn close" data-act="close" title="关闭">
+          <svg width="10" height="10" viewBox="0 0 10 10">
+            <path d="M0 0l10 10M10 0L0 10" stroke="currentColor" stroke-width="1.1"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    ${bodyHTML}
+    <div class="resize-handle"></div>
+  `;
+
+  winLayer.appendChild(el);
+  attachImgFallback(el.querySelector('.tb-app-icon'), 'globe', 11, 2.4);
+
+  const w = {
+    id, site, el,
+    minimized: false,
+    maximized: false,
+    pos: { x: left, y: top, w: W, h: H },
+    prev: null
+  };
+  wins.set(id, w);
+
+  applyWinLayout(w);
+  bindWindowBase(el, w);
+  focusWin(id);
+  renderTasklist();
+  return w;
+}
+
+function bindWindowBase(el, w) {
+  const id = w.id;
+  const titlebar = el.querySelector('.titlebar');
+  const handle   = el.querySelector('.resize-handle');
+
+  el.addEventListener('pointerdown', () => focusWin(id), true);
+
+  el.querySelectorAll('.wbtn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const act = btn.dataset.act;
+      if (act === 'min')   minimizeWin(id);
+      if (act === 'max')   toggleMax(id);
+      if (act === 'close') closeWin(id);
+    });
+  });
+
+  titlebar.addEventListener('pointerdown', e => {
+    if (e.target.closest('.wbtn')) return;
+    startDrag(e, w);
+  });
+  titlebar.addEventListener('dblclick', e => {
+    if (e.target.closest('.wbtn')) return;
+    toggleMax(id);
+  });
+
+  handle.addEventListener('pointerdown', e => startResize(e, w));
+}
+
+/* ================= 本地 HTML / 网页窗口 ================= */
+function createWebWin(site) {
+  const bodyHTML = `
+    <div class="toolbar">
+      <button class="nav-btn" data-act="reload" title="刷新">${svgIcon('reload', 14, 2.1)}</button>
+      <div class="address">
+        <span class="lock">${svgIcon('lock', 11, 2)}</span>
+        <input class="url-input" type="text" spellcheck="false" value="${site.url}">
+      </div>
+      <button class="nav-btn" data-act="external" title="在新标签页打开">${svgIcon('external', 14, 2.1)}</button>
+    </div>
+    <div class="frame-wrap">
+      <div class="loader">
+        <div class="spinner"></div>
+        <div>正在载入 ${site.name} …</div>
+      </div>
+      <iframe src="${site.url}" referrerpolicy="no-referrer" loading="eager"></iframe>
+    </div>
+  `;
+
+  const w = buildWindow({
+    site,
+    title: site.name,
+    color: site.color || '#0078d4',
+    bodyHTML,
+  });
+
+  const el       = w.el;
+  const iframe   = el.querySelector('iframe');
+  const loader   = el.querySelector('.loader');
+  const urlInput = el.querySelector('.url-input');
+
+  el.querySelector('[data-act="reload"]').addEventListener('click', () => {
+    loader.classList.remove('hide');
+    iframe.src = iframe.src;
+  });
+  el.querySelector('[data-act="external"]').addEventListener('click', () => {
+    window.open(iframe.src || site.url, '_blank', 'noopener');
+  });
+
+  urlInput.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    let v = urlInput.value.trim();
+    if (!v) return;
+    if (!/^https?:\/\//i.test(v) && !/\.html?$/i.test(v) && !/^\//.test(v)) {
+      v = /^[\w-]+(\.[\w-]+)+/.test(v)
+        ? 'https://' + v
+        : 'https://www.bing.com/search?q=' + encodeURIComponent(v);
+    }
+    loader.classList.remove('hide');
+    iframe.src = v;
+    urlInput.value = v;
+    urlInput.blur();
+  });
+  urlInput.addEventListener('pointerdown', e => e.stopPropagation());
+
+  iframe.addEventListener('load', () => {
+    setTimeout(() => loader.classList.add('hide'), 120);
+    // 尝试从 iframe 内同步 title（同源时有效）
+    try {
+      const inner = iframe.contentDocument?.title?.trim();
+      if (inner && inner !== w.site.name) {
+        w.site.name = inner;
+        el.querySelector('.tb-title').textContent = inner;
+        renderIcons();
+        renderStart();
+        renderTasklist();
+      }
+    } catch (_) { /* 跨域忽略 */ }
+  });
+}
+
+/* ================= Edge 浏览器 ================= */
+function createEdgeWin(site) {
+  const bodyHTML = `
+    <div class="edge-page">
+      <div class="edge-toolbar">
+        <button class="edge-btn" data-edge="back" title="后退" disabled>
+          ${svgIcon('back', 16, 2)}
+        </button>
+        <button class="edge-btn" data-edge="forward" title="前进" disabled>
+          ${svgIcon('forward', 16, 2)}
+        </button>
+        <button class="edge-btn" data-edge="reload" title="刷新">
+          ${svgIcon('reload', 16, 2)}
+        </button>
+        <button class="edge-btn" data-edge="home" title="主页">
+          ${svgIcon('home', 16, 2)}
+        </button>
+        <div class="edge-address">
+          <span class="lock">${svgIcon('lock', 12, 2)}</span>
+          <input class="edge-addr-input" type="text" placeholder="搜索或输入网址"
+                 spellcheck="false" autocomplete="off">
+        </div>
+        <button class="edge-btn" data-edge="external" title="在新标签页打开">
+          ${svgIcon('external', 16, 2)}
+        </button>
+      </div>
+      <div class="edge-body">
+        <div class="edge-start" data-edge-view="start">
+          <div class="edge-brand">
+            <span class="edge-brand-badge">${EDGE_LOGO}</span>
+            <div class="edge-brand-name">Microsoft Edge</div>
+          </div>
+          <div class="edge-searchbox">
+            <span class="s-ico">${svgIcon('search', 17, 2)}</span>
+            <input class="edge-search-input" type="text" placeholder="搜索网页"
+                   autocomplete="off" spellcheck="false">
+          </div>
+          <div class="edge-tiles"></div>
+          <div class="edge-hint">
+            提示：部分网站出于安全策略不允许被嵌入 iframe，
+            若页面空白可点击右上角「在新标签页打开」按钮。
+          </div>
+        </div>
+        <iframe class="edge-frame" data-edge-view="page"
+                referrerpolicy="no-referrer" hidden></iframe>
+      </div>
+    </div>
+  `;
+
+  const w = buildWindow({
+    site: { ...site, type: 'edge' },
+    title: 'Microsoft Edge',
+    color: '#0F82D8',
+    bodyHTML,
+  });
+
+  const el = w.el;
+
+  const startView = el.querySelector('[data-edge-view="start"]');
+  const frameView = el.querySelector('[data-edge-view="page"]');
+  const addrInput = el.querySelector('.edge-addr-input');
+  const searchIn  = el.querySelector('.edge-search-input');
+  const tilesEl   = el.querySelector('.edge-tiles');
+
+  const backBtn    = el.querySelector('[data-edge="back"]');
+  const forwardBtn = el.querySelector('[data-edge="forward"]');
+  const reloadBtn  = el.querySelector('[data-edge="reload"]');
+  const homeBtn    = el.querySelector('[data-edge="home"]');
+  const externalBtn= el.querySelector('[data-edge="external"]');
+
+  const history = [];
+  let historyIndex = -1;
+
+  function updateNavButtons() {
+    backBtn.disabled    = historyIndex <= 0;
+    forwardBtn.disabled = historyIndex >= history.length - 1;
+  }
+
+  function normalizeUrl(v) {
+    v = (v || '').trim();
+    if (!v) return null;
+    if (/^https?:\/\//i.test(v)) return v;
+    if (/^[\w-]+(\.[\w-]+)+/.test(v)) return 'https://' + v;
+    return 'https://www.bing.com/search?q=' + encodeURIComponent(v);
+  }
+
+  function showStart() {
+    startView.hidden = false;
+    frameView.hidden = true;
+    frameView.removeAttribute('src');
+    addrInput.value = '';
+  }
+
+  function loadUrl(url) {
+    startView.hidden = true;
+    frameView.hidden = false;
+    frameView.src = url;
+  }
+
+  function navigate(url, push) {
+    if (!url) return;
+    if (push) {
+      history.splice(historyIndex + 1);
+      history.push(url);
+      historyIndex = history.length - 1;
+    }
+    loadUrl(url);
+    addrInput.value = url;
+    updateNavButtons();
+  }
+
+  function goBack() {
+    if (historyIndex <= 0) return;
+    historyIndex--;
+    loadUrl(history[historyIndex]);
+    addrInput.value = history[historyIndex];
+    updateNavButtons();
+  }
+
+  function goForward() {
+    if (historyIndex >= history.length - 1) return;
+    historyIndex++;
+    loadUrl(history[historyIndex]);
+    addrInput.value = history[historyIndex];
+    updateNavButtons();
+  }
+
+  function reload() {
+    if (frameView.hidden || !frameView.src) return;
+    frameView.src = frameView.src;
+  }
+
+  function goHome() {
+    history.length = 0;
+    historyIndex = -1;
+    showStart();
+    updateNavButtons();
+  }
+
+  backBtn.addEventListener('click', e => { e.stopPropagation(); goBack(); });
+  forwardBtn.addEventListener('click', e => { e.stopPropagation(); goForward(); });
+  reloadBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    if (frameView.hidden) return;
+    reload();
+  });
+  homeBtn.addEventListener('click', e => { e.stopPropagation(); goHome(); });
+  externalBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const u = frameView.hidden ? '' : frameView.src;
+    if (u) window.open(u, '_blank', 'noopener');
+    else showToast('当前未打开任何网页');
+  });
+
+  addrInput.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const url = normalizeUrl(addrInput.value);
+    if (url) navigate(url, true);
+    addrInput.blur();
+  });
+  addrInput.addEventListener('pointerdown', e => e.stopPropagation());
+
+  searchIn.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const url = normalizeUrl(searchIn.value);
+    if (url) {
+      navigate(url, true);
+      searchIn.value = '';
+    }
+  });
+  searchIn.addEventListener('pointerdown', e => e.stopPropagation());
+
+  const tiles = [
+    { name: '必应',     url: 'https://www.bing.com',   bg: 'linear-gradient(145deg,#0F82D8,#23B8A6)', letter: 'B' },
+    { name: '百度',     url: 'https://www.baidu.com',  bg: 'linear-gradient(145deg,#3B7CFF,#2932E1)', letter: '百' },
+    { name: 'GitHub',   url: 'https://github.com',     bg: 'linear-gradient(145deg,#4b5563,#111827)', letter: 'G' },
+    { name: '知乎',     url: 'https://www.zhihu.com',  bg: 'linear-gradient(145deg,#38bdf8,#0084ff)', letter: '知' },
+  ];
+  tiles.forEach(t => {
+    const d = document.createElement('div');
+    d.className = 'edge-tile';
+    d.innerHTML = `
+      <div class="edge-tile-icon" style="background:${t.bg}">${t.letter}</div>
+      <div class="edge-tile-name">${t.name}</div>`;
+    d.addEventListener('click', e => {
+      e.stopPropagation();
+      navigate(t.url, true);
+    });
+    tilesEl.appendChild(d);
+  });
+
+  updateNavButtons();
+  if (!isMobile) setTimeout(() => searchIn.focus(), 180);
+}
+
+/* ================= 此电脑 ================= */
+function createThisPCWin(site) {
+  const drives = [
+    { name: '本地磁盘 (C:)', used: 231, total: 476 },
+    { name: '数据 (D:)',     used: 654, total: 1863 },
+  ];
+  const folders = [
+    { name: '桌面', icon: 'monitor' },
+    { name: '文档', icon: 'doc' },
+    { name: '下载', icon: 'down' },
+    { name: '图片', icon: 'image' },
+    { name: '音乐', icon: 'note' },
+    { name: '视频', icon: 'film' },
+  ];
+
+  const driveHTML = drives.map(d => {
+    const pct = Math.round(d.used / d.total * 100);
+    return `
+      <div class="drive">
+        <div class="drive-icon">${svgIcon('hdd', 22, 1.8)}</div>
+        <div class="drive-info">
+          <div class="drive-name">${d.name}</div>
+          <div class="drive-bar">
+            <div class="drive-fill" style="width:${pct}%"></div>
+          </div>
+          <div class="drive-meta">${d.total - d.used} GB 可用，共 ${d.total} GB</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const folderHTML = folders.map(f => `
+    <div class="folder">
+      <div class="folder-icon">${svgIcon(f.icon, 18, 1.8)}</div>
+      <div class="folder-name">${f.name}</div>
+    </div>`).join('');
+
+  const bodyHTML = `
+    <div class="explorer">
+      <div class="exp-toolbar">
+        <button class="exp-nav dim" title="后退">${svgIcon('back', 14, 2)}</button>
+        <button class="exp-nav dim" title="前进">${svgIcon('forward', 14, 2)}</button>
+        <button class="exp-nav" title="刷新">${svgIcon('reload', 14, 2.1)}</button>
+        <div class="exp-address">
+          <span style="display:grid;place-items:center;color:var(--accent)">${svgIcon('monitor', 13, 2)}</span>
+          <span class="crumb">此电脑</span>
+        </div>
+        <div class="exp-search">
+          <span style="display:grid;place-items:center;opacity:.6">${svgIcon('search', 13, 2)}</span>
+          <span>搜索“此电脑”</span>
+        </div>
+      </div>
+      <div class="exp-body">
+        <aside class="exp-sidebar">
+          <div class="exp-side-item"><span class="si blue">${svgIcon('home', 14, 2)}</span>主页</div>
+          <div class="exp-side-item"><span class="si purple">${svgIcon('gallery', 14, 2)}</span>图库</div>
+          <div class="exp-side-item"><span class="si blue">${svgIcon('monitor', 14, 2)}</span>桌面</div>
+          <div class="exp-side-item"><span class="si green">${svgIcon('down', 14, 2)}</span>下载</div>
+          <div class="exp-side-item"><span class="si gold">${svgIcon('doc', 14, 2)}</span>文档</div>
+          <div class="exp-side-item"><span class="si pink">${svgIcon('image', 14, 2)}</span>图片</div>
+          <div class="exp-side-item"><span class="si purple">${svgIcon('note', 14, 2)}</span>音乐</div>
+          <div class="exp-side-item"><span class="si red">${svgIcon('film', 14, 2)}</span>视频</div>
+          <div class="exp-divider"></div>
+          <div class="exp-side-item active"><span class="si blue">${svgIcon('monitor', 14, 2)}</span>此电脑</div>
+          <div class="exp-side-item"><span class="si gray">${svgIcon('net', 14, 2)}</span>网络</div>
+        </aside>
+        <main class="exp-main">
+          <div class="exp-group">
+            <div class="exp-group-title">设备和驱动器 (${drives.length})</div>
+            <div class="exp-grid">${driveHTML}</div>
+          </div>
+          <div class="exp-group">
+            <div class="exp-group-title">文件夹 (${folders.length})</div>
+            <div class="exp-grid">${folderHTML}</div>
+          </div>
+        </main>
+      </div>
+    </div>
+  `;
+
+  const w = buildWindow({
+    site: { ...site, type: 'thispc' },
+    title: '此电脑',
+    color: '#1E6FB8',
+    bodyHTML,
+  });
+
+  w.el.querySelectorAll('.exp-side-item').forEach(it => {
+    it.addEventListener('click', () => {
+      w.el.querySelectorAll('.exp-side-item').forEach(x => x.classList.remove('active'));
+      it.classList.add('active');
+    });
+  });
+}
+
+/* ================= 窗口操作 ================= */
+function focusWin(id) {
+  const w = wins.get(id);
+  if (!w) return;
+  activeId = id;
+  w.el.style.zIndex = ++zTop;
+  w.minimized = false;
+  w.el.classList.remove('minimized');
+  wins.forEach((v, k) => v.el.classList.toggle('focused', k === id));
+  renderTasklist();
+}
+
+function minimizeWin(id) {
+  const w = wins.get(id);
+  if (!w) return;
+  w.minimized = true;
+  w.el.classList.add('minimized');
+  if (activeId === id) activeId = null;
+  renderTasklist();
+}
+
+function toggleMax(id) {
+  const w = wins.get(id);
+  if (!w) return;
+  const el = w.el;
+  if (w.maximized) {
+    el.classList.remove('maximized');
+    w.maximized = false;
+    applyWinLayout(w);
+  } else {
+    w.maximized = true;
+    el.classList.add('maximized');
+  }
+  focusWin(id);
+}
+
+function closeWin(id) {
+  const w = wins.get(id);
+  if (!w) return;
+  w.el.classList.add('closing');
+  setTimeout(() => {
+    w.el.remove();
+    wins.delete(id);
+    if (activeId === id) activeId = null;
+    renderTasklist();
+  }, 200);
+}
+
+function startDrag(e, w) {
+  if (w.maximized) return;
+  e.preventDefault();
+
+  const el = w.el;
+  const startX = e.clientX;
+  const startY = e.clientY;
+  const baseX = w.pos.x;
+  const baseY = w.pos.y;
+
+  const maxX = window.innerWidth - 100;
+  const minX = -(w.pos.w - 140);
+  const maxY = window.innerHeight - 90;
+
+  el.classList.add('dragging');
+  document.body.classList.add('dragging');
+
+  let rafId = null;
+  let pendingX = baseX;
+  let pendingY = baseY;
+
+  function flush() {
+    rafId = null;
+    el.style.transform = `translate3d(${pendingX}px, ${pendingY}px, 0)`;
+  }
+
+  function onMove(ev) {
+    let x = baseX + (ev.clientX - startX);
+    let y = baseY + (ev.clientY - startY);
+    if (x > maxX) x = maxX;
+    if (x < minX) x = minX;
+    if (y > maxY) y = maxY;
+    if (y < 0) y = 0;
+    pendingX = x;
+    pendingY = y;
+    if (!rafId) rafId = requestAnimationFrame(flush);
+  }
+
+  function onEnd() {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    w.pos.x = pendingX;
+    w.pos.y = pendingY;
+    el.style.transform = `translate3d(${pendingX}px, ${pendingY}px, 0)`;
+    el.classList.remove('dragging');
+    document.body.classList.remove('dragging');
+
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onEnd);
+    document.removeEventListener('pointercancel', onEnd);
+  }
+
+  document.addEventListener('pointermove', onMove, { passive: true });
+  document.addEventListener('pointerup', onEnd);
+  document.addEventListener('pointercancel', onEnd);
+}
+
+function startResize(e, w) {
+  if (w.maximized) return;
+  e.preventDefault();
+  e.stopPropagation();
+
+  const el = w.el;
+  const sx = e.clientX, sy = e.clientY;
+  const baseW = w.pos.w, baseH = w.pos.h;
+
+  el.classList.add('resizing');
+  document.body.classList.add('dragging');
+
+  let rafId = null;
+  let pendingW = baseW;
+  let pendingH = baseH;
+
+  function flush() {
+    rafId = null;
+    el.style.width  = pendingW + 'px';
+    el.style.height = pendingH + 'px';
+  }
+
+  function onMove(ev) {
+    pendingW = Math.max(isMobile ? 260 : 360, baseW + ev.clientX - sx);
+    pendingH = Math.max(isMobile ? 180 : 240, baseH + ev.clientY - sy);
+    if (!rafId) rafId = requestAnimationFrame(flush);
+  }
+
+  function onEnd() {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    w.pos.w = pendingW;
+    w.pos.h = pendingH;
+    el.style.width  = pendingW + 'px';
+    el.style.height = pendingH + 'px';
+    el.classList.remove('resizing');
+    document.body.classList.remove('dragging');
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onEnd);
+    document.removeEventListener('pointercancel', onEnd);
+  }
+
+  document.addEventListener('pointermove', onMove, { passive: true });
+  document.addEventListener('pointerup', onEnd);
+  document.addEventListener('pointercancel', onEnd);
+}
+
+function renderTasklist() {
+  tasklist.replaceChildren();
+  wins.forEach((w, id) => {
+    const s = w.site;
+    const g = smallGlyphHTML(s, 12, 2.4);
+
+    const b = document.createElement('button');
+    b.className = 'task-item running'
+      + (w.minimized ? ' minimized' : '')
+      + (activeId === id ? ' active' : '');
+    b.title = s.type === 'edge' ? 'Microsoft Edge' : s.type === 'thispc' ? '此电脑' : s.name;
+    b.innerHTML = `<span class="ti-badge ${g.cls}" style="--c:${s.color || '#0078d4'}">${g.html}</span>`;
+    attachImgFallback(b.querySelector('.ti-badge'), 'globe', 12, 2.4);
+    b.addEventListener('click', () => {
+      if (w.minimized) focusWin(id);
+      else if (activeId === id) minimizeWin(id);
+      else focusWin(id);
+    });
+    b.addEventListener('contextmenu', e => { e.preventDefault(); closeWin(id); });
+    tasklist.appendChild(b);
+  });
+}
+
+/* ================= 桌面图标 ================= */
+function renderIcons() {
+  iconLayer.replaceChildren();
+  sites.forEach((s, i) => {
+    const v = slotVisual(s, i);
+    const d = document.createElement('div');
+    d.className = 'dicon';
+
+    if (isEmptySlot(s)) d.title = `空快捷方式 ${i - 1}　·　在代码 SITES[${i}] 中填写`;
+    else if (s.type === 'edge')   d.title = 'Microsoft Edge';
+    else if (s.type === 'thispc') d.title = '此电脑';
+    else d.title = `${s.name}\n${s.url}`;
+
+    d.innerHTML = `
+      <div class="dicon-glyph${v.cls ? ' ' + v.cls : ''}" style="--c1:${v.color}">${v.html}</div>
+      <div class="dicon-label">${v.label}</div>
+    `;
+
+    attachImgFallback(d.querySelector('.dicon-glyph'), 'globe', 24, 1.8);
+
+    d.addEventListener('pointerdown', e => e.stopPropagation());
+    d.addEventListener('click', e => {
+      e.stopPropagation();
+      openSlot(s, i);
+    });
+
+    iconLayer.appendChild(d);
+  });
+}
+
+document.getElementById('desktop').addEventListener('pointerdown', e => {
+  if (e.target.closest('.dicon') || e.target.closest('.window')
+      || e.target.closest('#taskbar') || e.target.closest('#startMenu')
+      || e.target.closest('#ctxMenu')) return;
+  closeStart();
+  hideCtx();
+});
+
+/* ================= 开始菜单 ================= */
+function renderStart(filter = '') {
+  const kw = filter.trim().toLowerCase();
+  const list = sites.map((s, i) => ({ s, i }))
+    .filter(({ s }) => {
+      if (isEmptySlot(s)) return false;
+      if (!kw) return true;
+      const name = s.type === 'edge' ? 'Microsoft Edge' : s.type === 'thispc' ? '此电脑' : s.name;
+      return name.toLowerCase().includes(kw);
+    });
+
+  startGrid.replaceChildren();
+
+  if (!list.length) {
+    const tip = document.createElement('div');
+    tip.style.cssText = 'grid-column:1/-1;padding:34px 10px;text-align:center;font-size:12.5px;opacity:.6;';
+    const used = sites.filter(s => !isEmptySlot(s)).length;
+    tip.textContent = used ? '没有匹配的快捷方式' : '尚未配置任何快捷方式';
+    startGrid.appendChild(tip);
+    return;
+  }
+
+  list.forEach(({ s, i }) => {
+    const v = slotVisual(s, i);
+    const item = document.createElement('div');
+    item.className = 'start-item';
+    item.innerHTML = `
+      <div class="si-icon${v.cls ? ' ' + v.cls : ''}" style="--c:${v.color}">${v.html}</div>
+      <div class="si-name">${v.label}</div>
+    `;
+    attachImgFallback(item.querySelector('.si-icon'), 'globe', 18, 2.1);
+    item.addEventListener('click', () => { openSlot(s, i); closeStart(); });
+    startGrid.appendChild(item);
+  });
+}
+
+function openStart() {
+  startMenu.classList.add('open');
+  startInput.value = '';
+  renderStart('');
+  if (!isMobile) setTimeout(() => startInput.focus(), 80);
+}
+function closeStart() { startMenu.classList.remove('open'); }
+
+document.getElementById('startBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  startMenu.classList.contains('open') ? closeStart() : openStart();
+});
+
+startInput.addEventListener('input', e => renderStart(e.target.value));
+startInput.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeStart();
+  if (e.key === 'Enter') {
+    const first = startGrid.querySelector('.start-item');
+    if (first) first.click();
+  }
+});
+startMenu.addEventListener('pointerdown', e => e.stopPropagation());
+
+/* ================= 右键菜单 ================= */
+function showCtx(x, y, items) {
+  ctxMenu.replaceChildren();
+  items.forEach(it => {
+    if (it === '-') {
+      const sep = document.createElement('div');
+      sep.className = 'ctx-sep';
+      ctxMenu.appendChild(sep);
+      return;
+    }
+    const row = document.createElement('div');
+    row.className = 'ctx-item' + (it.disabled ? ' disabled' : '');
+    row.innerHTML = `
+      <span class="ci-icon">${it.icon ? svgIcon(it.icon, 13, 2) : ''}</span>
+      <span>${it.label}</span>`;
+    row.addEventListener('click', () => { hideCtx(); it.action && it.action(); });
+    ctxMenu.appendChild(row);
+  });
+
+  ctxMenu.classList.add('open');
+  const r = ctxMenu.getBoundingClientRect();
+  ctxMenu.style.left = Math.min(x, window.innerWidth  - r.width  - 8) + 'px';
+  ctxMenu.style.top  = Math.min(y, window.innerHeight - r.height - 8) + 'px';
+}
+function hideCtx() { ctxMenu.classList.remove('open'); }
+
+document.getElementById('desktop').addEventListener('contextmenu', e => {
+  if (e.target.closest('.window') || e.target.closest('#taskbar')) return;
+  e.preventDefault();
+  const isDark = document.body.classList.contains('dark');
+  const used = sites.filter(s => !isEmptySlot(s)).length;
+  showCtx(e.clientX, e.clientY, [
+    { icon: 'refresh', label: '刷新桌面',  action: renderIcons },
+    { icon: 'layers',  label: '整理图标',  action: renderIcons },
+    { icon: 'refresh', label: '重新读取名称', action: refreshTitles },
+    '-',
+    { icon: isDark ? 'sun' : 'moon', label: isDark ? '窗口浅色模式' : '窗口深色模式', action: toggleTheme },
+    { icon: 'close',   label: '关闭全部窗口', action: closeAllWins },
+    '-',
+    { icon: 'info',    label: `已启用 ${used} / ${SLOT_COUNT} 个位置`, disabled: true },
+  ]);
+});
+
+document.addEventListener('pointerdown', e => {
+  if (!e.target.closest('#ctxMenu')) hideCtx();
+}, true);
+
+/* =========================================================
+   ★ 刷新标题：重新读取所有本地 HTML 的 <title>
+   ========================================================= */
+async function refreshTitles() {
+  showToast('正在读取本地 HTML 标题…');
+  await extractLocalTitles();
+  renderIcons();
+  renderStart();
+  renderTasklist();
+  showToast('快捷方式名称已更新');
+}
+
+/* ================= 主题 / 任务栏 ================= */
+function toggleTheme() {
+  const isDark = !document.body.classList.contains('dark');
+  document.body.classList.toggle('dark', isDark);
+  document.getElementById('themeBtn').innerHTML = svgIcon(isDark ? 'sun' : 'moon', 15, 2);
+  try { localStorage.setItem('win11nav-theme-v11', isDark ? 'dark' : 'light'); } catch(_) {}
+}
+
+(function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem('win11nav-theme-v11'); } catch(_) {}
+  const isDark = saved ? saved === 'dark' : true;
+  document.body.classList.toggle('dark', isDark);
+  document.getElementById('themeBtn').innerHTML = svgIcon(isDark ? 'sun' : 'moon', 15, 2);
+})();
+
+document.getElementById('themeBtn').addEventListener('click', toggleTheme);
+
+function closeAllWins() { [...wins.keys()].forEach(id => closeWin(id)); }
+document.getElementById('closeAllBtn').innerHTML = svgIcon('power', 15, 2);
+document.getElementById('closeAllBtn').addEventListener('click', closeAllWins);
+
+document.getElementById('taskbar').addEventListener('contextmenu', e => {
+  if (e.target.closest('.task-item') || e.target.closest('.tb-btn')) return;
+  e.preventDefault();
+  showCtx(e.clientX, e.clientY - 210, [
+    { icon: 'close', label: '关闭全部窗口', action: closeAllWins },
+    { icon: 'moon',  label: '切换窗口主题', action: toggleTheme },
+  ]);
+});
+
+/* ================= 时钟 ================= */
+function tick() {
+  const d = new Date();
+  clockT.textContent = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+  clockD.textContent = d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+tick();
+setInterval(tick, 1000);
+
+/* ================= 快捷键 ================= */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeStart(); hideCtx(); }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    openStart();
+  }
+});
+
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    wins.forEach(w => {
+      if (w.maximized) return;
+      const maxX = window.innerWidth - 100;
+      const maxY = window.innerHeight - 90;
+      let changed = false;
+      if (w.pos.x > maxX) { w.pos.x = maxX; changed = true; }
+      if (w.pos.y > maxY) { w.pos.y = maxY; changed = true; }
+      if (w.pos.x < -(w.pos.w - 140)) { w.pos.x = -(w.pos.w - 140); changed = true; }
+      if (w.pos.y < 0) { w.pos.y = 0; changed = true; }
+      if (changed) applyWinLayout(w);
+    });
+  }, 150);
+});
+
+/* ================= 静态图标 ================= */
+document.getElementById('searchIco').innerHTML = svgIcon('search', 14, 2);
+document.getElementById('avatarIco').innerHTML = svgIcon('user', 14, 2);
+document.getElementById('smHint').textContent = `${sites.filter(s => !isEmptySlot(s)).length} / ${SLOT_COUNT} 已配置`;
+
+/* =========================================================
+   ★ 启动：先渲染一遍（用默认名），再异步读取本地 HTML 标题
+   ========================================================= */
+(async function boot() {
+  renderIcons();
+  renderStart();
+  renderTasklist();
+
+  await extractLocalTitles();
+  renderIcons();
+  renderStart();
+  renderTasklist();
+})();
+</script>
+</body>
+</html>
