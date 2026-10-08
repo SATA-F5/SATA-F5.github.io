@@ -801,33 +801,6 @@ html.dark .exp-side-item .si.gray { color: #9ca3af; }
 }
 .tray-icon-wrap svg { display: block; }
 
-.tray-badge {
-  position: absolute;
-  right: -9px;
-  bottom: -6px;
-  min-width: 15px;
-  height: 15px;
-  padding: 0 4px;
-  border-radius: 8px;
-  background: var(--badge-bg);
-  border: 1.5px solid var(--badge-border);
-  color: var(--badge-text);
-  font-size: 9.5px;
-  font-weight: 600;
-  line-height: 1;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .18);
-  transition: opacity .2s ease, transform .2s ease;
-  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-  font-variant-numeric: tabular-nums;
-  pointer-events: none;
-}
-.tray-badge.hidden {
-  opacity: 0;
-  transform: scale(.6);
-}
-
 #clock {
   display: flex;
   flex-direction: column;
@@ -1640,7 +1613,6 @@ body.mobile .window.resizing { box-shadow: none !important; }
             <path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-8l-4 3.5V17H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/>
             <path d="M7.5 9.5h9M7.5 12.5h6.5M7.5 15.5h4"/>
           </svg>
-          <span class="tray-badge" id="infoBadge">1</span>
         </span>
       </button>
 
@@ -1982,7 +1954,6 @@ const quickPanel= document.getElementById('quickPanel');
 const calendarPanel = document.getElementById('calendarPanel');
 const infoPanel = document.getElementById('infoPanel');
 const infoTrigger = document.getElementById('infoTrigger');
-const infoBadge = document.getElementById('infoBadge');
 
 const SLOT_COUNT = 6;
 const sites = SITES.slice(0, SLOT_COUNT);
@@ -2431,6 +2402,11 @@ function createEdgeWin(site, initialUrl = null) {
     iframe.className = 'edge-frame';
     iframe.dataset.tabId = id;
     iframe.referrerPolicy = 'no-referrer';
+    // 沙箱：file:// 直开时 iframe 跨源隔离，链接拦截器无法注入，
+    // 此时 target=_blank / window.open 会逃逸到真实浏览器新标签页。
+    // 加 sandbox（允许脚本/表单/同源，禁止弹窗）可避免用户被甩出桌面；
+    // 通过 http 本地服务打开时（同源），拦截器仍可正常接管链接。
+    iframe.sandbox = 'allow-scripts allow-forms allow-same-origin';
     bodyEl.appendChild(iframe);
 
     const tab = {
@@ -2452,6 +2428,19 @@ function createEdgeWin(site, initialUrl = null) {
         }
       } catch (_) {}
       injectLinkInterceptor(iframe, openUrlInTab);
+      // 同步地址栏：页面内原生跳转（相对链接、表单等）后，
+      // 将 tab.url 与地址栏更新为 iframe 当前真实地址（同源时可读取）。
+      try {
+        const cur = iframe.contentWindow.location.href;
+        const expected = tab.url ? new URL(tab.url, location.href).href : '';
+        if (cur && tab.url && cur !== expected && /^(https?|file):/i.test(cur)) {
+          tab.url = cur;
+          if (tab.id === activeTabId) {
+            addrInput.value = cur;
+            updateNavButtons();
+          }
+        }
+      } catch (_) {}
     });
 
     tabs.push(tab);
@@ -2459,9 +2448,10 @@ function createEdgeWin(site, initialUrl = null) {
 
     if (initialUrl) {
       navigateInTab(tab, initialUrl, true);
-    } else {
-      activateTab(id);
     }
+    // 修复：无论是否带初始网址，创建后都必须激活标签页，
+    // 否则 iframe 不会显示（无 .active 类），页面停留在默认起始页。
+    activateTab(id);
 
     return tab;
   }
@@ -3138,8 +3128,6 @@ function openInfoPanel() {
   renderInfoShortcuts();
   renderInfoWindows();
   startStatUpdate();
-
-  if (infoBadge) infoBadge.classList.add('hidden');
 }
 
 function closeInfoPanel() {
@@ -3244,6 +3232,11 @@ function renderInfoWindows() {
 }
 
 let statTimer = null;
+// 性能数值状态：以页面初始值为起点，采用小幅随机游走，
+// 每次刷新只在当前值附近轻微浮动，模拟真实负载的平缓波动。
+const statState = { cpu: 32, mem: 58, disk: 73 };
+const clampStat = (v, min, max) => Math.min(max, Math.max(min, v));
+
 function startStatUpdate() {
   if (statTimer) return;
   updateStats();
@@ -3253,9 +3246,13 @@ function stopStatUpdate() {
   if (statTimer) { clearInterval(statTimer); statTimer = null; }
 }
 function updateStats() {
-  const cpu = 20 + Math.round(Math.random() * 40);
-  const mem = 45 + Math.round(Math.random() * 25);
-  const disk = 70 + Math.round(Math.random() * 15);
+  // 每 2 秒仅在当前值附近小幅浮动：CPU ±4、内存 ±3、磁盘 ±1.5
+  statState.cpu  = clampStat(statState.cpu  + (Math.random() * 8  - 4),    8, 92);
+  statState.mem  = clampStat(statState.mem  + (Math.random() * 6  - 3),   25, 88);
+  statState.disk = clampStat(statState.disk + (Math.random() * 3  - 1.5), 40, 90);
+  const cpu  = Math.round(statState.cpu);
+  const mem  = Math.round(statState.mem);
+  const disk = Math.round(statState.disk);
 
   const cpuBar = document.getElementById('statCpu');
   const memBar = document.getElementById('statMem');
