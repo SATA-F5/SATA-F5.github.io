@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>守禄的win11</title>
-<link rel="icon" href="/favicon.ico">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -269,7 +268,7 @@ html.dark #wallpaper::after {
   transform: translate3d(0, 0, 0);
   display: flex;
   flex-direction: column;
-  min-width: 300px;
+  min-width: 260px;
   min-height: 200px;
   border-radius: 8px;
   background: var(--win-bg);
@@ -510,6 +509,34 @@ body.mobile .resize-handle { width: 32px; height: 32px; }
   display: none;
 }
 .edge-frame.active { display: block; }
+
+/* 页面加载中 / 加载失败提示层（外部 CDN 慢或站点不可达时避免白屏） */
+.edge-loading {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  z-index: 5;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px;
+  background: var(--frame-bg);
+  transition: background .35s;
+}
+.edge-loading[hidden] { display: none; }
+.edge-loading .el-spinner {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 3px solid var(--field-border);
+  border-top-color: var(--accent);
+  animation: edgeSpin .8s linear infinite;
+}
+@keyframes edgeSpin { to { transform: rotate(360deg); } }
+.edge-loading .el-text { font-size: 12.5px; color: var(--win-sub); }
+.edge-loading .el-err  { font-size: 12.5px; color: #e05555; }
+.edge-loading .el-retry {
+  margin-top: 2px; padding: 6px 18px;
+  border: none; border-radius: 6px;
+  background: var(--accent); color: var(--on-accent);
+  font-family: inherit; font-size: 12.5px; cursor: pointer;
+}
+.edge-loading .el-retry:hover { filter: brightness(1.08); }
 
 .edge-start {
   position: absolute; left: 0; top: 0; right: 0; bottom: 0;
@@ -2074,10 +2101,15 @@ function buildWindow({ site, title, color, bodyHTML, extraClass = '' }) {
   el.className = 'window opening ' + extraClass;
   el.dataset.id = id;
 
-  const W = Math.min(940, Math.max(isMobile ? 280 : 380, window.innerWidth - 170));
-  const H = Math.min(620, Math.max(isMobile ? 200 : 280, window.innerHeight - 200));
+  const W0 = Math.min(940, Math.max(isMobile ? 280 : 380, window.innerWidth - 170));
+  const H   = Math.min(620, Math.max(isMobile ? 200 : 280, window.innerHeight - 200));
   const n = wins.size;
-  const left = Math.max(14, Math.round((window.innerWidth  - W) / 2 - 110 + (n % 6) * 32));
+  // 窄视口（手机横屏/平板/小窗口）下让开左侧桌面图标列，
+  // 避免新窗口（尤其是本地站点大页面）盖住图标、把桌面比例撑坏。
+  const iconCol = 116;                              // 图标列：8px 边距 + 96px 图标 + 余量
+  const tight   = window.innerWidth < 1300;
+  const W = tight ? Math.max(260, Math.min(W0, window.innerWidth - iconCol - 16)) : W0;
+  const left = Math.max(tight ? iconCol : 14, Math.round((window.innerWidth - W) / 2 - 110 + (n % 6) * 32));
   const top  = Math.max(14, Math.round((window.innerHeight - 48 - H) / 2 - 60 + (n % 6) * 28));
 
   el.style.zIndex = ++zTop;
@@ -2295,6 +2327,10 @@ function createEdgeWin(site, initialUrl = null) {
           </div>
           <div class="edge-tiles"></div>
         </div>
+        <div class="edge-loading" data-edge-view="loading" hidden>
+          <div class="el-spinner"></div>
+          <div class="el-text">正在加载页面…</div>
+        </div>
       </div>
     </div>
   `;
@@ -2311,6 +2347,7 @@ function createEdgeWin(site, initialUrl = null) {
   const newTabBtn  = el.querySelector('.edge-newtab');
   const bodyEl     = el.querySelector('.edge-body');
   const startView  = el.querySelector('.edge-start');
+  const loadingEl  = el.querySelector('.edge-loading');
   const addrInput  = el.querySelector('.edge-addr-input');
   const searchIn   = el.querySelector('.edge-search-input');
   const tilesEl    = el.querySelector('.edge-tiles');
@@ -2418,9 +2455,26 @@ function createEdgeWin(site, initialUrl = null) {
       historyIndex: -1,
       iframe,
       tabEl: null,
+      loading: false,      // 是否正在加载页面（驱动加载提示层）
+      loadError: false,    // 是否加载超时/失败（驱动重试按钮）
+      loadTimer: null,
     };
 
     iframe.addEventListener('load', () => {
+      // 只有本次编程导航的 load 才结束“加载中”状态，
+      // 避免 iframe 初始 about:blank 的 load 提前关闭提示层。
+      if (tab._navPending) {
+        tab._navPending = false;
+        tab.loading = false;
+        tab.loadError = false;
+        // 同源站点若加载出空文档（404/拦截页），给出明确失败提示而非白屏
+        try {
+          const doc = iframe.contentDocument;
+          if (doc && doc.body && !(doc.body.textContent || '').trim() && !(doc.title || '').trim()) {
+            tab.loadError = true;
+          }
+        } catch (_) {}
+      }
       try {
         const innerTitle = iframe.contentDocument?.title?.trim();
         if (innerTitle && innerTitle !== tab.title) {
@@ -2442,6 +2496,7 @@ function createEdgeWin(site, initialUrl = null) {
           }
         }
       } catch (_) {}
+      updateLoadingUI();
     });
 
     tabs.push(tab);
@@ -2487,6 +2542,7 @@ function createEdgeWin(site, initialUrl = null) {
     startView.hidden = !!tab.url;
     addrInput.value = tab.url || '';
     updateNavButtons();
+    updateLoadingUI();
   }
 
   function navigateInTab(tab, url, push) {
@@ -2499,7 +2555,11 @@ function createEdgeWin(site, initialUrl = null) {
     tab.url = url;
     tab.title = extractHostname(url) || '加载中…';
     updateTabTitle(tab);
+    tab.loading = true;
+    tab.loadError = false;
+    tab._navPending = true;
     tab.iframe.src = url;
+    scheduleLoadTimeout(tab);
 
     if (tab.id === activeTabId) {
       startView.hidden = true;
@@ -2509,6 +2569,63 @@ function createEdgeWin(site, initialUrl = null) {
       addrInput.value = url;
       updateNavButtons();
     }
+    updateLoadingUI();
+  }
+
+  /* 加载提示层：跟随当前活动标签页的加载状态 */
+  function updateLoadingUI() {
+    if (!loadingEl) return;
+    const tab = getActiveTab();
+    const showErr = !!(tab && tab.url && tab.loadError);
+    const showSpin = !!(tab && tab.url && !tab.loadError && tab.loading);
+    loadingEl.hidden = !(showSpin || showErr);
+    if (!showSpin && !showErr) return;
+
+    const spin = loadingEl.querySelector('.el-spinner');
+    const txt  = loadingEl.querySelector('.el-text, .el-err');
+    let retry = loadingEl.querySelector('.el-retry');
+    if (showErr) {
+      if (spin) spin.hidden = true;
+      if (txt) {
+        txt.className = 'el-err';
+        txt.textContent = '页面加载失败或超时（可能被网站拒绝嵌入，或网络不佳）';
+      }
+      if (!retry) {
+        retry = document.createElement('button');
+        retry.className = 'el-retry';
+        retry.textContent = '重试';
+        retry.addEventListener('click', () => {
+          const t = getActiveTab();
+          if (!t || !t.url) return;
+          // 直接重新赋值 src（同值也会触发重新导航），
+          // 不要先切 about:blank —— 那会提前触发 load 把“加载中”状态清掉。
+          t.loadError = false;
+          t.loading = true;
+          t._navPending = true;
+          t.iframe.src = t.url;
+          scheduleLoadTimeout(t);
+          updateLoadingUI();
+        });
+        loadingEl.appendChild(retry);
+      }
+    } else {
+      if (spin) spin.hidden = false;
+      if (txt) {
+        txt.className = 'el-text';
+        txt.textContent = '正在加载页面…';
+      }
+      if (retry) retry.remove();
+    }
+  }
+
+  function scheduleLoadTimeout(tab) {
+    clearTimeout(tab.loadTimer);
+    tab.loadTimer = setTimeout(() => {
+      if (!tab.loading || tab.loadError || !tab.url || !tabs.includes(tab)) return;
+      tab.loading = false;
+      tab.loadError = true;
+      updateLoadingUI();
+    }, 12000);
   }
 
   function navigate(url, push) {
@@ -2531,9 +2648,12 @@ function createEdgeWin(site, initialUrl = null) {
     tab.url = url;
     tab.title = extractHostname(url);
     updateTabTitle(tab);
+    tab.loading = true; tab.loadError = false; tab._navPending = true;
     tab.iframe.src = url;
+    scheduleLoadTimeout(tab);
     addrInput.value = url;
     updateNavButtons();
+    updateLoadingUI();
   }
 
   function goForward() {
@@ -2544,15 +2664,21 @@ function createEdgeWin(site, initialUrl = null) {
     tab.url = url;
     tab.title = extractHostname(url);
     updateTabTitle(tab);
+    tab.loading = true; tab.loadError = false; tab._navPending = true;
     tab.iframe.src = url;
+    scheduleLoadTimeout(tab);
     addrInput.value = url;
     updateNavButtons();
+    updateLoadingUI();
   }
 
   function reload() {
     const tab = getActiveTab();
     if (!tab || !tab.url) return;
+    tab.loading = true; tab.loadError = false; tab._navPending = true;
     tab.iframe.src = tab.iframe.src;
+    scheduleLoadTimeout(tab);
+    updateLoadingUI();
   }
 
   function goHome() {
@@ -2563,11 +2689,14 @@ function createEdgeWin(site, initialUrl = null) {
     tab.historyIndex = -1;
     tab.title = '新标签页';
     updateTabTitle(tab);
+    tab.loading = false; tab.loadError = false;
+    clearTimeout(tab.loadTimer);
     tab.iframe.classList.remove('active');
     tab.iframe.removeAttribute('src');
     startView.hidden = false;
     addrInput.value = '';
     updateNavButtons();
+    updateLoadingUI();
   }
 
   backBtn.addEventListener('click', e => { e.stopPropagation(); goBack(); });
