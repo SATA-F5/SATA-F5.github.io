@@ -2545,8 +2545,28 @@ function createEdgeWin(site, initialUrl = null) {
     updateLoadingUI();
   }
 
+  /* 判断目标网址是否为本页之外的“外部站点”。
+     外部站点受 X-Frame-Options / 跨源沙箱限制，在假 Edge 的 iframe 里通常
+     只能显示破损/空白页（如必应、百度、GitHub、知乎）。此类网址改为在
+     真实浏览器新标签页打开，内部/同源页面（site*.html 等）仍留在假 Edge。 */
+  function isExternalUrl(url) {
+    try {
+      const target = new URL(url, location.href);
+      if (!/^(https?|file):/i.test(target.protocol)) return false;
+      // file:// 直开时 origin 为字符串 "null"：任何 http(s) 目标都视为外部
+      if (location.origin === 'null') return /^https?:/i.test(target.protocol);
+      return target.origin !== location.origin;
+    } catch (_) { return false; }
+  }
+
   function navigateInTab(tab, url, push) {
     if (!url) return;
+    if (isExternalUrl(url)) {
+      const target = new URL(url, location.href).href;
+      window.open(target, '_blank', 'noopener');
+      showToast('外部网站已在真实浏览器新标签页打开');
+      return;
+    }
     if (push) {
       tab.history.splice(tab.historyIndex + 1);
       tab.history.push(url);
