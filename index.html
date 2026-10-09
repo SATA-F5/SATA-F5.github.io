@@ -537,6 +537,14 @@ body.mobile .resize-handle { width: 32px; height: 32px; }
   font-family: inherit; font-size: 12.5px; cursor: pointer;
 }
 .edge-loading .el-retry:hover { filter: brightness(1.08); }
+.edge-loading .el-actions { display: flex; gap: 8px; margin-top: 2px; }
+.edge-loading .el-ext {
+  margin-top: 2px; padding: 6px 16px;
+  border: 1px solid var(--field-border); border-radius: 6px;
+  background: transparent; color: inherit;
+  font-family: inherit; font-size: 12.5px; cursor: pointer;
+}
+.edge-loading .el-ext:hover { background: var(--tb-hover); }
 
 .edge-start {
   position: absolute; left: 0; top: 0; right: 0; bottom: 0;
@@ -2639,24 +2647,12 @@ function createEdgeWin(site, initialUrl = null) {
      外部站点受 X-Frame-Options / 跨源沙箱限制，在假 Edge 的 iframe 里通常
      只能显示破损/空白页（如必应、百度、GitHub、知乎）。此类网址改为在
      真实浏览器新标签页打开，内部/同源页面（site*.html 等）仍留在假 Edge。 */
-  function isExternalUrl(url) {
-    try {
-      const target = new URL(url, location.href);
-      if (!/^(https?|file):/i.test(target.protocol)) return false;
-      // file:// 直开时 origin 为字符串 "null"：任何 http(s) 目标都视为外部
-      if (location.origin === 'null') return /^https?:/i.test(target.protocol);
-      return target.origin !== location.origin;
-    } catch (_) { return false; }
-  }
-
+  // 自适配：外部网站一律先在假 Edge 的 iframe 里尝试嵌入。
+  // 能允许 iframe 的网站（bilibili 及任何可嵌入站点）会直接显示在虚拟浏览器里；
+  // 被 X-Frame-Options / CSP frame-ancestors 禁止嵌入的网站，
+  // iframe 内会显示空白/错误页，此时可点地址栏右侧“在新标签页打开”切到真实浏览器。
   function navigateInTab(tab, url, push) {
     if (!url) return;
-    if (isExternalUrl(url)) {
-      const target = new URL(url, location.href).href;
-      window.open(target, '_blank', 'noopener');
-      showToast('外部网站已在真实浏览器新标签页打开');
-      return;
-    }
     if (push) {
       tab.history.splice(tab.historyIndex + 1);
       tab.history.push(url);
@@ -2693,15 +2689,17 @@ function createEdgeWin(site, initialUrl = null) {
 
     const spin = loadingEl.querySelector('.el-spinner');
     const txt  = loadingEl.querySelector('.el-text, .el-err');
-    let retry = loadingEl.querySelector('.el-retry');
+    let actions = loadingEl.querySelector('.el-actions');
     if (showErr) {
       if (spin) spin.hidden = true;
       if (txt) {
         txt.className = 'el-err';
         txt.textContent = '页面加载失败或超时（可能被网站拒绝嵌入，或网络不佳）';
       }
-      if (!retry) {
-        retry = document.createElement('button');
+      if (!actions) {
+        actions = document.createElement('div');
+        actions.className = 'el-actions';
+        const retry = document.createElement('button');
         retry.className = 'el-retry';
         retry.textContent = '重试';
         retry.addEventListener('click', () => {
@@ -2716,7 +2714,16 @@ function createEdgeWin(site, initialUrl = null) {
           scheduleLoadTimeout(t);
           updateLoadingUI();
         });
-        loadingEl.appendChild(retry);
+        const ext = document.createElement('button');
+        ext.className = 'el-ext';
+        ext.textContent = '在浏览器打开';
+        ext.addEventListener('click', () => {
+          const t = getActiveTab();
+          if (!t || !t.url) return;
+          window.open(t.url, '_blank', 'noopener');
+        });
+        actions.append(retry, ext);
+        loadingEl.appendChild(actions);
       }
     } else {
       if (spin) spin.hidden = false;
@@ -2724,7 +2731,7 @@ function createEdgeWin(site, initialUrl = null) {
         txt.className = 'el-text';
         txt.textContent = '正在加载页面…';
       }
-      if (retry) retry.remove();
+      if (actions) actions.remove();
     }
   }
 
@@ -3904,3 +3911,4 @@ renderCalendar();
 </script>
 </body>
 </html>
+<!-- （注：内容由AI生成） -->
