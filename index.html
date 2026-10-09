@@ -1589,12 +1589,21 @@ body.mobile .window { box-shadow: 0 4px 14px rgba(0, 0, 0, .3); }
 body.mobile .window.dragging,
 body.mobile .window.resizing { box-shadow: none !important; }
 
-@media (max-width: 720px) {
-  #icon-layer { left: 8px; top: 8px; right: 8px; bottom: 56px; grid-auto-columns: 88px; grid-template-rows: repeat(auto-fill, 94px); }
-  .dicon { width: 88px; height: 94px; }
+@media (max-width: 1024px) {
+  /* 图标列：随手机比例收窄 */
+  #icon-layer { left: 10px; top: 10px; right: 10px; bottom: 60px; grid-auto-columns: 86px; grid-template-rows: repeat(auto-fill, 92px); }
+  .dicon { width: 86px; height: 92px; }
   .dicon-glyph { width: 40px; height: 40px; }
-  .dicon-label { max-width: 84px; font-size: 11px; }
-  #startMenu { width: calc(100vw - 16px); height: calc(100vh - 110px); padding: 20px 20px 0; }
+  .dicon-label { max-width: 82px; font-size: 11px; }
+
+  /* 任务栏缩放：适配触屏/手机 */
+  #taskbar { height: 52px; }
+  #startBtn { width: 42px; height: 42px; }
+  #tray .tray-btn { height: 40px; min-width: 40px; }
+  #tray .tray-icon-wrap { width: 22px; height: 22px; }
+  #clock { height: 40px; padding: 0 10px; }
+
+  #startMenu { width: calc(100vw - 16px); height: calc(100vh - 116px); padding: 20px 20px 0; }
   .sm-footer { margin: 0 -20px; padding: 0 20px; }
   #startGrid { grid-template-columns: repeat(4, 1fr); }
   .sm-recommend { grid-template-columns: 1fr; }
@@ -1603,6 +1612,21 @@ body.mobile .window.resizing { box-shadow: none !important; }
   .exp-sidebar { display: none; }
   .edge-tiles { grid-template-columns: repeat(2, 88px); }
   .edge-tab { min-width: 90px; padding: 0 6px 0 10px; }
+}
+
+/* 极窄屏（手机竖屏）进一步收拢，避免拥挤 */
+@media (max-width: 420px) {
+  #icon-layer { left: 8px; top: 8px; right: 8px; bottom: 54px; grid-auto-columns: 78px; grid-template-rows: repeat(auto-fill, 86px); }
+  .dicon { width: 78px; height: 86px; }
+  .dicon-glyph { width: 36px; height: 36px; }
+  .dicon-label { max-width: 74px; font-size: 10.5px; }
+  #taskbar { height: 46px; }
+  #startBtn { width: 38px; height: 38px; }
+  #tray .tray-btn { height: 34px; min-width: 34px; padding: 0 5px; }
+  #tray .tray-icon-wrap { width: 20px; height: 20px; }
+  #clock { height: 34px; padding: 0 6px; font-size: 10.5px; }
+  #clock .t { font-size: 11px; }
+  #clock .d { font-size: 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1893,8 +1917,11 @@ body.mobile .window.resizing { box-shadow: none !important; }
 
 <script>
 /* ============ 设备检测 ============ */
+// 触屏 / 手机 UA / 视口 ≤1024px（手机竖屏与横屏）都进入移动紧凑布局，
+// 使桌面图标、窗口与任务栏比例匹配手机屏幕。
 const isMobile = matchMedia('(hover: none) and (pointer: coarse)').matches
-  || /Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(navigator.userAgent);
+  || /Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(navigator.userAgent)
+  || window.innerWidth <= 1024;
 if (isMobile) document.body.classList.add('mobile');
 
 /* =========================================================
@@ -3606,3 +3633,4 @@ renderCalendar();
 </script>
 </body>
 </html>
+<!-- （注：内容由AI生成） -->
