@@ -1402,9 +1402,11 @@ html.dark .sm-footer { background: rgba(255, 255, 255, .02); }
    ========================================================= */
 #quickPanel {
   position: absolute;
-  right: 12px; bottom: 58px;
+  right: 12px; bottom: 68px;
   width: 360px;
   max-width: calc(100vw - 20px);
+  max-height: min(560px, calc(100vh - 100px));
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   padding: 20px;
@@ -1499,9 +1501,11 @@ html.dark .sm-footer { background: rgba(255, 255, 255, .02); }
    ========================================================= */
 #calendarPanel {
   position: absolute;
-  right: 12px; bottom: 58px;
+  right: 12px; bottom: 68px;
   width: 360px;
   max-width: calc(100vw - 20px);
+  max-height: min(560px, calc(100vh - 100px));
+  overflow-y: auto;
   padding: 20px;
   border-radius: 8px;
   background: var(--flyout-bg);
@@ -1669,7 +1673,7 @@ body.mobile .window.resizing { box-shadow: none !important; }
   #startGrid { grid-template-columns: repeat(4, 1fr); }
   .sm-recommend { grid-template-columns: 1fr; }
   #infoPanel { width: calc(100vw - 20px); }
-  #quickPanel, #calendarPanel { right: 8px; width: calc(100vw - 16px); }
+  #quickPanel, #calendarPanel { right: 8px; width: calc(100vw - 16px); bottom: 74px; max-height: calc(100vh - 98px); }
   .exp-sidebar { display: none; }
   .edge-tiles { grid-template-columns: repeat(2, 88px); }
   .edge-tab { min-width: 90px; padding: 0 6px 0 10px; }
@@ -1688,6 +1692,7 @@ body.mobile .window.resizing { box-shadow: none !important; }
   #clock { height: 34px; padding: 0 6px; font-size: 10.5px; }
   #clock .t { font-size: 11px; }
   #clock .d { font-size: 10px; }
+  #quickPanel, #calendarPanel { bottom: 66px; max-height: calc(100vh - 88px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3911,4 +3916,3 @@ renderCalendar();
 </script>
 </body>
 </html>
-<!-- （注：内容由AI生成） -->
