@@ -673,19 +673,31 @@
         if (toastTimer) clearTimeout(toastTimer);
         toastTimer = setTimeout(function () { els.toast.classList.remove('show'); }, 3000);
     }
+
+    // 用 pendingResolve 保存当前 Promise 的 resolve，避免快速连点或重复调用时旧 Promise 悬挂
+    var pendingResolve = null;
     function askConfirm(message) {
         return new Promise(function (resolve) {
+            // 若上一个弹窗还开着，先把它的 Promise 以 false 结算
+            if (pendingResolve) {
+                var oldResolve = pendingResolve;
+                pendingResolve = null;
+                oldResolve(false);
+            }
+            pendingResolve = resolve;
+
             els.confirmMessage.textContent = message;
             els.confirmModal.style.display = 'flex';
 
-            // 直接用 onclick 覆盖，避免 cloneNode 替换后 els 引用失效
             els.confirmOkBtn.onclick = function () {
                 els.confirmModal.style.display = 'none';
-                resolve(true);
+                var r = pendingResolve; pendingResolve = null;
+                if (r) r(true);
             };
             els.confirmCancelBtn.onclick = function () {
                 els.confirmModal.style.display = 'none';
-                resolve(false);
+                var r = pendingResolve; pendingResolve = null;
+                if (r) r(false);
             };
         });
     }
@@ -1068,7 +1080,7 @@
     function startTest() {
         if (running) return;
 
-        // 能力检测：非 HTTPS / 旧浏览器下 mediaDevices 可能不存在
+        // 能力检测 1：非 HTTPS / 旧浏览器下 mediaDevices 可能不存在
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             setState('blocked');
             els.startBtn.disabled = false;
@@ -1079,23 +1091,37 @@
             return;
         }
 
+        // 能力检测 2：AudioContext 缺失时无法建立分析节点
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) {
+            setState('blocked');
+            els.startBtn.disabled = false;
+            els.statusDot.style.background = '#ff416c';
+            els.statusLabel.textContent = '浏览器不支持音频分析';
+            els.statusTip.textContent = '请使用支持 Web Audio API 的现代浏览器后重试';
+            showToast('当前环境不支持音频分析');
+            return;
+        }
+
         els.startBtn.disabled = true;
         setState('starting');
         els.statusDot.style.background = '#00d2ff';
         els.statusLabel.textContent = '正在请求麦克风权限';
         els.statusTip.textContent = '请在弹出的授权框中点击「允许」，若提示被拒绝请检查浏览器地址栏的权限设置';
 
-        var p;
-        try {
-            p = navigator.mediaDevices.getUserMedia({
-                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-            });
-        } catch (e) {
-            p = navigator.mediaDevices.getUserMedia({ audio: true });
-        }
-        p.then(function (s) {
+        // 先尝试关闭 AEC/NS/AGC 以获得更接近原始信号的读数；
+        // 若浏览器不支持这些约束（OverconstrainedError）再用默认配置重试；
+        // 权限拒绝（NotAllowedError）直接抛出，避免二次弹窗打扰用户。
+        navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+        }).catch(function (err) {
+            if (err && (err.name === 'OverconstrainedError' || err.name === 'NotSupportedError')) {
+                return navigator.mediaDevices.getUserMedia({ audio: true });
+            }
+            throw err;
+        }).then(function (s) {
             stream = s;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            audioCtx = new AC();
             if (audioCtx.state === 'suspended') audioCtx.resume();
             var src = audioCtx.createMediaStreamSource(stream);
             analyser = audioCtx.createAnalyser();
