@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>分贝测试仪</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231e1e2e'/%3E%3Cpath d='M6 17h3v6H6zM11 12h3v11h-3zM16 8h3v15h-3zM21 14h3v9h-3z' fill='%2300d2ff'/%3E%3C/svg%3E">
+<style>
+    /* ===== 基础 ===== */
+    :root {
+        --primary: #00aeec;
+        --primary-light: #00d2ff;
+        --primary-dark: #0072ff;
+        --glass-bg: rgba(255, 255, 255, 0.06);
+        --glass-border: rgba(255, 255, 255, 0.12);
+        --glass-blur: 12px;
+        --text: #e6e6f0;
+        --text-muted: #aaa;
+        --danger: #ff416c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+        font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        color: var(--text);
+        display: flex;
+        min-height: 100vh;
+        background:
+            linear-gradient(135deg, rgba(30,30,46,0.92), rgba(15,15,25,0.95)),
+            repeating-linear-gradient(0deg,
+                rgba(255,255,255,0.04) 0px,
+                rgba(255,255,255,0.04) 1px,
+                transparent 1px,
+                transparent 40px),
+            repeating-linear-gradient(90deg,
+                rgba(255,255,255,0.04) 0px,
+                rgba(255,255,255,0.04) 1px,
+                transparent 1px,
+                transparent 40px),
+            #1e1e2e;
+    }
+    h2 { font-size: 1.15rem; color: #fff; font-weight: 600; }
+    button {
+        padding: 10px 18px;
+        background: linear-gradient(135deg, rgba(0, 198, 255, 0.8), rgba(0, 114, 255, 0.8));
+        border: none;
+        border-radius: 24px;
+        color: #fff;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
+        letter-spacing: 0.3px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0, 174, 236, 0.4); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    button.danger {
+        background: linear-gradient(135deg, rgba(255, 65, 108, 0.8), rgba(255, 75, 43, 0.8));
+        box-shadow: 0 4px 12px rgba(255, 75, 43, 0.3);
+    }
+    button.danger:hover { box-shadow: 0 6px 18px rgba(255, 75, 43, 0.45); }
+    :focus-visible { outline: 2px solid var(--primary-light); outline-offset: 2px; }
+
+    /* ===== 侧边栏 ===== */
+    .sidebar {
+        width: 180px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        background: rgba(30, 30, 46, 0.55);
+        backdrop-filter: blur(var(--glass-blur));
+        -webkit-backdrop-filter: blur(var(--glass-blur));
+        border-right: 1px solid var(--glass-border);
+        display: flex;
+        flex-direction: column;
+        padding: 20px 0;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        z-index: 10;
+    }
+    .sidebar-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+        padding: 0 16px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: linear-gradient(90deg, #00d2ff, #0072ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 0.5px;
+    }
+    .nav-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        color: var(--text-muted);
+        border-left: 3px solid transparent;
+        margin-top: 2px;
+        border-radius: 0 8px 8px 0;
+        user-select: none;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .nav-item:hover { background: rgba(255, 255, 255, 0.08); padding-left: 22px; color: #fff; }
+    .nav-item.active {
+        background: linear-gradient(90deg, rgba(0, 174, 236, 0.2), rgba(0, 114, 255, 0.08));
+        border-left: 3px solid var(--primary-light);
+        color: var(--primary-light);
+        box-shadow: inset 0 0 12px rgba(0, 174, 236, 0.08);
+    }
+
+    /* ===== 内容区 ===== */
+    .content { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; }
+    .panel {
+        display: none;
+        flex: 1;
+        flex-direction: column;
+        padding: 20px;
+        overflow-y: auto;
+        min-height: 0;
+        animation: fadeIn 0.25s ease;
+    }
+    .panel.active { display: flex; }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+    .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    /* ===== 卡片 ===== */
+    .card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    }
+    .card + .card { margin-top: 16px; }
+    .card-title {
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+    }
+    .card-sub { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; }
+
+    /* ===== 状态徽标 ===== */
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--glass-border);
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+    .chip-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); transition: background 0.3s; }
+
+    /* ===== 实时面板 ===== */
+    .gauge-card { display: flex; flex-direction: column; align-items: center; padding: 20px 16px 24px; }
+    .gauge-card canvas { width: min(460px, 100%); height: 190px; display: block; }
+    .db-value {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-top: -8px;
+    }
+    .db-number {
+        font-size: clamp(3.2rem, 10vw, 5rem);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 1px;
+        background: linear-gradient(90deg, #00d2ff, #0072ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1;
+    }
+    .db-unit { font-size: 1.1rem; color: var(--text-muted); }
+    .gauge-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .stat { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+    .stat-unit { font-size: 0.75rem; color: var(--text-muted); margin-left: 4px; }
+
+    .status-card { display: flex; align-items: center; gap: 14px; }
+    .status-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; box-shadow: 0 0 10px currentColor; }
+    .status-body { flex: 1; min-width: 0; }
+    .status-label { color: #fff; font-weight: 600; font-size: 1rem; }
+    .status-tip { color: var(--text-muted); font-size: 0.82rem; margin-top: 3px; line-height: 1.5; }
+
+    .chart-card canvas { width: 100%; height: 200px; display: block; }
+    #waveCanvas { height: 96px; }
+
+    /* ===== 参考面板 ===== */
+    .db-scale-segs { display: flex; height: 20px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.2); }
+    .db-scale-segs .seg { height: 100%; }
+    .db-scale-labels { display: flex; margin-top: 6px; }
+    .db-scale-labels .lbl { flex: 1; text-align: center; font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; }
+    .db-scale-labels .lbl.first { text-align: left; }
+    .db-scale-labels .lbl.last { text-align: right; }
+    .note { font-size: 0.78rem; color: var(--text-muted); margin-top: 12px; line-height: 1.6; }
+
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 0.875rem; min-width: 560px; }
+    colgroup col.c1 { width: 15%; }
+    colgroup col.c2 { width: 15%; }
+    colgroup col.c3 { width: 38%; }
+    colgroup col.c4 { width: 32%; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+    th { color: var(--text-muted); font-weight: 500; background: rgba(255, 255, 255, 0.03); }
+    td { color: var(--text); line-height: 1.5; }
+    td .num { font-variant-numeric: tabular-nums; color: #fff; }
+    .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        border: 1px solid;
+        white-space: nowrap;
+    }
+
+    /* ===== 历史面板 ===== */
+    .summary-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .summary-chip {
+        flex: 1;
+        min-width: 120px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 12px 14px;
+    }
+    .summary-chip .label { font-size: 0.72rem; color: var(--text-muted); }
+    .summary-chip .value { font-size: 1.2rem; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; margin-top: 2px; }
+    .session-list { display: flex; flex-direction: column; gap: 10px; }
+    .session-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 12px 14px;
+    }
+    .session-info { flex: 1; min-width: 0; }
+    .session-time { color: #fff; font-weight: 600; font-size: 0.88rem; }
+    .session-meta { color: var(--text-muted); font-size: 0.78rem; margin-top: 3px; font-variant-numeric: tabular-nums; }
+    .session-item .del-btn {
+        min-height: 36px;
+        padding: 6px 12px;
+        font-size: 0.78rem;
+        border-radius: 12px;
+    }
+    .empty-state {
+        padding: 40px 16px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        line-height: 1.8;
+    }
+
+    /* ===== 弹窗 / 提示 ===== */
+    .confirm-modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1002;
+        justify-content: center;
+        align-items: center;
+    }
+    .confirm-box {
+        background: #2a2a3e;
+        padding: 20px;
+        border-radius: 12px;
+        width: 300px;
+        max-width: 90vw;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .confirm-box p { color: #fff; line-height: 1.6; }
+    .confirm-actions { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
+    .toast {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-10px);
+        background: linear-gradient(135deg, rgba(0, 198, 255, 0.9), rgba(0, 114, 255, 0.9));
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 24px;
+        z-index: 999;
+        opacity: 0;
+        transition: all 0.35s ease;
+        pointer-events: none;
+        box-shadow: 0 6px 20px rgba(0, 174, 236, 0.4);
+        font-size: 0.88rem;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ===== 滚动条 ===== */
+    .panel, .table-scroll { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.2) transparent; }
+    .panel::-webkit-scrollbar, .table-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .panel::-webkit-scrollbar-thumb, .table-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+
+    /* ===== 移动端 ===== */
+    @media (max-width: 768px) {
+        body { flex-direction: column; }
+        .sidebar {
+            width: 100%;
+            height: auto;
+            position: sticky;
+            top: 0;
+            flex-direction: row;
+            align-items: center;
+            padding: 10px 12px;
+            border-right: none;
+            border-bottom: 1px solid var(--glass-border);
+            overflow-x: auto;
+            gap: 4px;
+        }
+        .sidebar-title { padding: 0 10px 0 0; border-bottom: none; font-size: 0.95rem; flex-shrink: 0; }
+        .nav-item {
+            padding: 8px 10px;
+            border-left: none;
+            border-bottom: 3px solid transparent;
+            border-radius: 8px 8px 0 0;
+            margin-top: 0;
+            white-space: nowrap;
+            min-height: 44px;
+            font-size: 0.85rem;
+        }
+        .nav-item svg { display: none; }
+        .nav-item:hover { padding-left: 14px; }
+        .nav-item.active { border-left: none; border-bottom: 3px solid var(--primary-light); }
+        .content { height: auto; }
+        .panel { padding: 14px; }
+        .stats { grid-template-columns: repeat(2, 1fr); }
+        .panel-header { flex-direction: column; align-items: stretch; }
+        .ascii-art { font-size: 9px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-title">分贝测试仪</div>
+    <div class="nav-item active" data-panel="realtimePanel">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+        实时测试
+    </div>
+    <div class="nav-item" data-panel="referencePanel">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6 4"/></svg>
+        噪声参考
+    </div>
+    <div class="nav-item" data-panel="historyPanel">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+        历史记录
+    </div>
+</div>
+
+<div class="content">
+
+    <!-- ===== 视图：实时测试 ===== -->
+    <div id="realtimePanel" class="panel active">
+        <div class="panel-header">
+            <h2>实时测试</h2>
+            <div class="header-actions">
+                <span class="chip" id="stateChip"><span class="chip-dot" id="chipDot"></span><span id="chipText">待机</span></span>
+                <button id="startBtn">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                    开始测试
+                </button>
+                <button id="stopBtn" class="danger" disabled>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                    停止
+                </button>
+            </div>
+        </div>
+
+        <div class="card gauge-card">
+            <canvas id="gaugeCanvas" aria-label="分贝仪表盘"></canvas>
+            <div class="db-value">
+                <span class="db-number" id="dbNumber">--</span>
+                <span class="db-unit">dB</span>
+            </div>
+            <div class="gauge-note">测量结果由麦克风信号估算，未经声学校准，仅供参考</div>
+        </div>
+
+        <div class="stats" style="margin-top:16px;">
+            <div class="card stat">
+                <div class="stat-label">当前</div>
+                <div><span class="stat-value" id="statCurrent">--</span><span class="stat-unit">dB</span></div>
+            </div>
+            <div class="card stat">
+                <div class="stat-label">峰值</div>
+                <div><span class="stat-value" id="statPeak">--</span><span class="stat-unit">dB</span></div>
+            </div>
+            <div class="card stat">
+                <div class="stat-label">平均</div>
+                <div><span class="stat-value" id="statAvg">--</span><span class="stat-unit">dB</span></div>
+            </div>
+            <div class="card stat">
+                <div class="stat-label">时长</div>
+                <div><span class="stat-value" id="statTime">0:00</span></div>
+            </div>
+        </div>
+
+        <div class="card status-card" style="margin-top:16px;">
+            <span class="status-dot" id="statusDot"></span>
+            <div class="status-body">
+                <div class="status-label" id="statusLabel">等待开始</div>
+                <div class="status-tip" id="statusTip">点击「开始测试」并允许麦克风权限后开始测量，请尽量保持环境安静以获得更接近真实的结果</div>
+            </div>
+        </div>
+
+        <div class="card chart-card" style="margin-top:16px;">
+            <div class="card-title">分贝曲线<span class="card-sub">最近 60 秒</span></div>
+            <canvas id="curveCanvas" aria-label="分贝实时曲线"></canvas>
+        </div>
+
+        <div class="card chart-card" style="margin-top:16px;">
+            <div class="card-title">实时波形<span class="card-sub">麦克风原始信号</span></div>
+            <canvas id="waveCanvas" aria-label="实时波形"></canvas>
+        </div>
+    </div>
+
+    <!-- ===== 视图：噪声参考 ===== -->
+    <div id="referencePanel" class="panel">
+        <div class="panel-header">
+            <h2>噪声等级参考</h2>
+        </div>
+
+        <div class="card">
+            <div class="card-title">分贝刻度<span class="card-sub">20 ～ 120 dB 估算区间</span></div>
+            <div class="db-scale-segs" id="scaleBar"></div>
+            <div class="db-scale-labels" id="scaleLabels"></div>
+            <p class="note">分贝（dB）为对数单位：每增加 10 dB 代表声压能量增大 10 倍。85 dB 以上长时间暴露即可能对听力造成损伤，本页数值为麦克风估算值，请勿用于职业卫生判定。</p>
+        </div>
+
+        <div class="card">
+            <div class="card-title">常见场景对照表</div>
+            <div class="table-scroll">
+                <table>
+                    <colgroup>
+                        <col class="c1"><col class="c2"><col class="c3"><col class="c4">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>等级</th>
+                            <th>分贝范围</th>
+                            <th>典型场景</th>
+                            <th>健康提示</th>
+                        </tr>
+                    </thead>
+                    <tbody id="refTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 视图：历史记录 ===== -->
+    <div id="historyPanel" class="panel">
+        <div class="panel-header">
+            <h2>历史记录</h2>
+            <div class="header-actions">
+                <button id="clearHistoryBtn" class="danger">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    清空记录
+                </button>
+            </div>
+        </div>
+
+        <div class="summary-row">
+            <div class="summary-chip"><div class="label">测试次数</div><div class="value" id="sumCount">0</div></div>
+            <div class="summary-chip"><div class="label">累计时长</div><div class="value" id="sumTime">0:00</div></div>
+            <div class="summary-chip"><div class="label">历史最高峰值</div><div class="value" id="sumPeak">--</div></div>
+        </div>
+
+        <div class="card chart-card">
+            <div class="card-title">各次测试对比<span class="card-sub">平均与峰值 · 最近 12 次</span></div>
+            <canvas id="histCanvas" aria-label="历史测试对比柱状图"></canvas>
+        </div>
+
+        <div id="sessionList" class="session-list" style="margin-top:16px;"></div>
+    </div>
+</div>
+
+    <pre class="ascii-art">       ________ __    _____    __                  __   _
+      / ____/ //_/   / ___/   / /_   __  __   ____/ /  (_)  ____
+     / / __/ ,<      \__ \   / __/  / / / /  / __  /  / /  / __ \
+    / /_/ / /| |    ___/ /  / /_   / /_/ /  / /_/ /  / /  / /_/ /
+    \____/_/ |_|   /____/   \__/   \__,_/   \__,_/  /_/   \____/
+    </pre>
+
+<div id="toast" class="toast"></div>
+
+<div class="confirm-modal" id="confirmModal">
+    <div class="confirm-box">
+        <p id="confirmMessage">确定执行此操作吗？</p>
+        <div class="confirm-actions">
+            <button id="confirmCancelBtn">取消</button>
+            <button id="confirmOkBtn" class="danger">确定</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    /* ===== 常量 ===== */
+    var LS_KEY = 'dbmeter_sessions_v1';
+    var CAL_OFFSET = 90;      // 麦克风 dBFS 到估算 dB 的补偿值
+    var SAMPLE_MS = 200;      // 曲线采样间隔
+    var MAX_POINTS = 300;     // 60 秒 @ 200ms
+    var MAX_SESSIONS = 50;
+
+    var ZONES = [
+        { min: 20, max: 40, color: '#00d2ff' },
+        { min: 40, max: 60, color: '#00aeec' },
+        { min: 60, max: 75, color: '#0072ff' },
+        { min: 75, max: 90, color: '#ffb300' },
+        { min: 90, max: 105, color: '#ff7b2e' },
+        { min: 105, max: 120, color: '#ff416c' }
+    ];
+
+    var SCALE_SEGS = [
+        { w: 20, color: '#00d2ff', name: '静谧' },
+        { w: 20, color: '#00aeec', name: '舒适' },
+        { w: 15, color: '#0072ff', name: '较吵' },
+        { w: 15, color: '#ffb300', name: '嘈杂' },
+        { w: 15, color: '#ff7b2e', name: '很吵' },
+        { w: 15, color: '#ff416c', name: '危险' }
+    ];
+
+    var REF_ROWS = [
+        { name: '静谧', color: '#00d2ff', range: '20 - 40', scenes: '深夜卧室、录音棚', tip: '安静环境，适合休息' },
+        { name: '舒适', color: '#00aeec', range: '40 - 60', scenes: '日常交谈、办公室', tip: '正常交流，长时间停留无碍' },
+        { name: '较吵', color: '#0072ff', range: '60 - 75', scenes: '热闹餐厅、大声交谈', tip: '持续暴露可能影响专注' },
+        { name: '嘈杂', color: '#ffb300', range: '75 - 90', scenes: '繁忙街道、吸尘器', tip: '持续暴露可能损伤听力' },
+        { name: '很吵', color: '#ff7b2e', range: '90 - 105', scenes: '地铁车厢、施工现场', tip: '短时暴露即有风险' },
+        { name: '危险', color: '#ff416c', range: '105 - 120', scenes: '演唱会前排、电锯', tip: '立即损伤风险，请远离' }
+    ];
+
+    function describeDb(db) {
+        if (db < 40)  return { name: '静谧', color: '#00d2ff', tip: '环境非常安静，接近深夜卧室或录音棚，适合休息' };
+        if (db < 60)  return { name: '舒适', color: '#00aeec', tip: '日常交谈音量，长时间停留无碍' };
+        if (db < 75)  return { name: '较吵', color: '#0072ff', tip: '接近热闹餐厅或大声交谈，持续暴露可能影响专注' };
+        if (db < 90)  return { name: '嘈杂', color: '#ffb300', tip: '繁忙街道或吸尘器级别，持续暴露可能损伤听力' };
+        if (db < 105) return { name: '很吵', color: '#ff7b2e', tip: '地铁或施工现场级别，短时暴露即有风险' };
+        return { name: '危险', color: '#ff416c', tip: '演唱会前排或电锯级别，立即损伤风险，请远离' };
+    }
+
+    /* ===== DOM ===== */
+    function $(id) { return document.getElementById(id); }
+    var els = {
+        startBtn: $('startBtn'), stopBtn: $('stopBtn'),
+        chipDot: $('chipDot'), chipText: $('chipText'),
+        dbNumber: $('dbNumber'), statCurrent: $('statCurrent'), statPeak: $('statPeak'),
+        statAvg: $('statAvg'), statTime: $('statTime'),
+        statusDot: $('statusDot'), statusLabel: $('statusLabel'), statusTip: $('statusTip'),
+        gaugeCanvas: $('gaugeCanvas'), curveCanvas: $('curveCanvas'), waveCanvas: $('waveCanvas'),
+        histCanvas: $('histCanvas'), sessionList: $('sessionList'),
+        sumCount: $('sumCount'), sumTime: $('sumTime'), sumPeak: $('sumPeak'),
+        clearHistoryBtn: $('clearHistoryBtn'),
+        scaleBar: $('scaleBar'), scaleLabels: $('scaleLabels'), refTableBody: $('refTableBody'),
+        toast: $('toast'), confirmModal: $('confirmModal'), confirmMessage: $('confirmMessage')
+    };
+
+    /* ===== 状态 ===== */
+    var running = false, rafId = null, stream = null, audioCtx = null, analyser = null;
+    var curDb = 40, peakDb = -Infinity, sumDb = 0, countDb = 0;
+    var startedAt = 0, lastSampleAt = 0, history = [], waveBuf = null;
+
+    /* ===== 工具 ===== */
+    function fitCanvas(canvas) {
+        var dpr = window.devicePixelRatio || 1;
+        var w = canvas.clientWidth, h = canvas.clientHeight;
+        if (!w || !h) return null;
+        var bw = Math.round(w * dpr), bh = Math.round(h * dpr);
+        if (canvas.width !== bw || canvas.height !== bh) {
+            canvas.width = bw;
+            canvas.height = bh;
+        }
+        var ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        return { ctx: ctx, w: w, h: h };
+    }
+    function pad2(n) { return (n < 10 ? '0' : '') + n; }
+    function fmtTime(sec) {
+        var s = Math.max(0, Math.floor(sec));
+        var h = Math.floor(s / 3600);
+        var m = Math.floor((s % 3600) / 60);
+        var ss = s % 60;
+        return h > 0 ? h + ':' + pad2(m) + ':' + pad2(ss) : m + ':' + pad2(ss);
+    }
+    function fmtDate(ts) {
+        var d = new Date(ts);
+        return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) +
+            ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
+    }
+    function shortDate(ts) {
+        var d = new Date(ts);
+        return pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    }
+    function hexA(hex, a) {
+        var h = hex.replace('#', '');
+        var r = parseInt(h.substr(0, 2), 16), g = parseInt(h.substr(2, 2), 16), b = parseInt(h.substr(4, 2), 16);
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+    }
+    function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+    function loadSessions() {
+        try {
+            var raw = localStorage.getItem(LS_KEY);
+            if (!raw) return [];
+            var arr = JSON.parse(raw);
+            return Array.isArray(arr) ? arr : [];
+        } catch (e) { return []; }
+    }
+
+    /* ===== Toast / 确认 ===== */
+    var toastTimer = null;
+    function showToast(msg) {
+        els.toast.textContent = msg;
+        els.toast.classList.add('show');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { els.toast.classList.remove('show'); }, 3000);
+    }
+    function askConfirm(message) {
+        return new Promise(function (resolve) {
+            els.confirmMessage.textContent = message;
+            els.confirmModal.style.display = 'flex';
+            var ok = els.confirmOkBtn.cloneNode(true);
+            var cancel = els.confirmCancelBtn.cloneNode(true);
+            els.confirmOkBtn.parentNode.replaceChild(ok, els.confirmOkBtn);
+            els.confirmCancelBtn.parentNode.replaceChild(cancel, els.confirmCancelBtn);
+            ok.addEventListener('click', function () { els.confirmModal.style.display = 'none'; resolve(true); });
+            cancel.addEventListener('click', function () { els.confirmModal.style.display = 'none'; resolve(false); });
+        });
+    }
+
+    /* ===== 仪表盘 ===== */
+    function gaugeAngle(v) {
+        return Math.PI + ((v - 20) / 100) * Math.PI;
+    }
+    function drawGauge(db) {
+        var m = fitCanvas(els.gaugeCanvas);
+        if (!m) return;
+        var ctx = m.ctx, w = m.w, h = m.h;
+        var cx = w / 2, cy = h - 6, R = Math.min(w / 2 - 10, h - 16);
+        var i, v, a;
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, Math.PI, 0);
+        ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+        ctx.lineWidth = 18;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        for (i = 0; i < ZONES.length; i++) {
+            var z = ZONES[i];
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, gaugeAngle(z.min), gaugeAngle(z.max));
+            ctx.strokeStyle = z.color;
+            ctx.globalAlpha = 0.85;
+            ctx.lineWidth = 18;
+            ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+
+        ctx.font = '11px "Segoe UI", "PingFang SC", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (v = 20; v <= 120; v += 10) {
+            a = gaugeAngle(v);
+            ctx.beginPath();
+            ctx.moveTo(cx + Math.cos(a) * (R - 11), cy + Math.sin(a) * (R - 11));
+            ctx.lineTo(cx + Math.cos(a) * (R - 4), cy + Math.sin(a) * (R - 4));
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            if (v % 20 === 0) {
+                ctx.fillStyle = 'rgba(255,255,255,0.65)';
+                ctx.fillText(String(v), cx + Math.cos(a) * (R - 24), cy + Math.sin(a) * (R - 24));
+            }
+        }
+
+        var dbc = Math.max(20, Math.min(120, db));
+        var pa = gaugeAngle(dbc);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(pa) * (R - 30), cy + Math.sin(pa) * (R - 30));
+        ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.shadowColor = 'rgba(0,174,236,0.9)';
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+    }
+
+    /* ===== 分贝曲线 ===== */
+    function drawCurve() {
+        var m = fitCanvas(els.curveCanvas);
+        if (!m) return;
+        var ctx = m.ctx, w = m.w, h = m.h;
+        var padL = 38, padR = 10, padT = 10, padB = 24;
+        var pw = w - padL - padR, ph = h - padT - padB;
+        var yOf = function (db) { return padT + ph - ((db - 20) / 100) * ph; };
+        var i, v;
+
+        for (i = 0; i < ZONES.length; i++) {
+            var z = ZONES[i];
+            ctx.fillStyle = z.color;
+            ctx.globalAlpha = 0.10;
+            ctx.fillRect(padL, yOf(z.max), pw, yOf(z.min) - yOf(z.max));
+        }
+        ctx.globalAlpha = 1;
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 1;
+        ctx.font = '10px "Segoe UI", sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        for (v = 40; v <= 100; v += 20) {
+            var gy = yOf(v);
+            ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(w - padR, gy); ctx.stroke();
+            ctx.fillStyle = 'rgba(255,255,255,0.45)';
+            ctx.fillText(String(v), padL - 6, gy);
+        }
+        ctx.fillStyle = 'rgba(255,255,255,0.45)';
+        ctx.fillText('20', padL - 6, yOf(20));
+        ctx.fillText('120', padL - 6, yOf(120));
+
+        var now = Date.now();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        for (var t = 0; t <= 60; t += 15) {
+            var tx = padL + pw * (t / 60);
+            ctx.beginPath(); ctx.moveTo(tx, padT); ctx.lineTo(tx, padT + ph); ctx.stroke();
+            ctx.fillText(t === 0 ? '现在' : '-' + t + 's', tx, padT + ph + 6);
+        }
+
+        if (history.length > 1) {
+            ctx.beginPath();
+            for (i = 0; i < history.length; i++) {
+                var p = history[i];
+                var px = padL + pw * ((now - p.t) / 60000);
+                var py = yOf(p.db);
+                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.strokeStyle = '#00d2ff';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = 'rgba(0,210,255,0.55)';
+            ctx.shadowBlur = 6;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            var lp = history[history.length - 1];
+            ctx.beginPath();
+            ctx.arc(padL + pw * ((now - lp.t) / 60000), yOf(lp.db), 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#00d2ff';
+            ctx.fill();
+        }
+    }
+
+    /* ===== 实时波形 ===== */
+    function drawWave(buf) {
+        var m = fitCanvas(els.waveCanvas);
+        if (!m) return;
+        var ctx = m.ctx, w = m.w, h = m.h;
+        ctx.beginPath();
+        ctx.moveTo(0, h / 2);
+        ctx.lineTo(w, h / 2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        if (!buf) return;
+        ctx.strokeStyle = '#00d2ff';
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = 'rgba(0,210,255,0.6)';
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        var n = buf.length;
+        var step = Math.max(1, Math.floor(n / (w * 2)));
+        for (var i = 0; i < w; i++) {
+            var idx = Math.min(n - 1, i * step);
+            var val = (buf[idx] - 128) / 128;
+            var y = h / 2 - val * (h / 2 - 6);
+            if (i === 0) ctx.moveTo(i, y); else ctx.lineTo(i, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+    }
+
+    /* ===== 历史对比图 ===== */
+    function drawHistChart() {
+        var m = fitCanvas(els.histCanvas);
+        if (!m) return;
+        var ctx = m.ctx, w = m.w, h = m.h;
+        var padL = 38, padR = 10, padT = 10, padB = 24;
+        var pw = w - padL - padR, ph = h - padT - padB;
+        var yOf = function (db) { return padT + ph - ((db - 20) / 100) * ph; };
+        var list = loadSessions().slice(-12);
+        var i, v;
+
+        if (!list.length) {
+            ctx.fillStyle = 'rgba(255,255,255,0.45)';
+            ctx.font = '13px "Segoe UI", "PingFang SC", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('暂无记录，完成一次测试后自动保存', w / 2, h / 2);
+            return;
+        }
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 1;
+        ctx.font = '10px "Segoe UI", sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        for (v = 40; v <= 100; v += 20) {
+            var gy = yOf(v);
+            ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(w - padR, gy); ctx.stroke();
+            ctx.fillStyle = 'rgba(255,255,255,0.45)';
+            ctx.fillText(String(v), padL - 6, gy);
+        }
+        ctx.fillStyle = 'rgba(255,255,255,0.45)';
+        ctx.fillText('20', padL - 6, yOf(20));
+        ctx.fillText('120', padL - 6, yOf(120));
+
+        var slot = pw / list.length;
+        var bw = Math.min(18, slot * 0.26);
+        for (i = 0; i < list.length; i++) {
+            var s = list[i];
+            var avg = Number(s.avg) || 0;
+            var peak = Number(s.peak) || 0;
+            var x = padL + slot * i + slot / 2;
+            ctx.fillStyle = '#00d2ff';
+            ctx.globalAlpha = 0.9;
+            ctx.fillRect(x - bw, yOf(avg), bw, yOf(20) - yOf(avg));
+            ctx.fillStyle = '#ffb300';
+            ctx.globalAlpha = 0.85;
+            ctx.fillRect(x, yOf(peak), bw, yOf(20) - yOf(peak));
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.font = '9px "Segoe UI", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText(shortDate(s.ts), x, padT + ph + 6);
+        }
+
+        ctx.font = '10px "Segoe UI", "PingFang SC", sans-serif';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#00d2ff';
+        ctx.fillRect(w - padR - 96, padT, 8, 8);
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.textAlign = 'left';
+        ctx.fillText('平均', w - padR - 84, padT + 4);
+        ctx.fillStyle = '#ffb300';
+        ctx.fillRect(w - padR - 52, padT, 8, 8);
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.fillText('峰值', w - padR - 40, padT + 4);
+    }
+
+    /* ===== 参考面板 ===== */
+    function buildScale() {
+        var html = '';
+        for (var i = 0; i < SCALE_SEGS.length; i++) {
+            html += '<div class="seg" style="width:' + SCALE_SEGS[i].w + '%;background:' + SCALE_SEGS[i].color + ';"></div>';
+        }
+        els.scaleBar.innerHTML = html;
+        html = '';
+        for (var j = 0; j < SCALE_SEGS.length; j++) {
+            var t = SCALE_SEGS[j];
+            var cls = j === 0 ? ' first' : (j === SCALE_SEGS.length - 1 ? ' last' : '');
+            html += '<div class="lbl' + cls + '" style="flex:0 0 ' + t.w + '%;">' + t.name + '</div>';
+        }
+        els.scaleLabels.innerHTML = html;
+    }
+    function buildRefTable() {
+        var html = '';
+        for (var i = 0; i < REF_ROWS.length; i++) {
+            var r = REF_ROWS[i];
+            html += '<tr>' +
+                '<td><span class="badge" style="color:' + r.color + ';border-color:' + hexA(r.color, 0.55) + ';">' + r.name + '</span></td>' +
+                '<td class="num">' + r.range + '</td>' +
+                '<td>' + r.scenes + '</td>' +
+                '<td>' + r.tip + '</td>' +
+                '</tr>';
+        }
+        els.refTableBody.innerHTML = html;
+    }
+
+    /* ===== 历史列表 ===== */
+    function renderHistory() {
+        var list = loadSessions();
+        var totalDur = 0, maxPeak = -Infinity;
+        for (var i = 0; i < list.length; i++) {
+            var s = list[i];
+            totalDur += (Number(s.dur) || 0);
+            if (Number(s.peak) > maxPeak) maxPeak = Number(s.peak);
+        }
+        els.sumCount.textContent = String(list.length);
+        els.sumTime.textContent = fmtTime(totalDur);
+        els.sumPeak.textContent = isFinite(maxPeak) ? maxPeak.toFixed(1) : '--';
+
+        if (!list.length) {
+            els.sessionList.innerHTML = '<div class="empty-state">暂无测试记录<br>点击「实时测试」开始一次测量，停止后会自动保存</div>';
+        } else {
+            var html = '';
+            var recent = list.slice().reverse();
+            for (var j = 0; j < recent.length; j++) {
+                var rec = recent[j];
+                var avg = Number(rec.avg) || 0;
+                var peak = Number(rec.peak) || 0;
+                var dur = Number(rec.dur) || 0;
+                var d = describeDb(avg);
+                html += '<div class="session-item">' +
+                    '<div class="session-info">' +
+                    '<div class="session-time">' + escapeHtml(fmtDate(rec.ts)) + '</div>' +
+                    '<div class="session-meta">时长 ' + fmtTime(dur) + ' · 平均 ' + avg.toFixed(1) + ' dB · 峰值 ' + peak.toFixed(1) + ' dB</div>' +
+                    '</div>' +
+                    '<span class="badge" style="color:' + d.color + ';border-color:' + hexA(d.color, 0.55) + ';">' + d.name + '</span>' +
+                    '<button class="del-btn" data-id="' + escapeHtml(String(rec.id)) + '">删除</button>' +
+                    '</div>';
+            }
+            els.sessionList.innerHTML = html;
+        }
+        drawHistChart();
+    }
+    function saveSession() {
+        if (!countDb || countDb < 5) return;
+        var dur = (Date.now() - startedAt) / 1000;
+        if (dur < 2) return;
+        var avg = sumDb / countDb;
+        var peak = isFinite(peakDb) ? peakDb : avg;
+        var s = {
+            id: 's' + Date.now(),
+            ts: Date.now(),
+            dur: Math.round(dur * 10) / 10,
+            avg: Math.round(avg * 10) / 10,
+            peak: Math.round(peak * 10) / 10
+        };
+        var list = loadSessions();
+        list.push(s);
+        if (list.length > MAX_SESSIONS) list = list.slice(list.length - MAX_SESSIONS);
+        try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch (e) {}
+        renderHistory();
+        showToast('本次测试已保存');
+    }
+
+    /* ===== 状态 ===== */
+    function setState(state) {
+        var cfg = {
+            idle: ['待机', '#aaa'],
+            starting: ['启动中', '#00d2ff'],
+            running: ['测试中', '#00d2ff'],
+            blocked: ['麦克风不可用', '#ff416c']
+        }[state];
+        els.chipText.textContent = cfg[0];
+        els.chipDot.style.background = cfg[1];
+    }
+
+    /* ===== 主循环 ===== */
+    function loop() {
+        if (!running) return;
+        var buf = new Uint8Array(analyser.fftSize);
+        analyser.getByteTimeDomainData(buf);
+        waveBuf = buf;
+
+        var sum = 0;
+        for (var i = 0; i < buf.length; i++) {
+            var v = (buf[i] - 128) / 128;
+            sum += v * v;
+        }
+        var rms = Math.sqrt(sum / buf.length);
+        var dbFS = rms > 1e-6 ? 20 * Math.log10(rms) : -100;
+        var disp = Math.max(20, Math.min(120, dbFS + CAL_OFFSET));
+
+        curDb = curDb * 0.72 + disp * 0.28;
+        if (disp > peakDb) peakDb = disp;
+
+        var now = Date.now();
+        if (now - lastSampleAt >= SAMPLE_MS) {
+            lastSampleAt = now;
+            history.push({ t: now, db: Math.round(curDb * 10) / 10 });
+            if (history.length > MAX_POINTS) history.shift();
+            sumDb += Math.round(curDb * 10) / 10;
+            countDb++;
+        }
+
+        els.dbNumber.textContent = curDb.toFixed(1);
+        els.statCurrent.textContent = curDb.toFixed(1);
+        els.statPeak.textContent = isFinite(peakDb) ? peakDb.toFixed(1) : '--';
+        els.statAvg.textContent = countDb ? (sumDb / countDb).toFixed(1) : '--';
+        els.statTime.textContent = fmtTime((now - startedAt) / 1000);
+
+        var d = describeDb(curDb);
+        els.statusDot.style.background = d.color;
+        els.statusLabel.textContent = d.name;
+        els.statusTip.textContent = d.tip;
+
+        drawGauge(curDb);
+        drawWave(waveBuf);
+        drawCurve();
+
+        rafId = requestAnimationFrame(loop);
+    }
+
+    /* ===== 开始 / 停止 ===== */
+    function startTest() {
+        if (running) return;
+        els.startBtn.disabled = true;
+        setState('starting');
+        els.statusDot.style.background = '#00d2ff';
+        els.statusLabel.textContent = '正在请求麦克风权限';
+        els.statusTip.textContent = '请在弹出的授权框中点击「允许」，若提示被拒绝请检查浏览器地址栏的权限设置';
+
+        function fallback() {
+            return navigator.mediaDevices.getUserMedia({ audio: true });
+        }
+        var p;
+        try {
+            p = navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+            });
+        } catch (e) {
+            p = fallback();
+        }
+        p.then(function (s) {
+            stream = s;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            var src = audioCtx.createMediaStreamSource(stream);
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 2048;
+            analyser.smoothingTimeConstant = 0.8;
+            src.connect(analyser);
+
+            running = true;
+            startedAt = Date.now();
+            lastSampleAt = 0;
+            peakDb = -Infinity; sumDb = 0; countDb = 0; history = []; curDb = 40;
+            setState('running');
+            els.stopBtn.disabled = false;
+            els.statusLabel.textContent = '测试进行中';
+            els.statusTip.textContent = '保持环境稳定，观察当前分贝与曲线变化，点击「停止」结束并自动保存';
+            rafId = requestAnimationFrame(loop);
+        }).catch(function () {
+            setState('blocked');
+            els.startBtn.disabled = false;
+            els.statusDot.style.background = '#ff416c';
+            els.statusLabel.textContent = '无法获取麦克风';
+            els.statusTip.textContent = '请确认浏览器已授予麦克风权限，并检查麦克风设备连接是否正常，然后重试';
+            showToast('麦克风权限被拒绝或不可用');
+        });
+    }
+
+    function stopTest() {
+        if (!running) return;
+        running = false;
+        cancelAnimationFrame(rafId);
+        if (stream) {
+            stream.getTracks().forEach(function (t) { t.stop(); });
+            stream = null;
+        }
+        if (audioCtx) {
+            try { audioCtx.close(); } catch (e) {}
+            audioCtx = null;
+        }
+        analyser = null;
+        var saved = countDb >= 5;
+        saveSession();
+        setState('idle');
+        els.startBtn.disabled = false;
+        els.stopBtn.disabled = true;
+        els.dbNumber.textContent = '--';
+        els.statCurrent.textContent = '--';
+        els.statPeak.textContent = isFinite(peakDb) ? peakDb.toFixed(1) : '--';
+        els.statAvg.textContent = countDb ? (sumDb / countDb).toFixed(1) : '--';
+        els.statusDot.style.background = '#aaa';
+        els.statusLabel.textContent = '测试已结束';
+        els.statusTip.textContent = saved ? '本次结果已保存至历史记录，曲线保留供查看' : '本次时长过短，未保存记录';
+        drawWave(null);
+        drawCurve();
+    }
+
+    /* ===== 导航 ===== */
+    var navItems = document.querySelectorAll('.nav-item');
+    for (var n = 0; n < navItems.length; n++) {
+        navItems[n].addEventListener('click', function () {
+            for (var k = 0; k < navItems.length; k++) navItems[k].classList.remove('active');
+            this.classList.add('active');
+            var panelId = this.getAttribute('data-panel');
+            var panels = document.querySelectorAll('.panel');
+            for (var j = 0; j < panels.length; j++) panels[j].classList.remove('active');
+            $(panelId).classList.add('active');
+            if (panelId === 'historyPanel') renderHistory();
+        });
+    }
+
+    /* ===== 事件绑定 ===== */
+    els.startBtn.addEventListener('click', startTest);
+    els.stopBtn.addEventListener('click', stopTest);
+
+    els.clearHistoryBtn.addEventListener('click', function () {
+        askConfirm('确定清空全部历史记录吗？此操作不可恢复。').then(function (ok) {
+            if (!ok) return;
+            try { localStorage.removeItem(LS_KEY); } catch (e) {}
+            renderHistory();
+            showToast('历史记录已清空');
+        });
+    });
+
+    els.sessionList.addEventListener('click', function (e) {
+        var btn = e.target.closest('.del-btn');
+        if (!btn) return;
+        var id = btn.getAttribute('data-id');
+        askConfirm('确定删除这条记录吗？').then(function (ok) {
+            if (!ok) return;
+            var list = loadSessions().filter(function (s) { return String(s.id) !== id; });
+            try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch (err) {}
+            renderHistory();
+            showToast('记录已删除');
+        });
+    });
+
+    var resizeTimer = null;
+    window.addEventListener('resize', function () {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+            if (!running) { drawGauge(curDb); drawCurve(); drawWave(null); }
+            drawHistChart();
+        }, 150);
+    });
+
+    /* ===== 初始化 ===== */
+    buildScale();
+    buildRefTable();
+    drawGauge(40);
+    drawCurve();
+    drawWave(null);
+    renderHistory();
+})();
+</script>
+
+</body>
+</html>
