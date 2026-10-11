@@ -589,7 +589,8 @@
         sumCount: $('sumCount'), sumTime: $('sumTime'), sumPeak: $('sumPeak'),
         clearHistoryBtn: $('clearHistoryBtn'),
         scaleBar: $('scaleBar'), scaleLabels: $('scaleLabels'), refTableBody: $('refTableBody'),
-        toast: $('toast'), confirmModal: $('confirmModal'), confirmMessage: $('confirmMessage')
+        toast: $('toast'), confirmModal: $('confirmModal'), confirmMessage: $('confirmMessage'),
+        confirmOkBtn: $('confirmOkBtn'), confirmCancelBtn: $('confirmCancelBtn')
     };
 
     /* ===== 状态 ===== */
@@ -660,12 +661,16 @@
         return new Promise(function (resolve) {
             els.confirmMessage.textContent = message;
             els.confirmModal.style.display = 'flex';
-            var ok = els.confirmOkBtn.cloneNode(true);
-            var cancel = els.confirmCancelBtn.cloneNode(true);
-            els.confirmOkBtn.parentNode.replaceChild(ok, els.confirmOkBtn);
-            els.confirmCancelBtn.parentNode.replaceChild(cancel, els.confirmCancelBtn);
-            ok.addEventListener('click', function () { els.confirmModal.style.display = 'none'; resolve(true); });
-            cancel.addEventListener('click', function () { els.confirmModal.style.display = 'none'; resolve(false); });
+
+            // 用 onclick 直接覆盖，避免 cloneNode 替换节点后 els 引用失效
+            els.confirmOkBtn.onclick = function () {
+                els.confirmModal.style.display = 'none';
+                resolve(true);
+            };
+            els.confirmCancelBtn.onclick = function () {
+                els.confirmModal.style.display = 'none';
+                resolve(false);
+            };
         });
     }
 
@@ -961,10 +966,12 @@
         }
         drawHistChart();
     }
+
+    // 返回是否真的保存成功，供 stopTest 准确提示
     function saveSession() {
-        if (!countDb || countDb < 5) return;
+        if (!countDb || countDb < 5) return false;
         var dur = (Date.now() - startedAt) / 1000;
-        if (dur < 2) return;
+        if (dur < 2) return false;
         var avg = sumDb / countDb;
         var peak = isFinite(peakDb) ? peakDb : avg;
         var s = {
@@ -980,6 +987,7 @@
         try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch (e) {}
         renderHistory();
         showToast('本次测试已保存');
+        return true;
     }
 
     /* ===== 状态 ===== */
@@ -1043,22 +1051,31 @@
     /* ===== 开始 / 停止 ===== */
     function startTest() {
         if (running) return;
+
+        // 能力检测：非 HTTPS / 旧浏览器下 mediaDevices 可能不存在
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            setState('blocked');
+            els.startBtn.disabled = false;
+            els.statusDot.style.background = '#ff416c';
+            els.statusLabel.textContent = '浏览器不支持麦克风';
+            els.statusTip.textContent = '请使用支持 getUserMedia 的现代浏览器，并通过 HTTPS 或 localhost 访问';
+            showToast('当前环境不支持麦克风采集');
+            return;
+        }
+
         els.startBtn.disabled = true;
         setState('starting');
         els.statusDot.style.background = '#00d2ff';
         els.statusLabel.textContent = '正在请求麦克风权限';
         els.statusTip.textContent = '请在弹出的授权框中点击「允许」，若提示被拒绝请检查浏览器地址栏的权限设置';
 
-        function fallback() {
-            return navigator.mediaDevices.getUserMedia({ audio: true });
-        }
         var p;
         try {
             p = navigator.mediaDevices.getUserMedia({
                 audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
             });
         } catch (e) {
-            p = fallback();
+            p = navigator.mediaDevices.getUserMedia({ audio: true });
         }
         p.then(function (s) {
             stream = s;
@@ -1102,8 +1119,7 @@
             audioCtx = null;
         }
         analyser = null;
-        var saved = countDb >= 5;
-        saveSession();
+        var saved = saveSession();
         setState('idle');
         els.startBtn.disabled = false;
         els.stopBtn.disabled = true;
