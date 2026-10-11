@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>分贝测试仪</title>
- <link rel="icon" type="image/png" href="./site2.png"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231e1e2e'/%3E%3Cpath d='M6 17h3v6H6zM11 12h3v11h-3zM16 8h3v15h-3zM21 14h3v9h-3z' fill='%2300d2ff'/%3E%3C/svg%3E">
 <style>
     /* ===== 基础 ===== */
     :root {
@@ -322,6 +322,23 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ===== 水印 ===== */
+    .ascii-art {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.25;
+        white-space: pre;
+        color: rgba(0, 174, 236, 0.12);
+        pointer-events: none;
+        z-index: 1;
+        text-align: center;
+        margin: 0;
+    }
+
     /* ===== 滚动条 ===== */
     .panel, .table-scroll { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.2) transparent; }
     .panel::-webkit-scrollbar, .table-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -509,13 +526,13 @@
         <div id="sessionList" class="session-list" style="margin-top:16px;"></div>
     </div>
 </div>
-    
-<pre class="ascii-art">       ________ __    _____    __                  __   _
-      / ____/ //_/   / ___/   / /_   __  __   ____/ /  (_)  ____
-     / / __/ ,<      \__ \   / __/  / / / /  / __  /  / /  / __ \
-    / /_/ / /| |    ___/ /  / /_   / /_/ /  / /_/ /  / /  / /_/ /
-    \____/_/ |_|   /____/   \__/   \__,_/   \__,_/  /_/   \____/</pre>
- 
+
+<pre class="ascii-art">   ____  ____  ____ ____  _      ____  _____
+  |  _ \|  _ \| __ ) ___|| |    | __ )| ____|
+  | | | | | | |  _ \___ \| |    |  _ \|  _|
+  | |_| | |_| | |_) |__) | |___ | |_) | |___
+  |____/|____/|____/____/|_____||____/|_____|</pre>
+
 <div id="toast" class="toast"></div>
 
 <div class="confirm-modal" id="confirmModal">
@@ -661,7 +678,7 @@
             els.confirmMessage.textContent = message;
             els.confirmModal.style.display = 'flex';
 
-            // 用 onclick 直接覆盖，避免 cloneNode 替换节点后 els 引用失效
+            // 直接用 onclick 覆盖，避免 cloneNode 替换后 els 引用失效
             els.confirmOkBtn.onclick = function () {
                 els.confirmModal.style.display = 'none';
                 resolve(true);
