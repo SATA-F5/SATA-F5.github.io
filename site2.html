@@ -2,7 +2,6 @@
 <html lang="zh-CN" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" type="image/png" href="./site2.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>分流台 · 杂项导航</title>
 <style>
@@ -312,30 +311,28 @@
 
   <footer>
     <span>按 <kbd>/</kbd> 搜索 · <kbd>Esc</kbd> 清空 · 左侧色条为本地页面</span>
-    <span>本地页可通过 <kbd>icon</kbd> 指定本地图片</span>
+    <span>本地页面自动匹配 MS_site 文件夹下的同名图标</span>
   </footer>
 </div>
 
 <script>
 /* =========================================================
    数据配置区
-   注意：本地页面请把 url 写成相对路径（如 "./ms_site1.html"）
-   并把那些 html 文件放在与本文件相同的文件夹下。
    ========================================================= */
 const SITES = [
   {
     cat: "本地杂项页",
     items: [
-      { name: "分贝测试仪", desc: "本地页面", url: "./ms_site1.html",  tag: "01" },
-      { name: "声场反应堆", desc: "本地页面", url: "./ms_site2.html",  tag: "02" },
-      { name: "杂项页 03", desc: "本地页面", url: "./ms_site3.html",  tag: "03" },
-      { name: "杂项页 04", desc: "本地页面", url: "./ms_site4.html",  tag: "04" },
-      { name: "杂项页 05", desc: "本地页面", url: "./ms_site5.html",  tag: "05" },
-      { name: "杂项页 06", desc: "本地页面", url: "./ms_site6.html",  tag: "06" },
-      { name: "杂项页 07", desc: "本地页面", url: "./ms_site7.html",  tag: "07" },
-      { name: "杂项页 08", desc: "本地页面", url: "./ms_site8.html",  tag: "08" },
-      { name: "杂项页 09", desc: "本地页面", url: "./ms_site9.html",  tag: "09" },
-      { name: "杂项页 10", desc: "本地页面", url: "./ms_site10.html", tag: "10" }
+      { name: "分页测试仪", desc: "本地页面", url: "./MS_site/site1.html",  tag: "01" },
+      { name: "声场反应堆", desc: "本地页面", url: "./MS_site/site2.html",  tag: "02" },
+      { name: "杂项页 03", desc: "本地页面", url: "./MS_site/site3.html",  tag: "03" },
+      { name: "杂项页 04", desc: "本地页面", url: "./MS_site/site4.html",  tag: "04" },
+      { name: "杂项页 05", desc: "本地页面", url: "./MS_site/site5.html",  tag: "05" },
+      { name: "杂项页 06", desc: "本地页面", url: "./MS_site/site6.html",  tag: "06" },
+      { name: "杂项页 07", desc: "本地页面", url: "./MS_site/site7.html",  tag: "07" },
+      { name: "杂项页 08", desc: "本地页面", url: "./MS_site/site8.html",  tag: "08" },
+      { name: "杂项页 09", desc: "本地页面", url: "./MS_site/site9.html",  tag: "09" },
+      { name: "杂项页 10", desc: "本地页面", url: "./MS_site/site10.html", tag: "10" }
     ]
   },
   {
@@ -408,14 +405,23 @@ function hueOf(str){
 /* 判断是否是本地相对路径（非 http/https 等外部协议） */
 const isLocal = url => !/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(url);
 
+/* 自动推断图标来源 */
 function iconSources(it){
-  // 如果用户明确指定了本地或网络图片
+  // 1. 如果用户明确指定了本地或网络图片
   if (it.icon) return [it.icon];
   
-  // 如果是本地文件跳转，没有域名，没必要去抓网络图标，直接返回空走文字回退
-  if (isLocal(it.url)) return [];
+  // 2. 如果是本地文件跳转，尝试匹配同名图片 (例如 ./MS_site/site1.html -> ./MS_site/site1.png)
+  if (isLocal(it.url)) {
+    const base = it.url.replace(/\.html?$/i, '');
+    return [
+      `${base}.png`,
+      `${base}.ico`,
+      `${base}.jpg`,
+      `${base}.svg`
+    ];
+  }
 
-  // 外部网址，尝试抓取原生 favicon
+  // 3. 外部网址，尝试抓取原生 favicon
   try{
     const u = new URL(it.url);
     const host = u.hostname;
