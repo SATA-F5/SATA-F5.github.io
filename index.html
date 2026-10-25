@@ -864,9 +864,9 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
 
 #startBtn {
   position: absolute;
-  left: 50%;
+  left: 8px;
   top: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateY(-50%);
   width: 40px;
   height: 40px;
   display: grid;
@@ -879,7 +879,7 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
   transition: background .12s;
 }
 #startBtn:hover { background: var(--tb-hover); }
-#startBtn:active { background: var(--tb-active); transform: translate(-50%, -50%) scale(.94); }
+#startBtn:active { background: var(--tb-active); transform: translateY(-50%) scale(.94); }
 
 #tray {
   position: absolute;
@@ -1216,7 +1216,7 @@ body.info-open #infoTrigger { pointer-events: none; }
    ========================================================= */
 #startMenu {
   position: absolute;
-  left: 50%; bottom: 58px;
+  left: 8px; bottom: 58px;
   width: 640px;
   max-width: calc(100vw - 20px);
   height: 640px;
@@ -1232,13 +1232,13 @@ body.info-open #infoTrigger { pointer-events: none; }
   -webkit-backdrop-filter: blur(50px) saturate(180%);
   z-index: 600;
   opacity: 0; pointer-events: none;
-  transform: translateX(-50%) translateY(20px) scale(.98);
+  transform: translateY(20px) scale(.98);
   transition: opacity .18s ease, transform .24s cubic-bezier(.2, .9, .3, 1.05),
               background .35s, color .35s;
 }
 #startMenu.open {
   opacity: 1; pointer-events: auto;
-  transform: translateX(-50%) translateY(0) scale(1);
+  transform: translateY(0) scale(1);
 }
 
 .sm-search {
