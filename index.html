@@ -816,8 +816,8 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
 .egg-hero { display: flex; align-items: center; gap: 14px; }
 .egg-avatar {
   width: 56px; height: 56px; border-radius: 16px; flex: none;
-  display: grid; place-items: center; font-size: 24px; font-weight: 700; color: #fff;
-  background: linear-gradient(135deg, #4f8ef7, #6d5ef0);
+  object-fit: cover; border: 1px solid var(--win-border);
+  background: var(--tb-hover);
 }
 .egg-name { font-size: 19px; font-weight: 700; }
 .egg-sub { font-size: 12px; color: var(--win-sub); margin-top: 2px; }
@@ -835,7 +835,10 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
 .egg-link-main span { font-size: 11px; color: var(--win-sub); }
 .egg-works { margin-top: 18px; }
 .egg-works-title { font-size: 11px; color: var(--win-sub); letter-spacing: .08em; margin-bottom: 8px; }
-.egg-work { padding: 8px 12px; border: 1px dashed var(--win-border); border-radius: 8px; margin-bottom: 6px; font-size: 12.5px; }
+.egg-proj { display: block; padding: 9px 12px; border: 1px solid var(--win-border); border-radius: 8px; margin-bottom: 6px; text-decoration: none; color: inherit; transition: border-color .15s, transform .15s; }
+.egg-proj:hover { border-color: var(--accent); transform: translateY(-1px); }
+.egg-proj b { display: block; font-size: 12.5px; font-weight: 600; color: var(--accent); }
+.egg-proj span { display: block; font-size: 11.5px; color: var(--win-sub); margin-top: 2px; }
 .egg-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
 .egg-tags span { font-size: 11px; padding: 3px 10px; border-radius: 999px; background: var(--tb-hover); color: var(--win-sub); }
 
@@ -2928,7 +2931,7 @@ function createThisPCWin(site) {
     ]},
     '文档': { type: 'folder', children: [
       { name: '工作', type: 'folder', children: [
-        { name: '关于守禄.html', type: 'file', size: '12 KB', kind: 'egg' },
+        { name: '关于作者.html', type: 'file', size: '12 KB', kind: 'egg' },
       ] },
       { name: '学习', type: 'folder', children: [] },
       { name: '备忘录.md', type: 'file', size: '3.1 KB', kind: 'text' },
@@ -3087,7 +3090,7 @@ function createThisPCWin(site) {
       </div>
       <div class="fv-body"><div class="egg-wrap">
         <div class="egg-hero">
-          <div class="egg-avatar">禄</div>
+          <img class="egg-avatar" src="./favicon.ico" alt="avatar">
           <div>
             <div class="egg-name">守禄</div>
             <div class="egg-sub">开发者 · B站游戏内容创作者 · 业余写手</div>
@@ -3105,9 +3108,19 @@ function createThisPCWin(site) {
           </a>
         </div>
         <div class="egg-works">
-          <div class="egg-works-title">写过的故事</div>
-          <div class="egg-work">《瀚星海兽纪》</div>
-          <div class="egg-work">《林世界》</div>
+          <div class="egg-works-title">我的项目</div>
+          <a class="egg-proj" href="https://github.com/SATA-F5/SaveBili" target="_blank" rel="noopener">
+            <b>SaveBili</b><span>AstrBot 插件：B 站视频下载并发送到聊天窗口</span>
+          </a>
+          <a class="egg-proj" href="https://github.com/SATA-F5/SaveBili_Desktop" target="_blank" rel="noopener">
+            <b>SaveBili_Desktop</b><span>基于 pywebview 的 B 站视频下载桌面客户端</span>
+          </a>
+          <a class="egg-proj" href="https://github.com/SATA-F5/NC_Go" target="_blank" rel="noopener">
+            <b>NC_Go</b><span>一键部署并连接 NapCat，搞定反向 WebSocket 配置</span>
+          </a>
+          <a class="egg-proj" href="https://github.com/SATA-F5/EasyTier_Go" target="_blank" rel="noopener">
+            <b>EasyTier_Go</b><span>让 Minecraft 远程联机更轻松的工具模组</span>
+          </a>
         </div>
         <div class="egg-tags">
           <span>INTP</span><span>Minecraft</span><span>自托管</span><span>Windows 折腾</span><span>Furry</span>
