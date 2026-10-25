@@ -2890,7 +2890,7 @@ function createEdgeWin(site, initialUrl = null) {
     { name: '必应',   url: 'https://www.bing.com',  bg: 'linear-gradient(145deg,#0F82D8,#23B8A6)', letter: 'B' },
     { name: '百度',   url: 'https://www.baidu.com', bg: 'linear-gradient(145deg,#3B7CFF,#2932E1)', letter: '百' },
     { name: 'GitHub', url: 'https://github.com',    bg: 'linear-gradient(145deg,#4b5563,#111827)', letter: 'G' },
-    { name: '知乎',   url: 'https://www.zhihu.com', bg: 'linear-gradient(145deg,#38bdf8,#0084ff)', letter: '知' },
+    { name: 'B站',   url: 'https://space.bilibili.com/3546889876146751?spm_id_from=333.1007.0.0', bg: 'linear-gradient(145deg,#38bdf8,#0084ff)', letter: 'B' },
   ];
   tiles.forEach(t => {
     const d = document.createElement('div');
@@ -2926,7 +2926,7 @@ function createThisPCWin(site) {
     '桌面': { type: 'folder', children: [
       { name: 'MCAC服务器-探索无限可能.html', type: 'file', size: '148 KB', kind: 'text' },
       { name: '分贝测试仪.html', type: 'file', size: '88 KB', kind: 'text' },
-      { name: '新建文件夹', type: 'folder', children: [] },
+      { name: 'Github Pager', type: 'folder', children: [] },
       { name: '说明.txt', type: 'file', size: '512 B', kind: 'text' },
     ]},
     '文档': { type: 'folder', children: [
@@ -3046,10 +3046,10 @@ function createThisPCWin(site) {
 
   function fileContent(f) {
     const map = {
-      '说明.txt': '这是豆包 Win11 模拟桌面。\n\n• 双击桌面图标打开窗口\n• 假 Edge 可打开站内页面，外部网址会在真实浏览器打开\n• 右下角可查看性能、音量、网络等',
+      '说明.txt': '这是守禄 Win11 模拟桌面。\n\n• 双击桌面图标打开窗口\n• Edge 可打开站内页面，外部网址会在真实浏览器打开\n• 右下角可查看性能、音量、网络等',
       'config.txt': '[system]\nhostname=WIN11-DESKTOP\ntheme=dark/light\nautoStart=false\n\n[network]\nssid=Home-5G\nipplan=dhcp',
       '备忘录.md': '# 待办\n- [ ] 给 server 装内存\n- [x] 部署 GitHub Pages\n- [ ] 换壁纸',
-      '收藏歌单.m3u': '#EXTM3U\n#EXTINF:215,无尽夏\n#EXTINF:198,海阔天空\n#EXTINF:240,晴天',
+      '收藏歌单.m3u': '#EXTM3U\n#EXTINF:215,雨之舞\n#EXTINF:198,Waiting to wake up\n#EXTINF:240,I have no friends',
     };
     return map[f.name] || `无法预览该文件的内容。\n\n文件：${f.name}\n大小：${f.size}`;
   }
@@ -3093,7 +3093,7 @@ function createThisPCWin(site) {
           <img class="egg-avatar" src="./favicon.ico" alt="avatar">
           <div>
             <div class="egg-name">守禄</div>
-            <div class="egg-sub">开发者 · B站游戏内容创作者 · 业余写手</div>
+            <div class="egg-sub">开发者 · B站游戏内容创作者 · Furry</div>
           </div>
         </div>
         <p class="egg-bio">喜欢折腾 Windows 与自托管，写点小工具，也在 B 站做游戏相关内容。这张名片藏在「此电脑 → 文档 → 工作」里，算是给路过的你留的一个小彩蛋。</p>
