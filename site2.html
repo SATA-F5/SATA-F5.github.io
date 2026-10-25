@@ -323,16 +323,17 @@ const SITES = [
   {
     cat: "本地杂项页",
     items: [
-      { name: "分页测试仪", desc: "本地页面", url: "./MS_site/site1.html",  tag: "01" },
-      { name: "声场反应堆", desc: "本地页面", url: "./MS_site/site2.html",  tag: "02" },
-      { name: "杂项页 03", desc: "本地页面", url: "./MS_site/site3.html",  tag: "03" },
-      { name: "杂项页 04", desc: "本地页面", url: "./MS_site/site4.html",  tag: "04" },
-      { name: "杂项页 05", desc: "本地页面", url: "./MS_site/site5.html",  tag: "05" },
-      { name: "杂项页 06", desc: "本地页面", url: "./MS_site/site6.html",  tag: "06" },
-      { name: "杂项页 07", desc: "本地页面", url: "./MS_site/site7.html",  tag: "07" },
-      { name: "杂项页 08", desc: "本地页面", url: "./MS_site/site8.html",  tag: "08" },
-      { name: "杂项页 09", desc: "本地页面", url: "./MS_site/site9.html",  tag: "09" },
-      { name: "杂项页 10", desc: "本地页面", url: "./MS_site/site10.html", tag: "10" }
+      // 注意：因为你的 MS_site 文件夹里文件名是 ms_site1.html，所以这里带上 ms_ 前缀
+      { name: "分页测试仪", desc: "本地页面", url: "./MS_site/ms_site1.html",  tag: "01" },
+      { name: "声场反应堆", desc: "本地页面", url: "./MS_site/ms_site2.html",  tag: "02" },
+      { name: "杂项页 03", desc: "本地页面", url: "./MS_site/ms_site3.html",  tag: "03" },
+      { name: "杂项页 04", desc: "本地页面", url: "./MS_site/ms_site4.html",  tag: "04" },
+      { name: "杂项页 05", desc: "本地页面", url: "./MS_site/ms_site5.html",  tag: "05" },
+      { name: "杂项页 06", desc: "本地页面", url: "./MS_site/ms_site6.html",  tag: "06" },
+      { name: "杂项页 07", desc: "本地页面", url: "./MS_site/ms_site7.html",  tag: "07" },
+      { name: "杂项页 08", desc: "本地页面", url: "./MS_site/ms_site8.html",  tag: "08" },
+      { name: "杂项页 09", desc: "本地页面", url: "./MS_site/ms_site9.html",  tag: "09" },
+      { name: "杂项页 10", desc: "本地页面", url: "./MS_site/ms_site10.html", tag: "10" }
     ]
   },
   {
@@ -410,7 +411,7 @@ function iconSources(it){
   // 1. 如果用户明确指定了本地或网络图片
   if (it.icon) return [it.icon];
   
-  // 2. 如果是本地文件跳转，尝试匹配同名图片 (例如 ./MS_site/site1.html -> ./MS_site/site1.png)
+  // 2. 如果是本地文件跳转，尝试匹配同名图片 (例如 ./MS_site/ms_site1.html -> ./MS_site/ms_site1.png)
   if (isLocal(it.url)) {
     const base = it.url.replace(/\.html?$/i, '');
     return [
