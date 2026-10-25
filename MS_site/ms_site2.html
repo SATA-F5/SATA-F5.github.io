@@ -1,0 +1,1254 @@
+<!doctype html>
+<!--
+  源项目：REACTOR — 声场反应堆
+  原作者：wzk112
+  仓库：https://github.com/wzk112/reactor-audio-visualizer
+  本文件为单文件内联打包版，仅供学习交流使用
+-->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#121614">
+  <title>REACTOR — 声场反应堆</title>
+  <meta name="description" content="让音乐驱动堆芯。基于控制棒阵列的实时音频可视化。">
+  <link rel="icon" type="image/png" href="./ms_site2.png">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #121614;
+      --panel: #191d1a;
+      --line: #343a32;
+      --muted: #8e998a;
+      --text: #e6eadf;
+      --accent: #deec95;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, "PingFang SC", sans-serif;
+      font-size: 16px;
+    }
+
+    button, a, input {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    button:focus-visible, a:focus-visible, input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    /* ===== 顶部栏 ===== */
+    header {
+      height: 88px;
+      padding: 0 34px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      text-decoration: none;
+      color: var(--text);
+      font-size: 25px;
+      letter-spacing: 3px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      font-size: 34px;
+      color: var(--accent);
+    }
+
+    .edition {
+      font: 12px monospace;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-left: 16px;
+    }
+
+    .top-note {
+      font-size: 14px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    .plain {
+      background: none;
+      border: 0;
+      color: #a8b29f;
+      font-size: 14px;
+      padding: 10px;
+    }
+
+    /* ===== 主布局 ===== */
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      min-height: calc(100svh - 137px);
+    }
+
+    /* ===== 可视化舞台 ===== */
+    .stage {
+      position: relative;
+      min-height: 680px;
+      overflow: hidden;
+      background: radial-gradient(ellipse at 50% 49%, #30382b 0%, #1b211a 43%, #141915 78%);
+    }
+
+    .stage-title {
+      position: absolute;
+      top: 30px;
+      left: 34px;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      font: 12px monospace;
+      letter-spacing: 1.4px;
+      color: var(--muted);
+    }
+
+    h1 {
+      font-size: 25px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      margin: 13px 0;
+    }
+
+    h1 span {
+      font: 13px monospace;
+      color: #697561;
+      letter-spacing: 1px;
+    }
+
+    .live {
+      position: absolute;
+      top: 38px;
+      right: 28px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      color: #bdc5ad;
+    }
+
+    .live i {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 10px #deec9544;
+    }
+
+    #core {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    #core:active {
+      cursor: grabbing;
+    }
+
+    .axis {
+      position: absolute;
+      bottom: 66px;
+      left: 34px;
+      font: 12px monospace;
+      letter-spacing: 1.5px;
+      color: #737e6c;
+      pointer-events: none;
+    }
+
+    .stage-bottom {
+      position: absolute;
+      bottom: 18px;
+      left: 34px;
+      right: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #839078;
+      font-size: 12px;
+    }
+
+    .scale {
+      position: absolute;
+      right: 25px;
+      bottom: 100px;
+      display: grid;
+      grid-template-columns: 8px 16px;
+      gap: 10px;
+      font-size: 12px;
+      color: #99a58d;
+    }
+
+    .scale span:first-child {
+      grid-column: 1 / 3;
+    }
+
+    .scale div {
+      grid-row: 2 / 4;
+      background: linear-gradient(#eff7b4, #a99c5e, #454c3c);
+      width: 5px;
+      height: 72px;
+    }
+
+    .scale span:last-child {
+      align-self: end;
+    }
+
+    /* ===== 侧边控制台 ===== */
+    aside {
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      padding: 27px 25px 18px;
+    }
+
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 4px 0 29px;
+    }
+
+    .panel-title > span:first-child {
+      font-size: 18px;
+    }
+
+    aside section {
+      padding-bottom: 23px;
+      margin-bottom: 23px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .caption {
+      display: block;
+      color: #8e998a;
+      font: 12px monospace;
+      letter-spacing: 1px;
+      margin-bottom: 17px;
+    }
+
+    /* 音频输入 */
+    .source-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 4px;
+      background: #101510;
+      border: 1px solid #31392d;
+    }
+
+    .source-tabs button {
+      flex: 1;
+      background: transparent;
+      border: 0;
+      font-size: 14px;
+      padding: 10px 0;
+      color: #8e998a;
+    }
+
+    .source-tabs button.selected {
+      background: #3c4432;
+      color: #e4edc8;
+    }
+
+    .upload {
+      background: #20261d;
+      border: 1px dashed #535d44;
+      width: 100%;
+      margin-top: 14px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 25px 1fr;
+      text-align: left;
+      gap: 6px 10px;
+    }
+
+    .upload > span {
+      grid-row: 1 / 3;
+      font-size: 25px;
+      align-self: center;
+      color: var(--accent);
+    }
+
+    .upload strong {
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    .upload small {
+      font: 11px monospace;
+      color: #85917b;
+    }
+
+    .upload:hover {
+      border-color: var(--accent);
+      background: #2a3222;
+    }
+
+    .track {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 22px 0 10px;
+      min-width: 0;
+    }
+
+    .track-icon {
+      font-size: 30px;
+      color: var(--accent);
+    }
+
+    .track > div {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .track strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font: 12px monospace;
+    }
+
+    .track small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    #play {
+      width: 38px;
+      height: 38px;
+      border: 0;
+      background: var(--accent);
+      color: #202617;
+      flex-shrink: 0;
+      border-radius: 50%;
+      font-size: 15px;
+    }
+
+    .timeline > div {
+      display: flex;
+      justify-content: space-between;
+      font: 11px monospace;
+      color: var(--muted);
+      margin-top: 7px;
+    }
+
+    /* 滑块 */
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--accent);
+      height: 4px;
+      display: block;
+      margin: 13px 0;
+      cursor: pointer;
+    }
+
+    .slider-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      margin-top: 22px;
+    }
+
+    .slider-title output {
+      font: 13px monospace;
+      color: var(--accent);
+    }
+
+    .subtle {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .legend {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 13px;
+      font-size: 12px;
+      color: #b4bcaa;
+    }
+
+    .legend i {
+      display: inline-block;
+      height: 7px;
+      width: 7px;
+      margin-right: 7px;
+    }
+
+    .low { background: #e6ba76; }
+    .mid { background: #c5d185; }
+    .high { background: #99b4a9; }
+
+    /* 实时读数 */
+    .meters {
+      display: flex;
+      gap: 35px;
+    }
+
+    .meters > div > span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .meters strong {
+      display: block;
+      font: 26px monospace;
+      margin: 10px 0;
+    }
+
+    .meters small {
+      font: 11px monospace;
+      color: var(--muted);
+      margin-left: 5px;
+    }
+
+    #spectrum {
+      width: 100%;
+      height: 44px;
+      display: block;
+    }
+
+    .readings {
+      margin-bottom: 13px;
+      padding-bottom: 14px;
+    }
+
+    #message {
+      font-size: 12px;
+      color: #8f9a85;
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    /* ===== 页脚 ===== */
+    footer {
+      border-top: 1px solid var(--line);
+      min-height: 49px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 34px;
+      font: 11px monospace;
+      color: #87917e;
+      gap: 15px;
+    }
+
+    footer b {
+      color: var(--accent);
+      margin-right: 8px;
+    }
+
+    footer span:nth-child(2) {
+      font: 12px Arial;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* ===== 响应式 ===== */
+    @media (min-width: 1500px) {
+      main {
+        grid-template-columns: minmax(0, 1fr) 370px;
+      }
+      aside {
+        padding: 30px;
+      }
+      .stage {
+        min-height: 760px;
+      }
+    }
+
+    @media (max-width: 1000px) {
+      .edition {
+        display: none;
+      }
+      .live {
+        top: 108px;
+        left: 34px;
+        right: auto;
+      }
+      main {
+        grid-template-columns: minmax(0, 1fr) 300px;
+      }
+      aside {
+        padding: 25px 20px;
+      }
+      .stage {
+        min-height: 720px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      header {
+        height: 70px;
+        padding: 0 20px;
+      }
+      .brand {
+        font-size: 20px;
+      }
+      .top-note {
+        display: none;
+      }
+      header > .plain {
+        margin-left: auto;
+      }
+      main {
+        display: block;
+      }
+      .stage {
+        height: 65svh;
+        min-height: 450px;
+      }
+      .stage-title {
+        top: 24px;
+        left: 20px;
+      }
+      h1 {
+        font-size: 22px;
+      }
+      .live {
+        top: 103px;
+        left: 20px;
+      }
+      aside {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+        padding: 25px;
+      }
+      .stage-bottom, .axis {
+        left: 20px;
+      }
+      .axis {
+        font-size: 10px;
+      }
+      .scale {
+        right: 18px;
+      }
+      .desktop {
+        display: none;
+      }
+      footer {
+        padding: 18px 20px;
+        flex-wrap: wrap;
+      }
+      footer span:last-child {
+        display: none;
+      }
+      .panel-title {
+        margin-bottom: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== 顶部栏 ===== -->
+  <header>
+    <a class="brand" href="./">
+      <span class="brand-icon">▦</span>
+      REACTOR
+      <span class="edition">AUDIO LAB / 01</span>
+    </a>
+    <span class="top-note">声音，进入堆芯。</span>
+    <button id="fullscreen" class="plain">全屏 ↗</button>
+  </header>
+
+  <!-- ===== 主体 ===== -->
+  <main>
+    <!-- 可视化舞台 -->
+    <section class="stage">
+      <div class="stage-title">
+        <div class="eyebrow">REAL-TIME AUDIO VISUALIZER</div>
+        <h1>声场反应堆<span> / CORE 01</span></h1>
+      </div>
+      <div class="live">
+        <i></i>
+        <span id="status">待机 · 演示预览</span>
+      </div>
+      <canvas id="core" aria-label="圆形控制棒阵列，随音频频谱起伏的三维可视化"></canvas>
+      <div class="axis top">
+        CONTROL ROD ARRAY · <span id="count">709</span> CHANNELS
+      </div>
+      <div class="stage-bottom">
+        <span>↔ 拖动旋转视角 <span class="desktop"> / 滚轮缩放</span></span>
+        <button id="reset" class="plain">重置视角 ⤾</button>
+      </div>
+      <div class="scale">
+        <span>振幅</span>
+        <div></div>
+        <span>高</span>
+        <span>低</span>
+      </div>
+    </section>
+
+    <!-- 侧边控制台 -->
+    <aside>
+      <div class="panel-title">
+        <span>控制台</span>
+        <span class="eyebrow">CONTROL PANEL</span>
+      </div>
+
+      <!-- 01 音频输入 -->
+      <section class="source">
+        <label class="caption">01 / 音频输入</label>
+        <div class="source-tabs">
+          <button id="demo" class="selected">演示信号</button>
+          <button id="mic">麦克风</button>
+        </div>
+        <button id="upload" class="upload">
+          <span>＋</span>
+          <strong>导入音频文件</strong>
+          <small>MP3 / WAV / M4A / FLAC</small>
+        </button>
+        <input id="file" type="file" accept="audio/*" hidden>
+        <div class="track">
+          <span class="track-icon">≋</span>
+          <div>
+            <strong id="trackname">REACTOR / 内置信号</strong>
+            <small id="tracksub">点击播放，启动声场</small>
+          </div>
+          <button id="play" aria-label="播放">▶</button>
+        </div>
+        <div class="timeline">
+          <input id="seek" aria-label="播放进度" type="range" min="0" max="100" value="0" step="0.1">
+          <div>
+            <span id="elapsed">00:00</span>
+            <span id="duration">DEMO / LOOP</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 控制棒响应 -->
+      <section>
+        <label class="caption">02 / 控制棒响应</label>
+        <div class="slider-title">
+          <label for="gain">灵敏度</label>
+          <output id="gainval">1.4×</output>
+        </div>
+        <input id="gain" type="range" min="0.3" max="3" value="1.4" step="0.1">
+
+        <div class="slider-title">
+          <label for="smooth">运动平滑度</label>
+          <output id="smoothval">75%</output>
+        </div>
+        <input id="smooth" type="range" min="0" max="95" value="75">
+
+        <div class="slider-title">
+          <label for="volume">播放音量</label>
+          <output id="volumeval">40%</output>
+        </div>
+        <input id="volume" type="range" min="0" max="100" value="40">
+
+        <div class="slider-title">
+          <span>频段分布</span>
+          <span class="subtle">中心 → 边缘</span>
+        </div>
+        <div class="legend">
+          <span><i class="low"></i>低频</span>
+          <span><i class="mid"></i>中频</span>
+          <span><i class="high"></i>高频</span>
+        </div>
+      </section>
+
+      <!-- 03 实时读数 -->
+      <section class="readings">
+        <label class="caption">03 / 实时读数</label>
+        <div class="meters">
+          <div>
+            <span>输入电平</span>
+            <strong id="level">—<small>dB</small></strong>
+          </div>
+          <div>
+            <span>峰值频率</span>
+            <strong id="freq">—<small>Hz</small></strong>
+          </div>
+        </div>
+        <canvas id="spectrum" aria-label="实时频谱"></canvas>
+      </section>
+
+      <p id="message" role="status">音频仅在本机处理，不会上传。</p>
+    </aside>
+  </main>
+
+  <!-- ===== 页脚 ===== -->
+  <footer>
+    <span><b>◈</b> REACTOR EXPERIMENT</span>
+    <span>音乐驱动 · 非真实反应堆模拟</span>
+    <span>源项目：<a href="https://github.com/wzk112/reactor-audio-visualizer" target="_blank" rel="noopener">github.com/wzk112/reactor-audio-visualizer</a></span>
+  </footer>
+
+  <script>
+    'use strict';
+
+    // ===== DOM 引用 =====
+    const $ = id => document.getElementById(id);
+    const canvas = $('core');
+    const g = canvas.getContext('2d');
+    const spec = $('spectrum');
+    const sg = spec.getContext('2d');
+
+    // ===== 全局状态 =====
+    let ctx, analyser, bins, wave, master, stream, source, buffer;
+    let started = 0, offset = 0, mode = 'demo', playing = false;
+    let loading = false, session = 0, rafTime = 0;
+    let angle = -0.32, tilt = 0.58, zoom = 1, drag = null;
+    let demoNodes = [], gain = 1.4, smoothing = 0.75, energy = 0;
+
+    // ===== 生成控制棒阵列（圆形区域内的网格点） =====
+    const rods = [];
+    for (let x = -15; x <= 15; x++) {
+      for (let z = -15; z <= 15; z++) {
+        const r = Math.hypot(x, z);
+        if (r <= 15) {
+          rods.push({
+            x, z, r,
+            h: 0,
+            seed: Math.abs(Math.sin(x * 127.1 + z * 311.7)),
+            idx: 0
+          });
+        }
+      }
+    }
+    $('count').textContent = rods.length;
+
+    // ===== Canvas 尺寸自适应（支持高分屏） =====
+    function size() {
+      for (const c of [canvas, spec]) {
+        const rect = c.getBoundingClientRect();
+        const d = Math.min(devicePixelRatio || 1, 2);
+        c.width = Math.round(rect.width * d);
+        c.height = Math.round(rect.height * d);
+        c.getContext('2d').setTransform(d, 0, 0, d, 0, 0);
+      }
+    }
+    new ResizeObserver(size).observe(canvas);
+    new ResizeObserver(size).observe(spec);
+
+    // ===== 3D 投影：将 (x, z, h) 坐标转为屏幕 2D 点 =====
+    function point(x, z, h = 0) {
+      const w = canvas.clientWidth;
+      const H = canvas.clientHeight;
+      const s = Math.min(w / 45, H / 37) * zoom;
+      const rx = x * Math.cos(angle) - z * Math.sin(angle);
+      const rz = x * Math.sin(angle) + z * Math.cos(angle);
+      return [w / 2 + rx * s, H * 0.55 + rz * s * tilt - h * s];
+    }
+
+    // ===== 绘制多边形 =====
+    function poly(points, fill, stroke) {
+      g.beginPath();
+      points.forEach((p, i) => i ? g.lineTo(...p) : g.moveTo(...p));
+      g.closePath();
+      g.fillStyle = fill;
+      g.fill();
+      if (stroke) {
+        g.strokeStyle = stroke;
+        g.lineWidth = 0.55;
+        g.stroke();
+      }
+    }
+
+    // ===== 绘制圆环 =====
+    function ring(r, color, width) {
+      g.beginPath();
+      for (let i = 0; i <= 100; i++) {
+        const a = i / 100 * Math.PI * 2;
+        const p = point(Math.cos(a) * r, Math.sin(a) * r);
+        i ? g.lineTo(...p) : g.moveTo(...p);
+      }
+      g.strokeStyle = color;
+      g.lineWidth = width;
+      g.stroke();
+    }
+
+    // ===== 主渲染循环 =====
+    function frame(t) {
+      const dt = Math.min((t - rafTime) / 16.67, 3) || 1;
+      rafTime = t;
+      const w = canvas.clientWidth;
+      const H = canvas.clientHeight;
+
+      g.clearRect(0, 0, w, H);
+
+      // 读取频谱数据
+      if (analyser && playing) analyser.getByteFrequencyData(bins);
+
+      // 计算峰值和能量
+      let sum = 0, peak = 0, peakIndex = 0;
+      if (playing && bins) {
+        for (let i = 0; i < bins.length; i++) {
+          sum += bins[i];
+          if (bins[i] > peak) {
+            peak = bins[i];
+            peakIndex = i;
+          }
+        }
+      }
+      energy = 0;
+      if (playing && wave) {
+        analyser.getFloatTimeDomainData(wave);
+        for (const v of wave) energy += v * v;
+        energy = Math.sqrt(energy / wave.length);
+      }
+
+      // 绘制外圈装饰
+      ring(16.4, '#060b07', 20);
+      ring(16.5, '#505948', 2);
+      ring(16, '#878969', 1);
+      ring(17.3, '#303a2d', 1);
+
+      // 绘制外圈棋盘格装饰带
+      for (let i = 0; i < 80; i++) {
+        const a = i / 80 * Math.PI * 2;
+        poly([
+          point(Math.cos(a) * 15.7, Math.sin(a) * 15.7),
+          point(Math.cos(a + 0.034) * 15.7, Math.sin(a + 0.034) * 15.7),
+          point(Math.cos(a + 0.034) * 16.15, Math.sin(a + 0.034) * 16.15),
+          point(Math.cos(a) * 16.15, Math.sin(a) * 16.15)
+        ], i % 2 ? '#484d31' : '#adac64');
+      }
+
+      // 按深度排序（远的先画）
+      const sorted = [...rods].sort((a, b) =>
+        (a.x * Math.sin(angle) + a.z * Math.cos(angle)) -
+        (b.x * Math.sin(angle) + b.z * Math.cos(angle))
+      );
+
+      // 绘制每根控制棒（立方体）
+      for (const rod of sorted) {
+        let amp = 0;
+
+        if (playing && bins) {
+          // 根据棒的半径映射到对应频率
+          const hz = 45 * Math.pow(320, rod.r / 15);
+          const idx = Math.max(1, Math.min(bins.length - 2,
+            Math.round(hz / (ctx.sampleRate / 2048))));
+          rod.idx = idx;
+          amp = (bins[idx] + bins[idx - 1] + bins[idx + 1]) / 765;
+          amp = Math.pow(amp, 1.7) * gain;
+        } else if (!playing && mode === 'demo' && !ctx) {
+          // 待机演示模式：正弦波动画
+          amp = 0.10 + 0.20 * (0.5 + 0.5 * Math.sin(rod.r * 0.6 - t * 0.0007 + rod.x * 0.1));
+        }
+
+        // 平滑过渡到目标高度
+        const target = 0.07 + amp * 4.8;
+        rod.h += (target - rod.h) * (1 - Math.pow(0.45 + smoothing * 0.53, dt));
+
+        const { x, z, h } = rod;
+
+        // 立方体八个顶点
+        const a = point(x - 0.44, z - 0.44, h);
+        const b = point(x + 0.44, z - 0.44, h);
+        const c = point(x + 0.44, z + 0.44, h);
+        const d = point(x - 0.44, z + 0.44, h);
+        const a0 = point(x - 0.44, z - 0.44);
+        const b0 = point(x + 0.44, z - 0.44);
+        const c0 = point(x + 0.44, z + 0.44);
+        const d0 = point(x - 0.44, z + 0.44);
+
+        // 四个侧面（不同明暗）
+        poly([a, a0, b0, b], '#424838', '#111910');
+        poly([b, b0, c0, c], `rgb(${55 + amp * 30},${62 + amp * 30},${44 + amp * 20})`, '#141b12');
+        poly([c, c0, d0, d], '#333c2b', '#131b11');
+        poly([d, d0, a0, a], '#39432f', '#111910');
+
+        // 顶面（根据 seed 决定基色，模拟不同材质的棒）
+        const base = rod.seed > 0.92 ? [143, 109, 81]
+                   : rod.seed > 0.85 ? [97, 118, 104]
+                   : [139 + rod.seed * 29, 148 + rod.seed * 22, 119 + rod.seed * 21];
+        poly([a, b, c, d], `rgb(${base[0] + amp * 43},${base[1] + amp * 40},${base[2] + amp * 24})`, '#232d20');
+
+        // 顶面中心点（帽盖）
+        const p = point(x, z, h + 0.01);
+        const s = Math.min(w / 45, H / 37) * zoom;
+        g.beginPath();
+        g.ellipse(p[0], p[1], s * 0.12, s * 0.12 * tilt, 0, 0, Math.PI * 2);
+        g.fillStyle = '#404735';
+        g.fill();
+
+        // 高缩放时添加细节像素
+        if (s > 13 && rod.seed > 0.6) {
+          g.fillStyle = '#c3c7a3';
+          g.fillRect(p[0] - s * 0.3, p[1] - s * 0.19, 1, 1);
+        }
+      }
+
+      // ===== 绘制底部频谱条 =====
+      const sw = spec.clientWidth;
+      const sh = spec.clientHeight;
+      sg.clearRect(0, 0, sw, sh);
+      for (let i = 0; i < 48; i++) {
+        let v = playing && bins
+          ? bins[Math.min(bins.length - 1, Math.floor(Math.pow(i / 47, 2) * 700))] / 255
+          : 0;
+        sg.fillStyle = i < 12 ? '#d8b975' : i < 30 ? '#c3cf87' : '#95b1a1';
+        sg.fillRect(i * sw / 48, sh - Math.max(2, v * sh), sw / 48 - 3, Math.max(2, v * sh));
+      }
+
+      // ===== 更新仪表读数（每 150ms 更新一次，避免频繁 DOM 操作） =====
+      if (t % 150 < 25) {
+        $('level').innerHTML = (playing ? Math.round(20 * Math.log10(Math.max(energy, 0.001))) : '—') + '<small>dB</small>';
+        $('freq').innerHTML = (playing && peak > 0 ? Math.round(peakIndex * ctx.sampleRate / 2048) : '—') + '<small>Hz</small>';
+        if (playing) {
+          const seconds = offset + ctx.currentTime - started;
+          $('elapsed').textContent = format(seconds);
+          if (buffer && mode === 'file') {
+            $('seek').value = seconds / buffer.duration * 100;
+          }
+        }
+      }
+
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    // ===== 工具函数：秒 → mm:ss =====
+    function format(s) {
+      return Math.floor(s / 60).toString().padStart(2, '0') + ':' +
+             Math.floor(s % 60).toString().padStart(2, '0');
+    }
+
+    // ===== 初始化音频上下文 =====
+    async function audio() {
+      if (!ctx) {
+        ctx = new AudioContext();
+        analyser = ctx.createAnalyser();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0.75;
+        bins = new Uint8Array(analyser.frequencyBinCount);
+        wave = new Float32Array(analyser.fftSize);
+        master = ctx.createGain();
+        master.gain.value = 0.4;
+        analyser.connect(master);
+        master.connect(ctx.destination);
+      }
+      await ctx.resume();
+    }
+
+    // ===== 停止播放并清理资源 =====
+    function stop() {
+      session++;
+      loading = false;
+      if (source) {
+        source.onended = null;
+        try { source.stop?.(); } catch {}
+        source.disconnect();
+        source = null;
+      }
+      demoNodes.forEach(n => {
+        try { n.stop?.(); n.disconnect(); } catch {}
+      });
+      demoNodes = [];
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+      }
+      playing = false;
+      update();
+    }
+
+    // ===== 更新 UI 状态 =====
+    function update() {
+      $('play').textContent = playing ? 'Ⅱ' : '▶';
+      $('play').setAttribute('aria-label', playing ? '暂停' : '播放');
+      $('demo').classList.toggle('selected', mode === 'demo');
+      $('mic').classList.toggle('selected', mode === 'mic');
+      $('status').textContent = playing
+        ? '运行中 · ' + (mode === 'demo' ? '演示信号' : mode === 'mic' ? '实时输入' : '音频分析')
+        : '待机 · ' + (mode === 'demo' ? '演示预览' : '已暂停');
+      $('tracksub').textContent = playing ? '控制棒随频谱实时响应' : '点击播放，启动声场';
+      $('seek').disabled = mode !== 'file';
+    }
+
+    // ===== 开始播放 =====
+    async function start() {
+      if (loading || playing) return;
+      loading = true;
+      const attempt = ++session;
+
+      try {
+        await audio();
+        if (attempt !== session) return;
+
+        if (mode === 'mic') {
+          // 麦克风输入
+          const id = ++session;
+          loading = true;
+          $('message').textContent = '等待麦克风授权…';
+          const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+          if (id !== session) {
+            s.getTracks().forEach(t => t.stop());
+            return;
+          }
+          stream = s;
+          source = ctx.createMediaStreamSource(s);
+          source.connect(analyser);
+          master.gain.value = 0; // 麦克风不回放，避免啸叫
+          $('message').textContent = '正在监听麦克风；停止或切换输入即可关闭。';
+        } else {
+          // 演示信号或本地文件
+          master.gain.value = +$('volume').value / 100;
+
+          if (mode === 'file' && buffer) {
+            // 本地音频文件
+            if (offset >= buffer.duration) offset = 0;
+            source = ctx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(analyser);
+            source.onended = () => {
+              stop();
+              offset = 0;
+              $('seek').value = 0;
+              $('elapsed').textContent = '00:00';
+            };
+            source.start(0, offset);
+          } else {
+            // 演示信号：8 个振荡器叠加和弦 + LFO 调制
+            [55, 82.41, 110, 164.81, 220, 329.63, 440, 659.25].forEach((freq, i) => {
+              const osc = ctx.createOscillator();
+              const v = ctx.createGain();
+              const lfo = ctx.createOscillator();
+              const lg = ctx.createGain();
+              osc.type = i < 3 ? 'triangle' : 'sine';
+              osc.frequency.value = freq;
+              v.gain.value = 0.025;
+              lfo.frequency.value = 0.22 + i * 0.087;
+              lg.gain.value = 0.023;
+              lfo.connect(lg);
+              lg.connect(v.gain);
+              osc.connect(v);
+              v.connect(analyser);
+              osc.start();
+              lfo.start();
+              demoNodes.push(osc, lfo, v, lg);
+            });
+          }
+          $('message').textContent = '音频仅在本机处理，不会上传。';
+        }
+
+        started = ctx.currentTime;
+        playing = true;
+        update();
+      } catch (e) {
+        stop();
+        $('message').textContent = mode === 'mic'
+          ? '无法访问麦克风，请检查浏览器权限，或导入音频。'
+          : '无法播放此音频，请尝试其他文件。';
+      } finally {
+        if (attempt === session || !playing) loading = false;
+      }
+    }
+
+    // ===== 事件绑定 =====
+
+    // 播放/暂停
+    $('play').onclick = () => {
+      if (playing) {
+        offset += ctx.currentTime - started;
+        stop();
+      } else {
+        start();
+      }
+    };
+
+    // 切换到演示信号
+    $('demo').onclick = () => {
+      stop();
+      mode = 'demo';
+      offset = 0;
+      buffer = null;
+      $('trackname').textContent = 'REACTOR / 内置信号';
+      $('duration').textContent = 'DEMO / LOOP';
+      $('elapsed').textContent = '00:00';
+      $('seek').value = 0;
+      update();
+      start();
+    };
+
+    // 切换到麦克风
+    $('mic').onclick = () => {
+      stop();
+      mode = 'mic';
+      offset = 0;
+      buffer = null;
+      $('trackname').textContent = 'MIC / 麦克风输入';
+      $('duration').textContent = 'LIVE';
+      $('elapsed').textContent = '00:00';
+      update();
+      start();
+    };
+
+    // 导入本地音频文件
+    $('upload').onclick = () => $('file').click();
+    $('file').onchange = async e => {
+      const f = e.target.files[0];
+      if (!f) return;
+      stop();
+      const id = session;
+      loading = true;
+      $('message').textContent = '正在读取音频…';
+      try {
+        await audio();
+        const decoded = await ctx.decodeAudioData(await f.arrayBuffer());
+        if (id !== session) return;
+        buffer = decoded;
+        mode = 'file';
+        offset = 0;
+        $('trackname').textContent = f.name;
+        $('duration').textContent = format(buffer.duration);
+        $('elapsed').textContent = '00:00';
+        $('seek').value = 0;
+        update();
+        loading = false;
+        await start();
+      } catch {
+        $('message').textContent = '无法读取该文件，请尝试 MP3 或 WAV 音频。';
+      } finally {
+        loading = false;
+        e.target.value = '';
+      }
+    };
+
+    // 进度条跳转
+    $('seek').onchange = () => {
+      if (mode !== 'file' || !buffer) return;
+      const was = playing;
+      stop();
+      offset = +$('seek').value / 100 * buffer.duration;
+      $('elapsed').textContent = format(offset);
+      if (was) start();
+    };
+
+    // 灵敏度滑块
+    $('gain').oninput = e => {
+      gain = +e.target.value;
+      $('gainval').textContent = gain.toFixed(1) + '×';
+    };
+
+    // 平滑度滑块
+    $('smooth').oninput = e => {
+      smoothing = +e.target.value / 100;
+      $('smoothval').textContent = e.target.value + '%';
+    };
+
+    // 音量滑块
+    $('volume').oninput = e => {
+      $('volumeval').textContent = e.target.value + '%';
+      if (master && mode !== 'mic') {
+        master.gain.setTargetAtTime(+e.target.value / 100, ctx.currentTime, 0.03);
+      }
+    };
+
+    // 视角控制：拖动旋转
+    canvas.onpointerdown = e => {
+      drag = { x: e.clientX, y: e.clientY };
+      canvas.setPointerCapture(e.pointerId);
+    };
+    canvas.onpointermove = e => {
+      if (!drag) return;
+      angle += (e.clientX - drag.x) * 0.006;
+      tilt = Math.max(0.25, Math.min(0.85, tilt + (e.clientY - drag.y) * 0.002));
+      drag = { x: e.clientX, y: e.clientY };
+    };
+    canvas.onpointerup = canvas.onpointercancel = () => drag = null;
+
+    // 滚轮缩放
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      zoom = Math.max(0.65, Math.min(1.5, zoom - e.deltaY * 0.001));
+    }, { passive: false });
+
+    // 重置视角
+    $('reset').onclick = () => {
+      angle = -0.32;
+      tilt = 0.58;
+      zoom = 1;
+    };
+
+    // 全屏切换
+    $('fullscreen').onclick = async () => {
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+        } else {
+          await document.documentElement.requestFullscreen();
+        }
+      } catch {
+        $('message').textContent = '当前浏览器不支持全屏。';
+      }
+    };
+    document.addEventListener('fullscreenchange', () => {
+      $('fullscreen').textContent = document.fullscreenElement ? '退出全屏 ↙' : '全屏 ↗';
+    });
+
+    // 页面关闭时停止音频
+    window.addEventListener('pagehide', stop);
+
+    // 初始化 UI
+    update();
+
+    // ===== AI 工具注册（可选，用于宿主环境调用） =====
+    if (document.modelContext?.registerTool) {
+      try {
+        Promise.resolve(document.modelContext.registerTool({
+          name: 'configure_reactor_response',
+          description: 'Adjust the reactor audio visualizer sensitivity and motion smoothing.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              sensitivity: { type: 'number', minimum: 0.3, maximum: 3 },
+              smoothing: { type: 'number', minimum: 0, maximum: 95 }
+            },
+            required: ['sensitivity', 'smoothing'],
+            additionalProperties: false
+          },
+          execute(input) {
+            if (!input ||
+                !Number.isFinite(input.sensitivity) || input.sensitivity < 0.3 || input.sensitivity > 3 ||
+                !Number.isFinite(input.smoothing) || input.smoothing < 0 || input.smoothing > 95) {
+              throw Error('Invalid response settings');
+            }
+            $('gain').value = input.sensitivity;
+            $('gain').dispatchEvent(new Event('input'));
+            $('smooth').value = input.smoothing;
+            $('smooth').dispatchEvent(new Event('input'));
+            return { sensitivity: gain, smoothing: smoothing * 100 };
+          }
+        })).catch(() => {});
+      } catch {}
+    }
+  </script>
+</body>
+</html>
