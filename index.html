@@ -811,6 +811,34 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
 .fv-close:hover { background: var(--tb-hover); }
 .fv-body { flex: 1; overflow: auto; padding: 20px 24px; font-size: 12.5px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
 
+/* 此电脑 > 文档 > 工作：关于守禄 彩蛋卡片 */
+.egg-wrap { max-width: 520px; margin: 0 auto; white-space: normal; }
+.egg-hero { display: flex; align-items: center; gap: 14px; }
+.egg-avatar {
+  width: 56px; height: 56px; border-radius: 16px; flex: none;
+  display: grid; place-items: center; font-size: 24px; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, #4f8ef7, #6d5ef0);
+}
+.egg-name { font-size: 19px; font-weight: 700; }
+.egg-sub { font-size: 12px; color: var(--win-sub); margin-top: 2px; }
+.egg-bio { margin: 16px 0; color: var(--win-text); font-size: 13px; }
+.egg-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.egg-link {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+  border: 1px solid var(--win-border); border-radius: 10px;
+  text-decoration: none; color: inherit; transition: border-color .15s, transform .15s;
+}
+.egg-link:hover { border-color: var(--accent); transform: translateY(-1px); }
+.egg-link svg { width: 20px; height: 20px; flex: none; }
+.egg-link-main { display: flex; flex-direction: column; }
+.egg-link-main b { font-size: 13px; font-weight: 600; }
+.egg-link-main span { font-size: 11px; color: var(--win-sub); }
+.egg-works { margin-top: 18px; }
+.egg-works-title { font-size: 11px; color: var(--win-sub); letter-spacing: .08em; margin-bottom: 8px; }
+.egg-work { padding: 8px 12px; border: 1px dashed var(--win-border); border-radius: 8px; margin-bottom: 6px; font-size: 12.5px; }
+.egg-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.egg-tags span { font-size: 11px; padding: 3px 10px; border-radius: 999px; background: var(--tb-hover); color: var(--win-sub); }
+
 /* =========================================================
    任务栏
    ========================================================= */
@@ -2619,6 +2647,7 @@ function createEdgeWin(site, initialUrl = null) {
     const idx = tabs.findIndex(t => t.id === id);
     if (idx < 0) return;
     const tab = tabs[idx];
+    clearTimeout(tab.loadTimer);
     tab.iframe.remove();
     tabs.splice(idx, 1);
 
@@ -2627,9 +2656,11 @@ function createEdgeWin(site, initialUrl = null) {
     if (activeTabId === id) {
       const next = tabs[Math.min(idx, tabs.length - 1)];
       activateTab(next.id);
-    } else {
-      updateTabBar();
     }
+    // 修复：关闭活动标签页时 activateTab 只切换 active 类、不重建标签栏 DOM，
+    // 会导致被关闭标签的 tabEl 残留在标签栏里（看起来标签栏没刷新）。
+    // 这里统一重建一次标签栏，保证任何关闭路径后标签栏都与 tabs 数据一致。
+    updateTabBar();
   }
 
   function activateTab(id) {
@@ -2896,7 +2927,9 @@ function createThisPCWin(site) {
       { name: '说明.txt', type: 'file', size: '512 B', kind: 'text' },
     ]},
     '文档': { type: 'folder', children: [
-      { name: '工作', type: 'folder', children: [] },
+      { name: '工作', type: 'folder', children: [
+        { name: '关于守禄.html', type: 'file', size: '12 KB', kind: 'egg' },
+      ] },
       { name: '学习', type: 'folder', children: [] },
       { name: '备忘录.md', type: 'file', size: '3.1 KB', kind: 'text' },
     ]},
@@ -3019,6 +3052,7 @@ function createThisPCWin(site) {
   }
 
   function openFile(f, fullPath) {
+    if (f.kind === 'egg') { openAboutEgg(f, fullPath); return; }
     const isText = f.kind === 'text' || /\.(txt|md|log|ini|cfg|json|m3u|html)$/i.test(f.name);
     if (!isText) { showToast(`无法打开文件 ${f.name}`); return; }
     const viewer = document.createElement('div');
@@ -3037,6 +3071,52 @@ function createThisPCWin(site) {
     w.el.appendChild(viewer);
   }
 
+  /* 彩蛋：此电脑 > 文档 > 工作 > 关于守禄.html */
+  function openAboutEgg(f, fullPath) {
+    const ghIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.17c-3.2.7-3.87-1.37-3.87-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.7 5.39-5.27 5.68.41.35.78 1.05.78 2.12v3.14c0 .31.21.68.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>';
+    const biliIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.8 4.2 19.6 2.4a1 1 0 0 1 1.4 1.4l-1 1h1.2A1.8 1.8 0 0 1 23 6.6v11.6a1.8 1.8 0 0 1-1.8 1.8H2.8A1.8 1.8 0 0 1 1 18.2V6.6a1.8 1.8 0 0 1 1.8-1.8H4l-1-1a1 1 0 1 1 1.4-1.4l1.8 1.8h11.6zM4 8v10h16V8H4zm3 2h1.5v4H7v-4zm8.5 0H17.5v4H15.5v-4z"/></svg>';
+    const viewer = document.createElement('div');
+    viewer.className = 'file-viewer';
+    viewer.innerHTML = `
+      <div class="fv-head">
+        <div>
+          <div class="fv-title">${svgIcon('file', 16, 1.8)} ${f.name}</div>
+          <div class="fv-path">${fullPath.join(' › ')} · ${f.size}</div>
+        </div>
+        <button class="fv-close" title="关闭">${svgIcon('close', 14, 2)}</button>
+      </div>
+      <div class="fv-body"><div class="egg-wrap">
+        <div class="egg-hero">
+          <div class="egg-avatar">禄</div>
+          <div>
+            <div class="egg-name">守禄</div>
+            <div class="egg-sub">开发者 · B站游戏内容创作者 · 业余写手</div>
+          </div>
+        </div>
+        <p class="egg-bio">喜欢折腾 Windows 与自托管，写点小工具，也在 B 站做游戏相关内容。这张名片藏在「此电脑 → 文档 → 工作」里，算是给路过的你留的一个小彩蛋。</p>
+        <div class="egg-links">
+          <a class="egg-link" href="https://github.com/SATA-F5" target="_blank" rel="noopener">
+            ${ghIcon}
+            <div class="egg-link-main"><b>GitHub</b><span>@SATA-F5</span></div>
+          </a>
+          <a class="egg-link" href="https://space.bilibili.com/3546889876146751" target="_blank" rel="noopener">
+            ${biliIcon}
+            <div class="egg-link-main"><b>哔哩哔哩</b><span>@守禄</span></div>
+          </a>
+        </div>
+        <div class="egg-works">
+          <div class="egg-works-title">写过的故事</div>
+          <div class="egg-work">《瀚星海兽纪》</div>
+          <div class="egg-work">《林世界》</div>
+        </div>
+        <div class="egg-tags">
+          <span>INTP</span><span>Minecraft</span><span>自托管</span><span>Windows 折腾</span><span>Furry</span>
+        </div>
+      </div></div>`;
+    viewer.querySelector('.fv-close').addEventListener('click', () => viewer.remove());
+    w.el.appendChild(viewer);
+  }
+
   function render() {
     const node = nodeAt(state.path);
     if (!node) { setPath([], false); return; }
@@ -3050,7 +3130,7 @@ function createThisPCWin(site) {
       <div class="exp-address">
         <span style="display:grid;place-items:center;color:var(--accent)">${svgIcon('monitor', 13, 2)}</span>
         <span class="exp-pathbar">${crumbs.map((c, i) => {
-          const label = c === '' ? '此电脑' : nodeAt(state.path.slice(0, i)).name;
+          const label = c === '' ? '此电脑' : c;
           return i === 0
             ? `<span class="exp-crumb">${label}</span>`
             : `<span class="exp-crumb sep">›</span><span class="exp-crumb">${label}</span>`;
@@ -3152,7 +3232,7 @@ function createThisPCWin(site) {
     explorer.querySelectorAll('.exp-crumb:not(.sep)').forEach((c, i) => {
       c.addEventListener('click', () => {
         const target = crumbs.slice(0, i + 1);
-        setPath(target[0] === '' ? [] : target.filter(Boolean), true);
+        setPath(target.filter(Boolean), true);
       });
     });
     explorer.querySelectorAll('.exp-side-item[data-go]').forEach(el => {
