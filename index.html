@@ -921,13 +921,6 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
   display: flex; align-items: center; gap: 8px;
 }
 #tray .tray-icons svg { display: block; }
-#tray .tray-sep {
-  width: 1px;
-  height: 18px;
-  margin: 0 3px;
-  background: var(--tb-border);
-  opacity: .9;
-}
 
 .tray-icon-wrap {
   position: relative;
@@ -1444,6 +1437,7 @@ html.dark .sm-footer { background: rgba(255, 255, 255, .02); }
   transition: background .12s;
 }
 .sm-power:hover { background: var(--flyout-hover); }
+.sm-actions { display: flex; align-items: center; gap: 4px; }
 
 /* =========================================================
    快速设置面板
@@ -2034,28 +2028,6 @@ body.mobile .window.resizing { box-shadow: none !important; }
         </span>
       </button>
 
-      <!-- 电源：重启 / 关机 -->
-      <span class="tray-sep" aria-hidden="true"></span>
-      <button class="tray-btn" id="restartBtn" title="重启">
-        <span class="tray-icon-wrap">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
-               stroke-linejoin="round">
-            <path d="M20.2 12a8.2 8.2 0 1 1-2.4-5.8"/>
-            <path d="M20.4 3.6V9.2h-5.6"/>
-          </svg>
-        </span>
-      </button>
-      <button class="tray-btn" id="powerBtn" title="关机">
-        <span class="tray-icon-wrap">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
-            <path d="M12 3.2v8.6"/>
-            <path d="M6.9 6.4a7.6 7.6 0 1 0 10.2 0"/>
-          </svg>
-        </span>
-      </button>
-
       <div id="clock" title="时间和日期">
         <span class="t">--:--</span>
         <span class="d">----/--/--</span>
@@ -2189,13 +2161,31 @@ body.mobile .window.resizing { box-shadow: none !important; }
         <div class="sm-avatar">A</div>
         <span class="sm-username">Admin</span>
       </div>
-      <button class="sm-power" id="themeBtn" title="切换主题">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-          <circle cx="12" cy="12" r="4"/>
-          <path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M18.7 5.3l-1.5 1.5M6.8 17.2l-1.5 1.5"/>
-        </svg>
-      </button>
+      <!-- 电源：重启 / 关机 -->
+      <div class="sm-actions">
+        <button class="sm-power" id="restartBtn" title="重启">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="M20.2 12a8.2 8.2 0 1 1-2.4-5.8"/>
+            <path d="M20.4 3.6V9.2h-5.6"/>
+          </svg>
+        </button>
+        <button class="sm-power" id="powerBtn" title="关机">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M12 3.2v8.6"/>
+            <path d="M6.9 6.4a7.6 7.6 0 1 0 10.2 0"/>
+          </svg>
+        </button>
+        <button class="sm-power" id="themeBtn" title="切换主题">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M18.7 5.3l-1.5 1.5M6.8 17.2l-1.5 1.5"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -4386,6 +4376,8 @@ window.addEventListener('resize', () => {
 
 /* ================= 开机动画与电源 ================= */
 const BOOT_STATE_KEY = 'sata_win_boot_state';
+/* 各阶段时长（毫秒）：自检 POST → Win11 启动动画 → 淡出 */
+const BOOT_TIMING = { post: 2000, splash: 2500, fade: 320 };
 const bootScreenEl = document.getElementById('bootScreen');
 
 function setBootState(booted) {
@@ -4399,9 +4391,12 @@ function setBootState(booted) {
     return;
   }
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const tSplash = reduced ? 260 : 1000;   // 自检 → 启动动画
-  const tFade   = reduced ? 620 : 2480;   // 开始淡出
-  const tDone   = reduced ? 820 : 2820;   // 移除遮罩并写入已启动标记
+  const postMs   = reduced ? 300 : BOOT_TIMING.post;
+  const splashMs = reduced ? 500 : BOOT_TIMING.splash;
+  const fadeMs   = reduced ? 180 : BOOT_TIMING.fade;
+  const tSplash = postMs;                 // 自检 → 启动动画
+  const tFade   = postMs + splashMs;      // 开始淡出
+  const tDone   = postMs + splashMs + fadeMs; // 移除遮罩并写入已启动标记
 
   document.body.classList.add('booting');
   setTimeout(() => bootScreenEl.classList.add('splash'), tSplash);
@@ -4434,10 +4429,12 @@ function restartPC() {
 
 document.getElementById('powerBtn').addEventListener('click', e => {
   e.stopPropagation();
+  closeStart();
   shutdownPC();
 });
 document.getElementById('restartBtn').addEventListener('click', e => {
   e.stopPropagation();
+  closeStart();
   restartPC();
 });
 document.getElementById('powerOnBtn').addEventListener('click', () => {
