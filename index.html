@@ -1809,6 +1809,7 @@ body.booting { overflow: hidden; }
 .sd-icon { width: 46px; height: 46px; opacity: .5; margin-bottom: 10px; }
 .sd-title { font-size: 15px; font-weight: 300; letter-spacing: .3em; text-indent: .3em; }
 .sd-sub { font-size: 11.5px; color: #8a8a8a; letter-spacing: .05em; }
+.sd-hint { margin-top: 2px; font-size: 10.5px; color: #6b6b6b; letter-spacing: .03em; }
 .sd-power {
   margin-top: 24px;
   width: 46px;
@@ -1944,7 +1945,8 @@ body.mobile .window.resizing { box-shadow: none !important; }
     <path d="M6.9 6.4a7.6 7.6 0 1 0 10.2 0"/>
   </svg>
   <div class="sd-title">已 关 机</div>
-  <div class="sd-sub">电源已切断 · 点击下方按钮重新开机</div>
+  <div class="sd-sub">电源已切断</div>
+  <div class="sd-hint">浏览器禁止网页关闭自己开的标签页，可按 Ctrl + W 关闭本页</div>
   <button class="sd-power" id="powerOnBtn" title="重新开机">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
       <path d="M12 3.2v8.6"/>
