@@ -921,6 +921,13 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
   display: flex; align-items: center; gap: 8px;
 }
 #tray .tray-icons svg { display: block; }
+#tray .tray-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 3px;
+  background: var(--tb-border);
+  opacity: .9;
+}
 
 .tray-icon-wrap {
   position: relative;
@@ -1677,6 +1684,152 @@ html.dark .sm-footer { background: rgba(255, 255, 255, .02); }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* =========================================================
+   开机自检 / 启动动画
+   ========================================================= */
+#bootScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  transition: opacity .32s ease;
+}
+html.booted #bootScreen { display: none !important; }
+#bootScreen.fade { opacity: 0; }
+body.booting { overflow: hidden; }
+
+/* ---- 自检（POST） ---- */
+.boot-post {
+  position: absolute;
+  inset: 0;
+  padding: clamp(18px, 4vh, 46px) clamp(18px, 4vw, 56px);
+  transition: opacity .18s ease;
+}
+#bootScreen.splash .boot-post { opacity: 0; }
+
+.post-brand {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.6vw, 20px);
+  margin-bottom: clamp(16px, 3.2vh, 34px);
+}
+.post-brand svg {
+  width: clamp(96px, 13vw, 168px);
+  height: auto;
+  filter: drop-shadow(0 0 12px rgba(224, 32, 32, .5));
+}
+.post-brand-text {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  line-height: 1.05;
+  font-size: clamp(18px, 2.9vw, 40px);
+  letter-spacing: .5px;
+}
+
+.post-lines {
+  font-size: clamp(12px, 1.35vw, 16px);
+  line-height: 1.72;
+  letter-spacing: .3px;
+}
+.post-lines p {
+  margin: 0;
+  opacity: 0;
+  animation: postLine .16s ease forwards;
+}
+.post-lines p.gap { margin-top: 1.05em; }
+@keyframes postLine { from { opacity: 0; } to { opacity: 1; } }
+
+.post-cursor {
+  width: .62em;
+  height: 1.05em;
+  margin-top: 2px;
+  background: #fff;
+  opacity: 0;
+  animation: postCursor .8s steps(1) .62s infinite;
+}
+@keyframes postCursor {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* ---- 启动动画（logo + 圆环） ---- */
+.boot-splash {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(22px, 4.2vh, 46px);
+  opacity: 0;
+  transition: opacity .26s ease;
+}
+#bootScreen.splash .boot-splash { opacity: 1; }
+
+.boot-logo {
+  width: clamp(70px, 9vw, 108px);
+  height: auto;
+  color: #fff;
+}
+.boot-logo rect { fill: currentColor; }
+
+.boot-spinner {
+  width: clamp(32px, 3.4vw, 44px);
+  height: clamp(32px, 3.4vw, 44px);
+  animation: bootRotate 1.15s linear infinite;
+}
+.boot-spinner .arc {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 3.6;
+  stroke-linecap: round;
+  animation: bootDash 1.55s ease-in-out infinite;
+}
+@keyframes bootRotate { to { transform: rotate(360deg); } }
+@keyframes bootDash {
+  0%   { stroke-dasharray: 98 28; stroke-dashoffset: 0; }
+  50%  { stroke-dasharray: 74 52; stroke-dashoffset: -18; }
+  100% { stroke-dasharray: 98 28; stroke-dashoffset: -126; }
+}
+
+/* ---- 关机画面 ---- */
+#shutdownScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  background: #000;
+  color: #e6e6e6;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+#shutdownScreen.on { display: flex; animation: sdIn .5s ease forwards; }
+@keyframes sdIn { from { opacity: 0; } to { opacity: 1; } }
+.sd-icon { width: 46px; height: 46px; opacity: .5; margin-bottom: 10px; }
+.sd-title { font-size: 15px; font-weight: 300; letter-spacing: .3em; text-indent: .3em; }
+.sd-sub { font-size: 11.5px; color: #8a8a8a; letter-spacing: .05em; }
+.sd-power {
+  margin-top: 24px;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #303030;
+  border-radius: 50%;
+  background: #0c0c0c;
+  color: #c8c8c8;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s, transform .15s;
+}
+.sd-power:hover { background: #171717; border-color: #4c4c4c; color: #fff; }
+.sd-power:active { transform: scale(.94); }
+
+/* =========================================================
    移动端降级
    ========================================================= */
 body.mobile #wallpaper::before { filter: blur(40px) saturate(1.15); }
@@ -1743,8 +1896,77 @@ body.mobile .window.resizing { box-shadow: none !important; }
   }
 }
 </style>
+<script>
+  /* 首次启动才播放开机动画；已启动过就直接隐藏，避免白闪/黑闪 */
+  try {
+    if (localStorage.getItem('sata_win_boot_state') === '1') {
+      document.documentElement.classList.add('booted');
+    }
+  } catch (e) { /* 隐私模式或禁用存储时，每次都会播放 */ }
+</script>
+<noscript><style>#bootScreen { display: none !important; }</style></noscript>
 </head>
 <body>
+
+<!-- 开机自检 / 启动动画 -->
+<div id="bootScreen" aria-hidden="true">
+  <div class="boot-post">
+    <div class="post-brand">
+      <svg viewBox="0 0 132 78" aria-hidden="true">
+        <defs>
+          <pattern id="amiStripe" width="132" height="8" patternUnits="userSpaceOnUse">
+            <rect width="132" height="5.6" fill="#e02020"/>
+          </pattern>
+          <clipPath id="amiTri"><polygon points="66,2 130,76 2,76"/></clipPath>
+        </defs>
+        <g clip-path="url(#amiTri)">
+          <rect x="0" y="0" width="132" height="78" fill="url(#amiStripe)"/>
+          <polygon points="66,4 104,76 84,76 66,40" fill="#000"/>
+        </g>
+      </svg>
+      <div class="post-brand-text">American<br>Megatrends</div>
+    </div>
+    <div class="post-lines">
+      <p style="animation-delay:.00s">AMIBIOS(C)2015 American Megatrends, Inc.</p>
+      <p class="gap" style="animation-delay:.07s">ASUS H97M-PLUS ACPI BIOS Revision 3602</p>
+      <p style="animation-delay:.14s">CPU: Intel(R) Xeon(R) CPU E3-1245 v3 @ 3.40GHz</p>
+      <p style="animation-delay:.21s"> Speed: 3400MHz</p>
+      <p class="gap" style="animation-delay:.28s">Total Memory: 16384MB (DDR3-1600)</p>
+      <p class="gap" style="animation-delay:.35s">USB Devices total: 0 Drive, 1 Keyboard, 1 Mouse, 3 Hubs</p>
+      <p class="gap" style="animation-delay:.42s">Detected ATA/ATAPI Devices...</p>
+      <p style="animation-delay:.49s">SATA6G_1: Artanis ssd 120GB</p>
+      <p style="animation-delay:.56s">SATA6G_2: WDC WD5000AAKS-08V0A0</p>
+      <div class="post-cursor"></div>
+    </div>
+  </div>
+  <div class="boot-splash">
+    <svg class="boot-logo" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="1" y="1" width="10" height="10" rx=".7"/>
+      <rect x="13" y="1" width="10" height="10" rx=".7"/>
+      <rect x="1" y="13" width="10" height="10" rx=".7"/>
+      <rect x="13" y="13" width="10" height="10" rx=".7"/>
+    </svg>
+    <svg class="boot-spinner" viewBox="0 0 50 50" aria-hidden="true">
+      <circle class="arc" cx="25" cy="25" r="20"/>
+    </svg>
+  </div>
+</div>
+
+<!-- 关机画面 -->
+<div id="shutdownScreen">
+  <svg class="sd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+    <path d="M12 3.2v8.6"/>
+    <path d="M6.9 6.4a7.6 7.6 0 1 0 10.2 0"/>
+  </svg>
+  <div class="sd-title">已 关 机</div>
+  <div class="sd-sub">电源已切断 · 点击下方按钮重新开机</div>
+  <button class="sd-power" id="powerOnBtn" title="重新开机">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <path d="M12 3.2v8.6"/>
+      <path d="M6.9 6.4a7.6 7.6 0 1 0 10.2 0"/>
+    </svg>
+  </button>
+</div>
 
 <div id="desktop">
   <div id="wallpaper"></div>
@@ -1808,6 +2030,28 @@ body.mobile .window.resizing { box-shadow: none !important; }
             <rect x="2" y="6" width="17" height="10" rx="2"/>
             <rect x="3.5" y="7.5" width="12" height="7" rx="1" fill="currentColor" stroke="none"/>
             <path d="M21 10v2" stroke-linecap="round"/>
+          </svg>
+        </span>
+      </button>
+
+      <!-- 电源：重启 / 关机 -->
+      <span class="tray-sep" aria-hidden="true"></span>
+      <button class="tray-btn" id="restartBtn" title="重启">
+        <span class="tray-icon-wrap">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="M20.2 12a8.2 8.2 0 1 1-2.4-5.8"/>
+            <path d="M20.4 3.6V9.2h-5.6"/>
+          </svg>
+        </span>
+      </button>
+      <button class="tray-btn" id="powerBtn" title="关机">
+        <span class="tray-icon-wrap">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+            <path d="M12 3.2v8.6"/>
+            <path d="M6.9 6.4a7.6 7.6 0 1 0 10.2 0"/>
           </svg>
         </span>
       </button>
@@ -4138,6 +4382,67 @@ window.addEventListener('resize', () => {
     if (w.pos.y < 0) { w.pos.y = 0; changed = true; }
     if (changed) applyWinLayout(w);
   });
+});
+
+/* ================= 开机动画与电源 ================= */
+const BOOT_STATE_KEY = 'sata_win_boot_state';
+const bootScreenEl = document.getElementById('bootScreen');
+
+function setBootState(booted) {
+  try { localStorage.setItem(BOOT_STATE_KEY, booted ? '1' : '0'); } catch (e) { /* 存储被禁用时忽略 */ }
+}
+
+(function runBootSequence() {
+  if (!bootScreenEl) return;
+  if (document.documentElement.classList.contains('booted')) {
+    bootScreenEl.remove();
+    return;
+  }
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const tSplash = reduced ? 260 : 1000;   // 自检 → 启动动画
+  const tFade   = reduced ? 620 : 2480;   // 开始淡出
+  const tDone   = reduced ? 820 : 2820;   // 移除遮罩并写入已启动标记
+
+  document.body.classList.add('booting');
+  setTimeout(() => bootScreenEl.classList.add('splash'), tSplash);
+  setTimeout(() => bootScreenEl.classList.add('fade'), tFade);
+  setTimeout(() => {
+    bootScreenEl.remove();
+    document.body.classList.remove('booting');
+    setBootState(true);
+  }, tDone);
+})();
+
+function shutdownPC() {
+  setBootState(false); // 下次打开重新走一遍开机流程
+  // 若还在播放开机动画，直接收掉，避免关机画面透出底层内容
+  if (bootScreenEl && bootScreenEl.isConnected) bootScreenEl.remove();
+  document.body.classList.remove('booting');
+  // 由脚本打开的标签页可直接关闭；普通标签页浏览器会拒绝，退化为黑屏关机画面
+  try { window.close(); } catch (e) { /* 忽略 */ }
+  setTimeout(() => {
+    if (document.hidden) return;
+    const sd = document.getElementById('shutdownScreen');
+    if (sd) sd.classList.add('on');
+  }, 420);
+}
+
+function restartPC() {
+  setBootState(false);
+  location.reload();
+}
+
+document.getElementById('powerBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  shutdownPC();
+});
+document.getElementById('restartBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  restartPC();
+});
+document.getElementById('powerOnBtn').addEventListener('click', () => {
+  setBootState(false);
+  location.reload();
 });
 
 /* ================= 启动 ================= */
