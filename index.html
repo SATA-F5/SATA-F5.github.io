@@ -1709,12 +1709,12 @@ body.booting { overflow: hidden; }
   gap: clamp(10px, 1.6vw, 20px);
   margin-bottom: clamp(16px, 3.2vh, 34px);
 }
-.post-brand svg {
+.post-brand-logo {
   height: clamp(40px, 6vw, 84px);
   width: auto;
-  aspect-ratio: 160 / 62;
   flex: none;
-  filter: drop-shadow(0 0 9px rgba(224, 32, 32, .42));
+  user-select: none;
+  pointer-events: none;
 }
 .post-brand-text {
   font-family: Georgia, "Times New Roman", serif;
@@ -1908,18 +1908,7 @@ body.mobile .window.resizing { box-shadow: none !important; }
 <div id="bootScreen" aria-hidden="true">
   <div class="boot-post">
     <div class="post-brand">
-      <svg viewBox="0 0 160 62" aria-hidden="true">
-        <defs>
-          <pattern id="amiStripe" width="160" height="5" patternUnits="userSpaceOnUse">
-            <rect width="160" height="4.15" fill="#e02020"/>
-          </pattern>
-          <clipPath id="amiTri"><polygon points="80,1 158,61 2,61"/></clipPath>
-        </defs>
-        <g clip-path="url(#amiTri)">
-          <rect x="0" y="0" width="160" height="62" fill="url(#amiStripe)"/>
-          <polygon points="80,1 124,61 98,61" fill="#000"/>
-        </g>
-      </svg>
+      <img class="post-brand-logo" src="./assets/ami-logo.png" alt="">
       <div class="post-brand-text">American<br>Megatrends</div>
     </div>
     <div class="post-lines">
