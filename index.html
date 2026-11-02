@@ -940,7 +940,7 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
 /* 任务栏应用按钮（Win11 风格：40×40 命中区 + 底部运行指示条） */
 #taskbarApps {
   position: absolute;
-  left: 56px;
+  left: 96px;
   top: 0; bottom: 0;
   display: flex;
   align-items: center;
@@ -1729,6 +1729,213 @@ html.dark .sm-footer { background: rgba(255, 255, 255, .02); }
 html.dark .st-update-check { background: rgba(76, 194, 255, .14); color: #4cc2ff; }
 
 /* =========================================================
+   所有应用 / 任务视图 / 通知中心
+   ========================================================= */
+.sm-allapps {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 2px 10px;
+}
+#startMenu.allapps .sm-allapps { display: block; }
+#startMenu.allapps #startGrid,
+#startMenu.allapps .sm-recommend-wrap { display: none; }
+.sm-allapps::-webkit-scrollbar { width: 8px; }
+.sm-allapps::-webkit-scrollbar-thumb { background: rgba(127, 127, 127, .3); border-radius: 4px; }
+.allapp-group {
+  padding: 8px 10px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--flyout-sub);
+  letter-spacing: .04em;
+}
+.allapp-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background .12s;
+}
+.allapp-item:hover { background: var(--flyout-hover); }
+.allapp-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+  color: #fff;
+  overflow: hidden;
+}
+.allapp-icon svg { display: block; }
+.allapp-icon img { width: 100%; height: 100%; object-fit: contain; border-radius: 5px; }
+.allapp-icon.plain { background: transparent; }
+.allapp-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.allapp-empty { padding: 26px 10px; text-align: center; font-size: 12px; opacity: .6; }
+
+/* 任务视图 */
+#taskView {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 48px;
+  z-index: 480;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: rgba(24, 24, 27, .55);
+  backdrop-filter: blur(26px) saturate(150%);
+  -webkit-backdrop-filter: blur(26px) saturate(150%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+}
+#taskView.open { opacity: 1; pointer-events: auto; }
+.tv-title { font-size: 13px; font-weight: 600; color: #fff; opacity: .9; }
+.tv-empty { font-size: 12px; color: rgba(255, 255, 255, .6); }
+.tv-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: center;
+  gap: 16px;
+  max-width: 80%;
+  max-height: 64%;
+  overflow: auto;
+  padding: 4px;
+}
+.tv-card {
+  width: 236px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--win-bg);
+  color: var(--win-text);
+  border: 1px solid var(--win-border);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, .35);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.tv-card:hover { transform: translateY(-3px); box-shadow: 0 22px 48px rgba(0, 0, 0, .45); }
+.tv-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 8px;
+  font-size: 11.5px;
+  border-bottom: 1px solid var(--win-border);
+}
+.tv-head .tv-ico { width: 16px; height: 16px; display: grid; place-items: center; border-radius: 3px; overflow: hidden; }
+.tv-head .tv-ico svg { width: 14px; height: 14px; }
+.tv-head .tv-ico img { width: 100%; height: 100%; object-fit: contain; }
+.tv-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tv-close {
+  width: 22px; height: 22px;
+  display: grid; place-items: center;
+  border: 0; border-radius: 4px;
+  background: transparent; color: inherit;
+  font-size: 14px; line-height: 1;
+  cursor: pointer; opacity: .6;
+}
+.tv-close:hover { background: rgba(196, 43, 28, .85); color: #fff; opacity: 1; }
+.tv-preview {
+  height: 116px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(127, 127, 127, .10), transparent 70%),
+    var(--sidebar-bg);
+  color: var(--win-sub);
+}
+.tv-preview svg { width: 46px; height: 46px; }
+.tv-preview img { width: 46px; height: 46px; object-fit: contain; }
+
+#taskViewBtn {
+  position: absolute;
+  left: 52px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background .12s;
+}
+#taskViewBtn:hover { background: var(--tb-hover); }
+#taskViewBtn:active { background: var(--tb-active); }
+
+/* 日历里的通知区 */
+.cal-notifs { margin-bottom: 16px; }
+.cal-notifs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--flyout-sub);
+  margin-bottom: 6px;
+  padding: 0 2px;
+}
+.cal-notifs-head button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.cal-notifs-head button:hover { background: var(--flyout-hover); color: var(--flyout-text); }
+.cal-notif {
+  display: flex;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  margin-bottom: 6px;
+}
+.cal-notif-icon {
+  width: 22px; height: 22px;
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 5px;
+  color: var(--accent);
+}
+.cal-notif-body { flex: 1; min-width: 0; }
+.cal-notif-msg { font-size: 11.5px; line-height: 1.45; }
+.cal-notif-time { font-size: 10px; color: var(--flyout-sub); margin-top: 2px; }
+.cal-notif-empty { padding: 10px 2px 4px; font-size: 11px; color: var(--flyout-sub); opacity: .75; }
+#clock.has-notif::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  top: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+#clock { position: relative; }
+
+/* =========================================================
    开机自检 / 启动动画
    ========================================================= */
 #bootScreen {
@@ -2352,6 +2559,14 @@ body.mobile .window.resizing { box-shadow: none !important; }
       </svg>
     </button>
 
+    <button id="taskViewBtn" title="任务视图" aria-label="任务视图">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="6.5" width="12.5" height="11" rx="1.8"/>
+        <path d="M7.5 4.5h11a2 2 0 0 1 2 2v10"/>
+      </svg>
+    </button>
+
     <div id="taskbarApps"></div>
 
     <div id="tray">
@@ -2415,7 +2630,7 @@ body.mobile .window.resizing { box-shadow: none !important; }
     </div>
 
     <div class="sm-section-head">
-      <span class="sm-section-title">已固定</span>
+      <span class="sm-section-title" id="smHeadTitle">已固定</span>
       <button class="sm-more-btn" id="smAllAppsBtn">
         所有应用
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
@@ -2426,19 +2641,22 @@ body.mobile .window.resizing { box-shadow: none !important; }
       </button>
     </div>
     <div id="startGrid"></div>
+    <div class="sm-allapps" id="startAllApps"></div>
 
-    <div class="sm-section-head" style="margin-top: 12px;">
-      <span class="sm-section-title">推荐的项目</span>
-      <button class="sm-more-btn">
-        更多
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
-             stroke-linejoin="round">
-          <path d="M9 6l6 6-6 6"/>
-        </svg>
-      </button>
+    <div class="sm-recommend-wrap">
+      <div class="sm-section-head" style="margin-top: 12px;">
+        <span class="sm-section-title">推荐的项目</span>
+        <button class="sm-more-btn">
+          更多
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="M9 6l6 6-6 6"/>
+          </svg>
+        </button>
+      </div>
+      <div class="sm-recommend" id="smRecommend"></div>
     </div>
-    <div class="sm-recommend" id="smRecommend"></div>
 
     <div class="sm-footer">
       <div class="sm-user" id="smUser">
@@ -2509,6 +2727,13 @@ body.mobile .window.resizing { box-shadow: none !important; }
 
   <!-- 日历面板 -->
   <div id="calendarPanel">
+    <div class="cal-notifs">
+      <div class="cal-notifs-head">
+        <span>通知</span>
+        <button id="calClearNotifs">全部清除</button>
+      </div>
+      <div id="calNotifs"></div>
+    </div>
     <div class="cal-header">
       <div class="cal-big-date" id="calBigDate">--</div>
       <div class="cal-weekday" id="calWeekday">--</div>
@@ -2540,6 +2765,12 @@ body.mobile .window.resizing { box-shadow: none !important; }
 
   <div id="ctxMenu"></div>
   <div id="toast"></div>
+
+  <!-- 任务视图 -->
+  <div id="taskView">
+    <div class="tv-title">任务视图</div>
+    <div class="tv-grid" id="tvGrid"></div>
+  </div>
 </div>
 
 <script>
@@ -2664,6 +2895,51 @@ async function extractLocalTitles() {
   await Promise.all(tasks);
 }
 
+/* ================= 通知中心 ================= */
+const notifs = [
+  { msg: 'Windows 已是最新版本', time: '今天 20:45' },
+  { msg: '欢迎使用 守禄的 Win11', time: '昨天' },
+];
+let notifUnread = true;
+
+function notifEsc(str) {
+  return String(str).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function renderNotifs() {
+  const wrap = document.getElementById('calNotifs');
+  if (!wrap) return;
+  if (!notifs.length) {
+    wrap.innerHTML = '<div class="cal-notif-empty">暂无通知</div>';
+    return;
+  }
+  wrap.innerHTML = notifs.map(n => `
+    <div class="cal-notif">
+      <div class="cal-notif-icon">${svgIcon('info', 14, 2)}</div>
+      <div class="cal-notif-body">
+        <div class="cal-notif-msg">${notifEsc(n.msg)}</div>
+        <div class="cal-notif-time">${notifEsc(n.time)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function updateNotifBadge() {
+  const clockEl = document.getElementById('clock');
+  if (!clockEl) return;
+  clockEl.classList.toggle('has-notif', notifUnread && notifs.length > 0);
+}
+
+function pushNotif(msg) {
+  if (!msg) return;
+  notifs.unshift({ msg, time: '刚刚' });
+  if (notifs.length > 6) notifs.pop();
+  notifUnread = true;
+  renderNotifs();
+  updateNotifBadge();
+}
+
 /* ================= 提示条 ================= */
 let toastTimer = null;
 function showToast(msg) {
@@ -2671,6 +2947,7 @@ function showToast(msg) {
   toastEl.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
+  pushNotif(msg);
 }
 
 /* ================= 图标渲染工具 ================= */
@@ -4383,11 +4660,87 @@ function openStart() {
   startMenu.classList.add('open');
   closeQuickPanel();
   closeCalendar();
+  closeTaskView();
   startInput.value = '';
   renderStart('');
   renderRecommend();
+  setStartMode('pinned');
   if (!isMobile) setTimeout(() => startInput.focus(), 80);
 }
+
+/* ---- 所有应用 ---- */
+let startMode = 'pinned';
+
+function allAppsEntries() {
+  const list = [];
+  sites.forEach((s, i) => {
+    if (isEmptySlot(s)) return;
+    const name = s.type === 'edge' ? 'Microsoft Edge' : s.type === 'thispc' ? '此电脑' : s.name;
+    list.push({ name, kind: 'site', site: s, index: i });
+  });
+  list.push({ name: '设置', kind: 'settings' });
+  return list;
+}
+
+function renderAllApps(kw = '') {
+  const wrap = document.getElementById('startAllApps');
+  if (!wrap) return;
+  wrap.replaceChildren();
+  const items = allAppsEntries()
+    .filter(it => !kw || it.name.toLowerCase().includes(kw))
+    .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+
+  if (!items.length) {
+    wrap.innerHTML = '<div class="allapp-empty">没有匹配的应用</div>';
+    return;
+  }
+
+  let group = '';
+  items.forEach(it => {
+    const letter = /^[A-Za-z]/.test(it.name) ? it.name[0].toUpperCase() : '其他';
+    if (letter !== group) {
+      group = letter;
+      const head = document.createElement('div');
+      head.className = 'allapp-group';
+      head.textContent = letter;
+      wrap.appendChild(head);
+    }
+    const v = it.kind === 'settings'
+      ? { html: svgIcon('settings', 16, 1.9), cls: '', color: '#44618a', label: '设置' }
+      : slotVisual(it.site, it.index);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'allapp-item';
+    btn.title = v.label || it.name;
+    btn.innerHTML = `
+      <span class="allapp-icon ${v.cls || ''}" style="--c:${v.color || '#0078d4'}">${v.html}</span>
+      <span class="allapp-name">${v.label || it.name}</span>
+      <span class="st-chev">›</span>`;
+    btn.addEventListener('click', () => {
+      closeStart();
+      if (it.kind === 'settings') openSettings();
+      else openSlot(it.site, it.index);
+    });
+    wrap.appendChild(btn);
+    attachImgFallback(btn.querySelector('.allapp-icon'), 'globe', 16, 2);
+  });
+}
+
+function setStartMode(mode) {
+  startMode = mode;
+  startMenu.classList.toggle('allapps', mode === 'apps');
+  const titleEl = document.getElementById('smHeadTitle');
+  const btn = document.getElementById('smAllAppsBtn');
+  if (titleEl) titleEl.textContent = mode === 'apps' ? '所有应用' : '已固定';
+  if (btn) btn.textContent = mode === 'apps' ? '返回' : '所有应用';
+  if (mode === 'apps') renderAllApps(startInput.value.trim().toLowerCase());
+}
+
+document.getElementById('smAllAppsBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  setStartMode(startMode === 'apps' ? 'pinned' : 'apps');
+  startInput.focus();
+});
 function closeStart() { startMenu.classList.remove('open'); }
 
 document.getElementById('startBtn').addEventListener('click', e => {
@@ -4395,11 +4748,17 @@ document.getElementById('startBtn').addEventListener('click', e => {
   startMenu.classList.contains('open') ? closeStart() : openStart();
 });
 
-startInput.addEventListener('input', e => renderStart(e.target.value));
+startInput.addEventListener('input', e => {
+  const kw = e.target.value.trim().toLowerCase();
+  if (startMode === 'apps') renderAllApps(kw);
+  else renderStart(e.target.value);
+});
 startInput.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeStart();
   if (e.key === 'Enter') {
-    const first = startGrid.querySelector('.start-item');
+    const first = startMode === 'apps'
+      ? document.querySelector('#startAllApps .allapp-item')
+      : startGrid.querySelector('.start-item');
     if (first) first.click();
   }
 });
@@ -4503,6 +4862,9 @@ function openCalendar() {
   calendarPanel.classList.add('open');
   closeStart();
   closeQuickPanel();
+  notifUnread = false;
+  updateNotifBadge();
+  renderNotifs();
 }
 function closeCalendar() { calendarPanel.classList.remove('open'); }
 
@@ -4582,6 +4944,74 @@ function showDesktopAll() {
   wins.forEach(w => { if (!w.minimized) minimizeWin(w.id); });
 }
 document.getElementById('showDesktop').addEventListener('click', showDesktopAll);
+
+/* ================= 任务视图 ================= */
+const taskViewEl = document.getElementById('taskView');
+const tvGridEl = document.getElementById('tvGrid');
+const taskViewBtnEl = document.getElementById('taskViewBtn');
+
+function renderTaskView() {
+  if (!tvGridEl) return;
+  tvGridEl.replaceChildren();
+  if (!wins.size) {
+    tvGridEl.innerHTML = '<div class="tv-empty">没有打开的窗口</div>';
+    return;
+  }
+  wins.forEach(w => {
+    const v = slotVisual(w.site, sites.indexOf(w.site));
+    const title = w.el.querySelector('.tb-title');
+    const card = document.createElement('div');
+    card.className = 'tv-card';
+    card.innerHTML = `
+      <div class="tv-head">
+        <span class="tv-ico ${v.cls || ''}">${v.html}</span>
+        <span class="tv-name">${title ? title.textContent : (v.label || '')}</span>
+        <button class="tv-close" title="关闭">×</button>
+      </div>
+      <div class="tv-preview">${v.html}</div>`;
+    card.addEventListener('click', () => { focusWin(w.id); closeTaskView(); });
+    card.querySelector('.tv-close').addEventListener('click', e => {
+      e.stopPropagation();
+      closeWin(w.id);
+      setTimeout(renderTaskView, 220);
+    });
+    tvGridEl.appendChild(card);
+  });
+}
+
+function openTaskView() {
+  renderTaskView();
+  taskViewEl.classList.add('open');
+  taskViewBtnEl.classList.add('active');
+  closeStart();
+  closeQuickPanel();
+  closeCalendar();
+}
+
+function closeTaskView() {
+  taskViewEl.classList.remove('open');
+  taskViewBtnEl.classList.remove('active');
+}
+
+taskViewBtnEl.addEventListener('click', e => {
+  e.stopPropagation();
+  taskViewEl.classList.contains('open') ? closeTaskView() : openTaskView();
+});
+taskViewEl.addEventListener('click', e => {
+  if (e.target === taskViewEl) closeTaskView();
+});
+
+/* 通知清除 */
+document.getElementById('calClearNotifs').addEventListener('click', e => {
+  e.stopPropagation();
+  notifs.length = 0;
+  notifUnread = false;
+  renderNotifs();
+  updateNotifBadge();
+});
+
+renderNotifs();
+updateNotifBadge();
 
 document.getElementById('desktop').addEventListener('contextmenu', e => {
   if (e.target.closest('.window') || e.target.closest('#taskbar')) return;
@@ -4702,6 +5132,7 @@ document.addEventListener('keydown', e => {
     closeStart();
     closeQuickPanel();
     closeCalendar();
+    closeTaskView();
     hideCtx();
   }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
