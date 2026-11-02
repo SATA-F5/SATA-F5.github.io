@@ -1741,6 +1741,12 @@ html.dark .st-update-check { background: rgba(76, 194, 255, .14); color: #4cc2ff
 #startMenu.allapps .sm-allapps { display: block; }
 #startMenu.allapps #startGrid,
 #startMenu.allapps .sm-recommend-wrap { display: none; }
+.sm-recommend-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
 .sm-allapps::-webkit-scrollbar { width: 8px; }
 .sm-allapps::-webkit-scrollbar-thumb { background: rgba(127, 127, 127, .3); border-radius: 4px; }
 .allapp-group {
@@ -2958,6 +2964,7 @@ function glyphHTML(s, size = 24, sw = 1.8) {
     html: `<img src="${s.icon}" alt="${s.name}">`,
     cls: 'plain'
   };
+  if (s.type === 'settings') return { html: svgIcon('settings', 22, 1.9), cls: '' };
   if (isEmptySlot(s)) return { html: svgIcon('plus', 24, 2.2), cls: '' };
   return { html: svgIcon(s.icon, size, sw), cls: '' };
 }
