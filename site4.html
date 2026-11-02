@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="zh-CN" data-theme="dark">
 <head>
+<script>
+(function () {
+  var KEY = 'win11nav-theme-v21';
+  function apply(mode) { document.documentElement.setAttribute('data-theme', mode === 'dark' ? 'dark' : 'light'); }
+  try {
+    var saved = localStorage.getItem(KEY);
+    apply(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  } catch (e) { apply('dark'); }
+  window.addEventListener('storage', function (e) {
+    if (e.key === KEY && e.newValue) apply(e.newValue);
+  });
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>神秘工具集合</title>
@@ -567,11 +581,18 @@ const root = document.documentElement;
 function applyTheme(t){
   root.dataset.theme = t;
   storage.set('theme', t);
+  storage.set('win11nav-theme-v21', t);
 }
 
-const savedTheme = storage.get('theme');
+const savedTheme = storage.get('win11nav-theme-v21') || storage.get('theme');
 const defaultTheme = savedTheme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
 applyTheme(defaultTheme);
+
+window.addEventListener('storage', e => {
+  if (e.key === 'win11nav-theme-v21' && e.newValue && e.newValue !== root.dataset.theme) {
+    root.dataset.theme = e.newValue;
+  }
+});
 
 themeBtn.addEventListener('click', () => {
   applyTheme(root.dataset.theme === 'light' ? 'dark' : 'light');

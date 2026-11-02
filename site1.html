@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<script>
+(function () {
+  var KEY = 'win11nav-theme-v21';
+  function apply(mode) { document.documentElement.setAttribute('data-theme', mode === 'dark' ? 'dark' : 'light'); }
+  try {
+    var saved = localStorage.getItem(KEY);
+    apply(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  } catch (e) { apply('dark'); }
+  window.addEventListener('storage', function (e) {
+    if (e.key === KEY && e.newValue) apply(e.newValue);
+  });
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#121110">
@@ -904,6 +918,26 @@ button{font:inherit;color:inherit}
   }
   [data-reveal]{opacity:1;transform:none}
 }
+</style>
+<style id="page-theme">
+html[data-theme="light"]{
+  color-scheme: light;
+  --accent:#6f7f5a; --accent-dim:#88996f; --accent-deep:#5c6b4a;
+  --bg:#f5f2ed; --bg-soft:#efeae3;
+  --surface:rgba(40,32,24,.045); --surface-2:rgba(40,32,24,.02);
+  --border:rgba(60,50,40,.14); --border-strong:rgba(60,50,40,.24);
+  --text:#201c17; --text-dim:#5d564d; --text-mute:#8b8378;
+}
+html[data-theme="light"] body{
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(120,100,70,.10), transparent 65%),
+    radial-gradient(900px 500px at 88% 58%, rgba(120,140,90,.12), transparent 70%),
+    var(--bg);
+}
+html[data-theme="light"] .grad-text{ background:linear-gradient(180deg,#26211b 16%,#6d6459 100%); }
+html[data-theme="light"] ::selection{ background:rgba(120,140,90,.25); color:#1a1712; }
+html[data-theme="light"] ::-webkit-scrollbar-track{ background:#e9e4dc; }
+html[data-theme="light"] ::-webkit-scrollbar-thumb{ background:#c9c1b4; border-color:#e9e4dc; }
 </style>
 </head>
 <body>

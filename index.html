@@ -224,6 +224,8 @@ html.dark #wallpaper::after {
   overflow: hidden;
 }
 .dicon-glyph svg { display: block; }
+.app-logo { width: 100%; height: 100%; display: block; }
+.dicon-glyph.plain .app-logo { filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .3)); }
 .dicon-glyph.edge { background: linear-gradient(145deg, #0F82D8 0%, #23B8A6 55%, #7BE49B 100%); box-shadow: 0 4px 12px rgba(0, 0, 0, .28); }
 .dicon-glyph.thispc { background: linear-gradient(145deg, var(--icon-blue-1) 0%, var(--icon-blue-2) 100%); box-shadow: 0 4px 12px rgba(0, 0, 0, .28); }
 .dicon-glyph.plain {
@@ -2162,6 +2164,34 @@ body.mobile .window.resizing { box-shadow: none !important; }
 </head>
 <body>
 
+<!-- Win11 风格应用图标（自绘，无外部素材） -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="pcScr" x1="8" y1="8" x2="40" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8FD3FF"/><stop offset=".5" stop-color="#3B9BE8"/><stop offset="1" stop-color="#1163B8"/>
+    </linearGradient>
+    <linearGradient id="edgeBg" x1="6" y1="40" x2="42" y2="8" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0C59A4"/><stop offset=".48" stop-color="#0F82D8"/><stop offset="1" stop-color="#2BD9C0"/>
+    </linearGradient>
+    <linearGradient id="edgeFg" x1="12" y1="12" x2="38" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#39E3B4"/><stop offset="1" stop-color="#0E86D4"/>
+    </linearGradient>
+  </defs>
+  <symbol id="ico-thispc" viewBox="0 0 48 48">
+    <rect x="4.5" y="7" width="39" height="27" rx="3.4" fill="#2A2E35"/>
+    <rect x="7" y="9.5" width="34" height="22" rx="1.6" fill="url(#pcScr)"/>
+    <ellipse cx="18" cy="14" rx="9" ry="5" fill="#fff" opacity=".14"/>
+    <path d="M19.6 34.6h8.8l1.3 6h-11.4z" fill="#3A3F47"/>
+    <rect x="13.2" y="39.9" width="21.6" height="3.2" rx="1.6" fill="#565C66"/>
+  </symbol>
+  <symbol id="ico-edge" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="20" fill="url(#edgeBg)"/>
+    <path d="M9.4 26.6c0-8.9 6.2-15.4 14.6-15.4 5.4 0 9.6 2.5 11.5 6-3.6-2-8.4-1.3-11.4 1.7-3.2 3.2-2.4 8 1.9 10.2 4 2 9.4 1.4 13.1-1.2-1.3 7.7-7.5 13.1-15.5 13.1-8.6 0-14.2-5.5-14.2-14.4z" fill="url(#edgeFg)"/>
+    <path d="M26.3 22.3c-4.8-1.7-9.5.5-10.8 4.5 4.2 4.8 12.5 6.5 18.8 2-1.5-3.4-4.1-5.3-8-6.5z" fill="#fff" opacity=".92"/>
+  </symbol>
+</svg>
+
+
 <!-- 开机自检 / 启动动画 -->
 <div id="bootScreen" aria-hidden="true">
   <div class="boot-post">
@@ -2645,8 +2675,8 @@ function showToast(msg) {
 
 /* ================= 图标渲染工具 ================= */
 function glyphHTML(s, size = 24, sw = 1.8) {
-  if (s.type === 'edge')   return { html: EDGE_LOGO,      cls: 'edge'   };
-  if (s.type === 'thispc') return { html: EXPLORER_SMALL, cls: 'thispc' };
+  if (s.type === 'edge')   return { html: '<svg class="app-logo" aria-hidden="true"><use href="#ico-edge"/></svg>',   cls: 'plain' };
+  if (s.type === 'thispc') return { html: '<svg class="app-logo" aria-hidden="true"><use href="#ico-thispc"/></svg>', cls: 'plain' };
   if (s.type === 'local')  return {
     html: `<img src="${s.icon}" alt="${s.name}">`,
     cls: 'plain'
@@ -2656,8 +2686,8 @@ function glyphHTML(s, size = 24, sw = 1.8) {
 }
 
 function smallGlyphHTML(s, size = 12, sw = 2.4) {
-  if (s.type === 'edge')   return { html: svgIcon('globe', size, sw),   cls: 'edge'   };
-  if (s.type === 'thispc') return { html: svgIcon('monitor', size, sw), cls: 'thispc' };
+  if (s.type === 'edge')   return { html: '<svg class="app-logo" aria-hidden="true"><use href="#ico-edge"/></svg>',   cls: 'plain' };
+  if (s.type === 'thispc') return { html: '<svg class="app-logo" aria-hidden="true"><use href="#ico-thispc"/></svg>', cls: 'plain' };
   if (s.type === 'local')  return {
     html: `<img src="${s.icon}" alt="">`,
     cls: 'plain'
@@ -4616,6 +4646,14 @@ function applyTheme(isDark) {
   updateThemeIcons(isDark);
 
   try { localStorage.setItem('win11nav-theme-v21', isDark ? 'dark' : 'light'); } catch(_) {}
+
+  // 同步到所有同源 iframe 里的页面（本地站点）
+  document.querySelectorAll('iframe').forEach(f => {
+    try {
+      const doc = f.contentDocument;
+      if (doc) doc.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    } catch (_) { /* 跨域页面无法访问，忽略 */ }
+  });
 }
 
 function toggleTheme() {
@@ -4631,6 +4669,13 @@ function toggleTheme() {
     : window.matchMedia('(prefers-color-scheme: dark)').matches;
   applyTheme(isDark);
 })();
+
+// 子页面里切换主题时，桌面也跟着变
+window.addEventListener('storage', e => {
+  if (e.key !== 'win11nav-theme-v21' || !e.newValue) return;
+  const dark = e.newValue === 'dark';
+  if (document.documentElement.classList.contains('dark') !== dark) applyTheme(dark);
+});
 
 // 三个入口都绑定 toggleTheme
 document.getElementById('themeBtnTop').addEventListener('click', e => {

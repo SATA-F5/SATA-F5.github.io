@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<script>
+(function () {
+  var KEY = 'win11nav-theme-v21';
+  function apply(mode) { document.documentElement.setAttribute('data-theme', mode === 'dark' ? 'dark' : 'light'); }
+  try {
+    var saved = localStorage.getItem(KEY);
+    apply(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  } catch (e) { apply('dark'); }
+  window.addEventListener('storage', function (e) {
+    if (e.key === KEY && e.newValue) apply(e.newValue);
+  });
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EasyTier Go 去中心化联机模组</title>
