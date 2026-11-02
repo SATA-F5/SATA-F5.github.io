@@ -25,14 +25,6 @@
 - **守禄の收藏夹**：`site3.html` 是一个本地媒体收藏页，收录 B 站音频/视频、本地音乐与视频，支持搜索、筛选、排序、随机打开、底部音乐播放器和视频弹窗，资源放在 `File/` 目录下。
 - **Win11 图标**：此电脑、Microsoft Edge 等桌面/任务栏图标为自绘的 Win11 风格图标，不依赖外部图片。
 
-## 更新收藏夹
-
-```powershell
-powershell -ExecutionPolicy Bypass -File tools/import-favorites.ps1
-```
-
-脚本会从 `C:\Users\Server\.savebili\media`、`D:\Music\音乐`、`D:\Videos` 复制资源到 `File/`，去重后重新生成 `File/manifest.js`。为了不超过 GitHub Pages 约 1 GB 的站点上限，视频只收录 50 MB 以内的去重文件（B 站没有音频的条目放宽到 100 MB），未收录清单会写进 `File/收录说明.md`。
-
 ## 关于作者
 
 - GitHub：<https://github.com/SATA-F5>
