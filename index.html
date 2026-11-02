@@ -5369,6 +5369,9 @@ function applyTheme(isDark) {
 
   try { localStorage.setItem('win11nav-theme-v21', isDark ? 'dark' : 'light'); } catch(_) {}
 
+  // 没有手动选过壁纸时，Bloom 跟随明暗主题
+  if (!wallpaperExplicit) applyWallpaper(isDark ? 'bloom-dark' : 'bloom-light', false);
+
   // 同步到所有同源 iframe 里的页面（本地站点）
   document.querySelectorAll('iframe').forEach(f => {
     try {
@@ -5383,18 +5386,9 @@ function toggleTheme() {
   applyTheme(isDark);
 }
 
-(function initTheme() {
-  let saved = null;
-  try { saved = localStorage.getItem('win11nav-theme-v21'); } catch(_) {}
-  const isDark = saved
-    ? saved === 'dark'
-    : window.matchMedia('(prefers-color-scheme: dark)').matches;
-  applyTheme(isDark);
-})();
-
 /* ================= 壁纸 ================= */
 const WALLPAPERS = [
-  { id: 'bloom', name: '默认 Bloom' },
+  { id: 'bloom', name: '自绘 Bloom' },
   { id: 'bloom-light', name: 'Bloom 浅色', src: './assets/wallpapers/bloom-light.jpg', thumb: './assets/wallpapers/bloom-light-thumb.jpg' },
   { id: 'bloom-dark', name: 'Bloom 深色', src: './assets/wallpapers/bloom-dark.jpg', thumb: './assets/wallpapers/bloom-dark-thumb.jpg' },
   { id: 'sunrise', name: '日出', src: './assets/wallpapers/sunrise.jpg', thumb: './assets/wallpapers/sunrise-thumb.jpg' },
@@ -5402,6 +5396,7 @@ const WALLPAPERS = [
   { id: 'glow', name: '光晕', src: './assets/wallpapers/glow.jpg', thumb: './assets/wallpapers/glow-thumb.jpg' },
 ];
 let currentWallpaper = 'bloom';
+let wallpaperExplicit = false;
 
 function applyWallpaper(id, save = true) {
   const wp = WALLPAPERS.find(w => w.id === id) || WALLPAPERS[0];
@@ -5417,6 +5412,7 @@ function applyWallpaper(id, save = true) {
     }
   }
   if (save) {
+    wallpaperExplicit = true;
     try { localStorage.setItem('win11-wallpaper-v1', wp.id); } catch (e) { /* 忽略 */ }
   }
   document.querySelectorAll('.st-wall').forEach(el => {
@@ -5427,7 +5423,19 @@ function applyWallpaper(id, save = true) {
 (function initWallpaper() {
   let saved = null;
   try { saved = localStorage.getItem('win11-wallpaper-v1'); } catch (_) {}
-  applyWallpaper(saved || 'bloom', false);
+  if (saved) {
+    wallpaperExplicit = true;
+    applyWallpaper(saved, false);
+  }
+})();
+
+(function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem('win11nav-theme-v21'); } catch(_) {}
+  const isDark = saved
+    ? saved === 'dark'
+    : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(isDark);
 })();
 
 // 子页面里切换主题时，桌面也跟着变
