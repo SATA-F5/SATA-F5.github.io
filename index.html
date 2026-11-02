@@ -108,43 +108,105 @@
 (function () {
   var btn = document.getElementById('launchBtn');
   var blocked = document.getElementById('blocked');
-  var launched = false;
   var popup = null;
+  var busy = false;
+  var LOGO = new URL('./assets/ami-logo.png', location.href).href;
+
+  /* 自检画面：写入新标签页，动画放完后再导航到桌面 */
+  var BOOT_HTML = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'
+    + '<title>守禄的 Win11</title>'
+    + '<style>'
+    + 'html,body{margin:0;height:100%;background:#000;color:#fff;overflow:hidden;'
+    + 'font-family:ui-monospace,Consolas,"Courier New",monospace}'
+    + '.post{position:absolute;inset:0;padding:6vh 5vw;transition:opacity .2s}'
+    + '.brand{display:flex;align-items:center;gap:18px;margin-bottom:4vh}'
+    + '.brand img{height:84px;display:block;filter:drop-shadow(0 0 10px rgba(224,32,32,.5))}'
+    + '.brand div{font-family:Georgia,"Times New Roman",serif;font-weight:700;'
+    + 'font-size:clamp(18px,2.6vw,34px);line-height:1.05}'
+    + '.post p{margin:0 0 .9em;font-size:clamp(11px,1.15vw,15px);opacity:0;'
+    + 'animation:line .15s ease forwards}'
+    + '.post .gap{margin-top:1.1em}'
+    + '@keyframes line{to{opacity:1}}'
+    + '.splash{position:absolute;inset:0;display:flex;flex-direction:column;'
+    + 'align-items:center;justify-content:center;gap:40px;opacity:0;transition:opacity .3s}'
+    + '.splash.on{opacity:1}'
+    + '.post.off{opacity:0}'
+    + '.logo{width:80px;height:80px;fill:#fff}'
+    + '.spin{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.18);'
+    + 'border-top-color:#fff;animation:spin .9s linear infinite}'
+    + '@keyframes spin{to{transform:rotate(360deg)}}'
+    + '</style></head><body>'
+    + '<div class="post" id="post">'
+    + '<div class="brand"><img src="' + LOGO + '" alt=""><div>American<br>Megatrends</div></div>'
+    + '<div>'
+    + '<p style="animation-delay:.00s">AMIBIOS(C)2015 American Megatrends, Inc.</p>'
+    + '<p class="gap" style="animation-delay:.06s">ASUS H97M-PLUS ACPI BIOS Revision 3602</p>'
+    + '<p style="animation-delay:.12s">CPU: Intel(R) Xeon(R) CPU E3-1245 v3 @ 3.40GHz</p>'
+    + '<p style="animation-delay:.18s"> Speed: 3400MHz</p>'
+    + '<p class="gap" style="animation-delay:.24s">Total Memory: 16384MB (DDR3-1600)</p>'
+    + '<p class="gap" style="animation-delay:.30s">USB Devices total: 0 Drive, 1 Keyboard, 1 Mouse, 3 Hubs</p>'
+    + '<p class="gap" style="animation-delay:.36s">Detected ATA/ATAPI Devices...</p>'
+    + '<p style="animation-delay:.42s">SATA6G_1: Artanis ssd 120GB</p>'
+    + '<p style="animation-delay:.48s">SATA6G_2: WDC WD5000AAKS-08V0A0</p>'
+    + '</div></div>'
+    + '<div class="splash" id="splash">'
+    + '<svg class="logo" viewBox="0 0 24 24"><rect x="1" y="1" width="10" height="10" rx=".7"/>'
+    + '<rect x="13" y="1" width="10" height="10" rx=".7"/>'
+    + '<rect x="1" y="13" width="10" height="10" rx=".7"/>'
+    + '<rect x="13" y="13" width="10" height="10" rx=".7"/></svg>'
+    + '<div class="spin"></div>'
+    + '</div></body></html>';
 
   function reset() {
-    launched = false;
+    busy = false;
     popup = null;
     btn.disabled = false;
     btn.textContent = '启动桌面';
   }
 
   function launch() {
-    if (launched && popup && !popup.closed) {
-      try { popup.focus(); } catch (e) {}
+    if (busy) {
+      if (popup && !popup.closed) { try { popup.focus(); } catch (e) {} }
       return;
     }
     var win = null;
+    try { win = window.open('about:blank', '_blank'); } catch (e) { win = null; }
+    if (!win) { blocked.classList.add('show'); return; }
+
+    busy = true;
+    popup = win;
+    blocked.classList.remove('show');
+    btn.disabled = true;
+    btn.textContent = '正在启动桌面…';
+
     try {
-      win = window.open('./desktop.html', '_blank');
-    } catch (e) {
-      win = null;
-    }
-    if (win) {
-      launched = true;
-      popup = win;
-      blocked.classList.remove('show');
-      btn.disabled = true;
-      btn.textContent = '已启动 · 请切换到新标签页';
-      try { win.focus(); } catch (e) {}
-      var timer = setInterval(function () {
-        if (!popup || popup.closed) {
-          clearInterval(timer);
-          reset();
-        }
-      }, 900);
-    } else {
-      blocked.classList.add('show');
-    }
+      win.document.open();
+      win.document.write(BOOT_HTML);
+      win.document.close();
+      win.focus();
+    } catch (e) { /* 个别浏览器禁止写入，忽略 */ }
+
+    setTimeout(function () {
+      try {
+        var d = win.document;
+        d.getElementById('post').classList.add('off');
+        d.getElementById('splash').classList.add('on');
+      } catch (e) {}
+    }, 1700);
+
+    /* 动画期间预加载桌面（带 boot=0，桌面不再重复播放开机动画） */
+    var prefetch = fetch('./desktop.html?boot=0').catch(function () {});
+    var minDelay = new Promise(function (res) { setTimeout(res, 2700); });
+    var cap = new Promise(function (res) { setTimeout(res, 4500); });
+
+    Promise.race([Promise.all([minDelay, prefetch]), cap]).then(function () {
+      try { win.location.replace('./desktop.html?boot=0'); } catch (e) {}
+      btn.textContent = '桌面已打开 · 可切换标签页';
+    });
+
+    var timer = setInterval(function () {
+      if (!popup || popup.closed) { clearInterval(timer); reset(); }
+    }, 900);
   }
 
   btn.addEventListener('click', launch);

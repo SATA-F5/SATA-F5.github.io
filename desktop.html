@@ -5174,6 +5174,13 @@ function setBootState(booted) {
 
 (function runBootSequence() {
   if (!bootScreenEl) return;
+  // 由启动器打开时（?boot=0）自检动画已经在启动器里播过了，这里直接进锁屏
+  if (new URLSearchParams(location.search).get('boot') === '0') {
+    bootScreenEl.remove();
+    document.body.classList.remove('booting');
+    setBootState(true);
+    return;
+  }
   if (document.documentElement.classList.contains('booted')) {
     bootScreenEl.remove();
     return;
