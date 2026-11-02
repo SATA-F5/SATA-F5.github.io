@@ -2266,7 +2266,6 @@ const SITES = [
   { type: 'edge',    name: 'Microsoft Edge', color: '#0F82D8' },
   { type: 'local',   name: 'site1', url: 'site1.html', icon: 'site1.png', color: '#8b5cf6' },
   { type: 'local',   name: 'site2', url: 'site2.html', icon: 'site2.png', color: '#10b981' },
-  { type: 'local',   name: 'site3', url: 'site3.html', icon: 'site3.png', color: '#f59e0b' },
   { type: 'local',   name: 'site4', url: 'site4.html', icon: 'site4.png', color: '#ef4444' },
 ];
 
@@ -3193,7 +3192,7 @@ function createThisPCWin(site) {
   };
 
   const drives = {
-    'C:': { type: 'drive', name: '本地磁盘 (C:)', used: 231, total: 476, children: [
+    'C:': { type: 'drive', name: '本地磁盘 (C:)', used: 68, total: 120, children: [
       { name: 'Windows', type: 'folder', children: [
         { name: 'System32', type: 'folder', children: [] },
         { name: 'Fonts', type: 'folder', children: [] },
@@ -3216,7 +3215,7 @@ function createThisPCWin(site) {
       { name: 'pagefile.sys', type: 'file', size: '4.0 GB' },
       { name: 'hiberfil.sys', type: 'file', size: '3.2 GB' },
     ]},
-    'D:': { type: 'drive', name: '数据 (D:)', used: 654, total: 1863, children: [
+    'D:': { type: 'drive', name: '数据 (D:)', used: 231, total: 500, children: [
       { name: '文档', type: 'folder', children: [] },
       { name: '音乐', type: 'folder', children: [] },
       { name: '图片', type: 'folder', children: [] },
