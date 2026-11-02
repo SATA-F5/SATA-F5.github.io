@@ -934,10 +934,39 @@ html[data-theme="light"] body{
     radial-gradient(900px 500px at 88% 58%, rgba(120,140,90,.12), transparent 70%),
     var(--bg);
 }
-html[data-theme="light"] .grad-text{ background:linear-gradient(180deg,#26211b 16%,#6d6459 100%); }
+html[data-theme="light"] .grad-text{ background-image:linear-gradient(180deg,#26211b 16%,#6d6459 100%); }
 html[data-theme="light"] ::selection{ background:rgba(120,140,90,.25); color:#1a1712; }
 html[data-theme="light"] ::-webkit-scrollbar-track{ background:#e9e4dc; }
 html[data-theme="light"] ::-webkit-scrollbar-thumb{ background:#c9c1b4; border-color:#e9e4dc; }
+</style>
+<style id="page-theme-full">
+html[data-theme="light"] .nav{background:linear-gradient(180deg,rgba(245,242,237,.94),rgba(245,242,237,0))}
+html[data-theme="light"] .nav.scrolled{background:rgba(245,242,237,.92);box-shadow:0 20px 44px -34px rgba(60,50,40,.35)}
+html[data-theme="light"] .mobile-menu{background:rgba(245,242,237,.97)}
+html[data-theme="light"] .footer{background:linear-gradient(180deg,rgba(245,242,237,0),rgba(120,100,70,.05))}
+html[data-theme="light"] .hero{
+  background-color:#f5f2ed;
+  background-image:linear-gradient(rgba(247,244,239,.90),rgba(247,244,239,.96)),url('./site1.png');
+}
+html[data-theme="light"] .hero::before{
+  background-image:linear-gradient(rgba(60,50,40,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(60,50,40,.06) 1px,transparent 1px);
+}
+html[data-theme="light"] .hero::after{
+  background:
+    radial-gradient(62% 52% at 50% 18%,rgba(255,255,255,.45),transparent 72%),
+    radial-gradient(70% 50% at 50% 90%,rgba(163,177,138,.12),transparent 70%),
+    linear-gradient(180deg,rgba(245,242,237,.55) 0%,rgba(245,242,237,.80) 55%,#f5f2ed 100%);
+}
+html[data-theme="light"] .hero h1{filter:none}
+html[data-theme="light"] .hero .grad-text{background-image:linear-gradient(180deg,#211d18 16%,#5d554a 100%)}
+html[data-theme="light"] .hero-sub{color:#4c453b;text-shadow:none}
+html[data-theme="light"] .badge{color:#4c453b;background:rgba(255,255,255,.60);border-color:rgba(60,50,40,.16)}
+html[data-theme="light"] .scroll-cue{color:#6b6358}
+html[data-theme="light"] .btn-ghost{background:rgba(40,32,24,.05)}
+html[data-theme="light"] .btn-ghost:hover{background:rgba(40,32,24,.10);border-color:rgba(60,50,40,.30)}
+html[data-theme="light"] .icon-btn{background:rgba(40,32,24,.05)}
+html[data-theme="light"] .icon-btn:hover{background:rgba(40,32,24,.10)}
+html[data-theme="light"] .brand-logo{box-shadow:0 0 0 1px rgba(60,50,40,.14),0 10px 22px -12px rgba(60,50,40,.35)}
 </style>
 </head>
 <body>

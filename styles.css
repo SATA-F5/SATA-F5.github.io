@@ -2224,3 +2224,31 @@ html[data-theme="light"]{
   --shadow:0 24px 70px rgba(20,30,60,.18);
 }
 html[data-theme="light"] .brand-mark img{ filter: invert(1) brightness(.25); }
+
+/* Win11 shell light nav */
+
+html[data-theme="light"] .nav,
+html[data-theme="light"] .sidebar{background:rgba(244,247,252,.94);border-color:rgba(18,30,50,.10)}
+html[data-theme="light"] .topbar{background:rgba(244,247,252,.9);border-color:rgba(18,30,50,.10)}
+html[data-theme="light"] .btn-ghost{background:rgba(18,30,50,.05)}
+
+/* light hero text */
+
+html[data-theme="light"] .hero h1,
+html[data-theme="light"] h2.section-head,
+html[data-theme="light"] h2.section-head em { color: var(--text); }
+html[data-theme="light"] .hero h1 .grad{
+  background-image:linear-gradient(100deg,#0b7fbf 0%,#1668d8 38%,#3a4fbf 72%,#0a9e86 100%);
+  color:transparent;
+}
+html[data-theme="light"] .lede strong{color:#0b5fa5}
+html[data-theme="light"] .hero{background-color:var(--bg)}
+
+/* light hero fade */
+
+html[data-theme="light"] .hero::before{
+  background:
+    radial-gradient(620px 440px at 74% 44%, rgba(0,114,255,.10), transparent 70%),
+    linear-gradient(180deg, transparent 70%, rgba(244,247,252,.96) 100%);
+}
+html[data-theme="light"] .hero::after{-webkit-text-stroke:1px rgba(18,30,50,.06)}
