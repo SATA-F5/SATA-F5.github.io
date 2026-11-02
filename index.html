@@ -19,7 +19,10 @@
   --wallpaper-1: #a8d5f0;
   --wallpaper-2: #c1e0f5;
   --wallpaper-3: #e8f4fb;
-  --wallpaper-base: #f0f6fa;
+  --wallpaper-base: #eaf2fa;
+  --bloom-core: rgba(255, 255, 255, .94);
+  --bloom-p1: rgba(126, 184, 242, .55);
+  --bloom-p2: rgba(88, 124, 212, .30);
 
   --tb-bg: rgba(243, 243, 243, .86);
   --tb-text: #1a1a1a;
@@ -83,7 +86,10 @@ html.dark {
   --wallpaper-1: #1e4d7b;
   --wallpaper-2: #2d5a8c;
   --wallpaper-3: #0a2540;
-  --wallpaper-base: #051020;
+  --wallpaper-base: #04101f;
+  --bloom-core: rgba(160, 225, 255, .80);
+  --bloom-p1: rgba(22, 112, 216, .62);
+  --bloom-p2: rgba(78, 52, 180, .42);
 
   --tb-bg: rgba(32, 32, 32, .86);
   --tb-text: #ffffff;
@@ -150,7 +156,7 @@ body.dragging iframe { pointer-events: none; }
 
 #desktop { position: fixed; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; }
 
-/* ============ 壁纸 ============ */
+/* ============ 壁纸（自制 Bloom 风格，无外部素材） ============ */
 #wallpaper {
   position: absolute; left: 0; top: 0; right: 0; bottom: 0;
   background: var(--wallpaper-base);
@@ -158,25 +164,23 @@ body.dragging iframe { pointer-events: none; }
   z-index: 0;
   transition: background .35s ease;
 }
-#wallpaper::before {
-  content: "";
+#wallpaper .bloom {
   position: absolute;
-  left: -20%; top: -20%; right: -20%; bottom: -20%;
-  background:
-    radial-gradient(circle at 25% 30%, var(--wallpaper-1) 0%, transparent 45%),
-    radial-gradient(circle at 75% 70%, var(--wallpaper-2) 0%, transparent 45%),
-    radial-gradient(circle at 50% 50%, var(--wallpaper-3) 0%, transparent 60%);
-  filter: blur(80px) saturate(1.2);
-  transition: background .35s ease;
+  left: -30%; top: -30%;
+  width: 160%; height: 160%;
+  display: block;
+  pointer-events: none;
+  transform: rotate(9deg);
 }
 #wallpaper::after {
   content: "";
   position: absolute; left: 0; top: 0; right: 0; bottom: 0;
-  background: radial-gradient(125% 95% at 50% 42%, transparent 45%, rgba(0, 0, 0, .18));
+  background: radial-gradient(120% 90% at 50% 45%, transparent 42%, rgba(0, 0, 0, .28));
+  z-index: 1;
   transition: background .35s ease;
 }
 html.dark #wallpaper::after {
-  background: radial-gradient(125% 95% at 50% 42%, transparent 40%, rgba(0, 0, 0, .5));
+  background: radial-gradient(120% 90% at 50% 45%, transparent 36%, rgba(0, 0, 0, .55));
 }
 
 /* ============ 桌面图标层 ============ */
@@ -311,12 +315,12 @@ html.dark #wallpaper::after {
 @keyframes winFade { from { opacity: 0; } }
 
 .titlebar {
-  height: 34px;
+  height: 32px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-left: 10px;
+  padding-left: 12px;
   cursor: default;
   touch-action: none;
 }
@@ -360,6 +364,52 @@ html.dark #wallpaper::after {
 }
 .wbtn:hover { background: var(--tb-hover); }
 .wbtn.close:hover { background: #c42b1c; color: #fff; }
+
+/* 贴靠布局弹层（悬停最大化按钮时出现） */
+.snap-popover {
+  position: fixed;
+  z-index: 4000;
+  padding: 10px 10px 12px;
+  border-radius: 8px;
+  background: var(--flyout-bg);
+  color: var(--flyout-text);
+  border: 1px solid var(--flyout-border);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .38);
+  backdrop-filter: blur(36px) saturate(180%);
+  -webkit-backdrop-filter: blur(36px) saturate(180%);
+  animation: snapIn .13s ease-out;
+}
+@keyframes snapIn {
+  from { opacity: 0; transform: translateY(6px) scale(.97); }
+}
+.snap-caption {
+  font-size: 11.5px;
+  color: var(--flyout-sub);
+  margin-bottom: 8px;
+  padding-left: 2px;
+}
+.snap-layouts { display: flex; gap: 8px; }
+.snap-layout {
+  width: 84px;
+  height: 56px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 6px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+}
+.snap-layout.quad { grid-template-rows: 1fr 1fr; }
+.snap-zone {
+  border: none;
+  padding: 0;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--flyout-text) 12%, transparent);
+  cursor: pointer;
+  transition: background .1s;
+}
+.snap-zone:hover { background: var(--accent); }
 
 .resize-handle {
   position: absolute; right: 0; bottom: 0;
@@ -890,6 +940,69 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
 }
 #startBtn:hover { background: var(--tb-hover); }
 #startBtn:active { background: var(--tb-active); transform: translateY(-50%) scale(.94); }
+
+/* 任务栏应用按钮（Win11 风格：40×40 命中区 + 底部运行指示条） */
+#taskbarApps {
+  position: absolute;
+  left: 56px;
+  top: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.tb-app-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  color: inherit;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.tb-app-btn:hover { background: var(--tb-hover); }
+.tb-app-btn:active { background: var(--tb-active); }
+.tb-app-btn.active { background: var(--tb-hover); }
+.tb-app-glyph {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+  overflow: hidden;
+  color: #fff;
+}
+.tb-app-glyph svg { display: block; }
+.tb-app-glyph img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 5px;
+}
+.tb-app-glyph.edge { background: linear-gradient(145deg, #0F82D8 0%, #23B8A6 100%); }
+.tb-app-glyph.thispc { background: linear-gradient(145deg, var(--icon-blue-1), var(--icon-blue-2)); }
+.tb-app-glyph.plain { background: transparent; }
+.tb-app-ind {
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  width: 6px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--tb-text);
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: width .16s ease, opacity .16s ease, background .16s ease;
+}
+.tb-app-btn.running .tb-app-ind { opacity: .55; }
+.tb-app-btn.active .tb-app-ind {
+  width: 16px;
+  opacity: 1;
+  background: var(--accent);
+}
 
 #tray {
   position: absolute;
@@ -1855,8 +1968,7 @@ body.mobile .window.resizing { box-shadow: none !important; }
   /* 任务栏缩放：适配触屏/手机 */
   #taskbar { height: 52px; }
   #startBtn { width: 42px; height: 42px; }
-  #tray .tray-btn { height: 40px; min-width: 40px; }
-  #tray .tray-icon-wrap { width: 22px; height: 22px; }
+  #tray .tray-btn { height: 40px; min-width: 40px; }  #tray .tray-icon-wrap { width: 22px; height: 22px; }
   #clock { height: 40px; padding: 0 10px; }
 
   #startMenu { width: calc(100vw - 16px); height: calc(100vh - 116px); padding: 20px 20px 0; }
@@ -1868,6 +1980,11 @@ body.mobile .window.resizing { box-shadow: none !important; }
   .exp-sidebar { display: none; }
   .edge-tiles { grid-template-columns: repeat(2, 88px); }
   .edge-tab { min-width: 90px; padding: 0 6px 0 10px; }
+}
+
+/* 窄屏隐藏任务栏应用图标，避免和右侧托盘挤在一起 */
+@media (max-width: 720px) {
+  #taskbarApps { display: none; }
 }
 
 /* 极窄屏（手机竖屏）进一步收拢，避免拥挤 */
@@ -1956,7 +2073,61 @@ body.mobile .window.resizing { box-shadow: none !important; }
 </div>
 
 <div id="desktop">
-  <div id="wallpaper"></div>
+  <div id="wallpaper">
+    <svg class="bloom" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <radialGradient id="bloomPetal" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="var(--bloom-core)"/>
+          <stop offset="52%" stop-color="var(--bloom-p1)"/>
+          <stop offset="100%" stop-color="var(--bloom-p2)" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="bloomPetalInner" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="var(--bloom-core)"/>
+          <stop offset="46%" stop-color="var(--bloom-p2)"/>
+          <stop offset="100%" stop-color="var(--bloom-p2)" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="bloomCore" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="var(--bloom-core)"/>
+          <stop offset="100%" stop-color="var(--bloom-core)" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="bloomSoft" x="-25%" y="-25%" width="150%" height="150%">
+          <feGaussianBlur stdDeviation="24"/>
+        </filter>
+      </defs>
+      <rect width="1600" height="900" fill="var(--wallpaper-base)"/>
+      <g filter="url(#bloomSoft)">
+        <g opacity=".95">
+          <ellipse cx="800" cy="450" rx="108" ry="360" fill="url(#bloomPetal)" transform="rotate(0 800 450)"/>
+          <ellipse cx="800" cy="450" rx="108" ry="360" fill="url(#bloomPetal)" transform="rotate(30 800 450)"/>
+          <ellipse cx="800" cy="450" rx="108" ry="360" fill="url(#bloomPetal)" transform="rotate(60 800 450)"/>
+          <ellipse cx="800" cy="450" rx="108" ry="360" fill="url(#bloomPetal)" transform="rotate(90 800 450)"/>
+          <ellipse cx="800" cy="450" rx="108" ry="360" fill="url(#bloomPetal)" transform="rotate(120 800 450)"/>
+          <ellipse cx="800" cy="450" rx="108" ry="360" fill="url(#bloomPetal)" transform="rotate(150 800 450)"/>
+          <ellipse cx="800" cy="450" rx="108" ry="360" fill="url(#bloomPetal)" transform="rotate(180 800 450)"/>
+          <ellipse cx="800" cy="450" rx="108" ry="360" fill="url(#bloomPetal)" transform="rotate(210 800 450)"/>
+          <ellipse cx="800" cy="450" rx="108" ry="360" fill="url(#bloomPetal)" transform="rotate(240 800 450)"/>
+          <ellipse cx="800" cy="450" rx="108" ry="360" fill="url(#bloomPetal)" transform="rotate(270 800 450)"/>
+          <ellipse cx="800" cy="450" rx="108" ry="360" fill="url(#bloomPetal)" transform="rotate(300 800 450)"/>
+          <ellipse cx="800" cy="450" rx="108" ry="360" fill="url(#bloomPetal)" transform="rotate(330 800 450)"/>
+        </g>
+        <g opacity=".7">
+          <ellipse cx="800" cy="450" rx="76" ry="300" fill="url(#bloomPetalInner)" transform="rotate(15 800 450)"/>
+          <ellipse cx="800" cy="450" rx="76" ry="300" fill="url(#bloomPetalInner)" transform="rotate(45 800 450)"/>
+          <ellipse cx="800" cy="450" rx="76" ry="300" fill="url(#bloomPetalInner)" transform="rotate(75 800 450)"/>
+          <ellipse cx="800" cy="450" rx="76" ry="300" fill="url(#bloomPetalInner)" transform="rotate(105 800 450)"/>
+          <ellipse cx="800" cy="450" rx="76" ry="300" fill="url(#bloomPetalInner)" transform="rotate(135 800 450)"/>
+          <ellipse cx="800" cy="450" rx="76" ry="300" fill="url(#bloomPetalInner)" transform="rotate(165 800 450)"/>
+          <ellipse cx="800" cy="450" rx="76" ry="300" fill="url(#bloomPetalInner)" transform="rotate(195 800 450)"/>
+          <ellipse cx="800" cy="450" rx="76" ry="300" fill="url(#bloomPetalInner)" transform="rotate(225 800 450)"/>
+          <ellipse cx="800" cy="450" rx="76" ry="300" fill="url(#bloomPetalInner)" transform="rotate(255 800 450)"/>
+          <ellipse cx="800" cy="450" rx="76" ry="300" fill="url(#bloomPetalInner)" transform="rotate(285 800 450)"/>
+          <ellipse cx="800" cy="450" rx="76" ry="300" fill="url(#bloomPetalInner)" transform="rotate(315 800 450)"/>
+          <ellipse cx="800" cy="450" rx="76" ry="300" fill="url(#bloomPetalInner)" transform="rotate(345 800 450)"/>
+        </g>
+        <circle cx="800" cy="450" r="250" fill="url(#bloomCore)" opacity=".8"/>
+      </g>
+    </svg>
+  </div>
   <div id="icon-layer"></div>
   <div id="windows"></div>
 
@@ -1970,6 +2141,8 @@ body.mobile .window.resizing { box-shadow: none !important; }
         <rect x="13" y="13" width="9" height="9" rx="1"/>
       </svg>
     </button>
+
+    <div id="taskbarApps"></div>
 
     <div id="tray">
       <!-- 信息栏 -->
@@ -2560,6 +2733,186 @@ function bindWindowBase(el, w) {
 
   handle.addEventListener('pointerdown', e => startResize(e, w));
 }
+
+/* =========================================================
+   任务栏应用区（Win11 风格）
+   ========================================================= */
+const taskbarAppsEl = document.getElementById('taskbarApps');
+let taskbarRaf = 0;
+
+const taskbarSites = () => sites.filter(s =>
+  s.type === 'thispc' || s.type === 'edge' || s.type === 'local');
+
+function edgeWindow() {
+  return [...wins.values()].find(w => w.site && w.site.type === 'edge');
+}
+
+function taskbarStateFor(s) {
+  if (s.type === 'thispc') {
+    const w = [...wins.values()].find(v => v.site && v.site.type === 'thispc');
+    return { win: w, running: !!w, active: !!w && !w.minimized && w.id === activeId };
+  }
+  const w = edgeWindow();
+  const url = w && w.edgeAPI ? w.edgeAPI.getActiveTabUrl() : '';
+  if (s.type === 'edge') {
+    const localOpen = sites.some(x => x.type === 'local' && x.url && url && url.endsWith(x.url));
+    return { win: w, running: !!w && !localOpen, active: !!w && !w.minimized && w.id === activeId && !localOpen };
+  }
+  if (s.type === 'local') {
+    const running = !!w && !!s.url && !!url && url.endsWith(s.url);
+    return { win: w, running, active: running && !w.minimized && w.id === activeId };
+  }
+  return { win: null, running: false, active: false };
+}
+
+function renderTaskbar() {
+  if (!taskbarAppsEl) return;
+  taskbarAppsEl.replaceChildren();
+  taskbarSites().forEach(s => {
+    const i = sites.indexOf(s);
+    const v = slotVisual(s, i);
+    const st = taskbarStateFor(s);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tb-app-btn' + (st.running ? ' running' : '') + (st.active ? ' active' : '');
+    btn.title = v.label;
+    btn.setAttribute('aria-label', v.label);
+    btn.innerHTML = `<span class="tb-app-glyph ${v.cls || ''}">${v.html}</span><span class="tb-app-ind"></span>`;
+    btn.addEventListener('click', () => {
+      if (st.win) {
+        if (st.active) {
+          minimizeWin(st.win.id);
+        } else {
+          focusWin(st.win.id);
+          if (s.type === 'local' && st.win.edgeAPI) st.win.edgeAPI.openUrlInTab(s.url, true);
+        }
+        return;
+      }
+      openSlot(s, i);
+    });
+    taskbarAppsEl.appendChild(btn);
+    attachImgFallback(btn.querySelector('.tb-app-glyph'), 'globe', 18, 2);
+  });
+}
+
+function scheduleTaskbar() {
+  if (taskbarRaf) return;
+  taskbarRaf = requestAnimationFrame(() => { taskbarRaf = 0; renderTaskbar(); });
+}
+
+if (winLayer) {
+  new MutationObserver(scheduleTaskbar).observe(winLayer, {
+    childList: true,
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+}
+
+/* =========================================================
+   贴靠布局（悬停最大化按钮）
+   ========================================================= */
+let snapPopover = null;
+let snapHideTimer = 0;
+
+function hideSnapPopover() {
+  clearTimeout(snapHideTimer);
+  if (snapPopover) { snapPopover.remove(); snapPopover = null; }
+}
+
+function snapWin(id, zone) {
+  const w = wins.get(id);
+  if (!w) return;
+  const W = window.innerWidth;
+  const H = window.innerHeight - 48;
+  const hw = Math.round(W / 2);
+  const hh = Math.round(H / 2);
+  const boxes = {
+    left:  { x: 0,  y: 0,  w: hw,     h: H },
+    right: { x: hw, y: 0,  w: W - hw, h: H },
+    tl: { x: 0,  y: 0,  w: hw,     h: hh },
+    tr: { x: hw, y: 0,  w: W - hw, h: hh },
+    bl: { x: 0,  y: hh, w: hw,     h: H - hh },
+    br: { x: hw, y: hh, w: W - hw, h: H - hh },
+  };
+  const box = boxes[zone];
+  if (!box) return;
+  if (w.maximized) {
+    w.maximized = false;
+    w.el.classList.remove('maximized');
+  }
+  w.pos = { ...box };
+  w.snapped = zone;
+  w.el.classList.add('snapped');
+  applyWinLayout(w);
+  focusWin(id);
+}
+
+function showSnapPopover(w, btn) {
+  hideSnapPopover();
+  const r = btn.getBoundingClientRect();
+  const pop = document.createElement('div');
+  pop.className = 'snap-popover';
+  pop.innerHTML = `
+    <div class="snap-caption">贴靠布局</div>
+    <div class="snap-layouts">
+      <div class="snap-layout" title="左右两分屏">
+        <button class="snap-zone" data-snap="left" title="左半屏"></button>
+        <button class="snap-zone" data-snap="right" title="右半屏"></button>
+      </div>
+      <div class="snap-layout quad" title="四象限">
+        <button class="snap-zone" data-snap="tl" title="左上"></button>
+        <button class="snap-zone" data-snap="tr" title="右上"></button>
+        <button class="snap-zone" data-snap="bl" title="左下"></button>
+        <button class="snap-zone" data-snap="br" title="右下"></button>
+      </div>
+    </div>`;
+  document.getElementById('desktop').appendChild(pop);
+
+  const pw = pop.offsetWidth;
+  const ph = pop.offsetHeight;
+  const left = Math.min(Math.max(8, r.right - pw), window.innerWidth - pw - 8);
+  let top = r.bottom + 6;
+  if (top + ph > window.innerHeight - 8) top = r.top - ph - 6;
+  pop.style.left = Math.round(left) + 'px';
+  pop.style.top = Math.round(Math.max(8, top)) + 'px';
+
+  pop.addEventListener('pointerenter', () => clearTimeout(snapHideTimer));
+  pop.addEventListener('pointerleave', () => {
+    snapHideTimer = setTimeout(hideSnapPopover, 160);
+  });
+  pop.querySelectorAll('[data-snap]').forEach(z => {
+    z.addEventListener('click', e => {
+      e.stopPropagation();
+      snapWin(w.id, z.dataset.snap);
+      hideSnapPopover();
+    });
+  });
+  snapPopover = pop;
+}
+
+if (winLayer) {
+  winLayer.addEventListener('pointerover', e => {
+    const btn = e.target.closest('.wbtn[data-act="max"]');
+    if (!btn) return;
+    const winEl = btn.closest('.window');
+    const w = winEl && wins.get(winEl.dataset.id);
+    if (!w) return;
+    clearTimeout(snapHideTimer);
+    if (!snapPopover) showSnapPopover(w, btn);
+  });
+  winLayer.addEventListener('pointerout', e => {
+    const btn = e.target.closest('.wbtn[data-act="max"]');
+    if (!btn) return;
+    clearTimeout(snapHideTimer);
+    snapHideTimer = setTimeout(hideSnapPopover, 160);
+  });
+  winLayer.addEventListener('pointerdown', e => {
+    if (!e.target.closest('.wbtn[data-act="max"]')) hideSnapPopover();
+  }, true);
+}
+
+window.addEventListener('blur', hideSnapPopover);
+window.addEventListener('resize', hideSnapPopover);
 
 /* =========================================================
    链接拦截器
@@ -3679,6 +4032,8 @@ function toggleMax(id) {
   const w = wins.get(id);
   if (!w) return;
   const el = w.el;
+  w.snapped = null;
+  el.classList.remove('snapped');
   if (w.maximized) {
     el.classList.remove('maximized');
     w.maximized = false;
@@ -3707,6 +4062,7 @@ function startDrag(e, w) {
   e.preventDefault();
 
   const el = w.el;
+  if (w.snapped) { w.snapped = null; el.classList.remove('snapped'); }
   const startX = e.clientX, startY = e.clientY;
   const baseX = w.pos.x, baseY = w.pos.y;
   const maxX = window.innerWidth - 100;
@@ -4444,11 +4800,13 @@ renderCalendar();
   renderIcons();
   renderStart();
   renderRecommend();
+  scheduleTaskbar();
 
   await extractLocalTitles();
   renderIcons();
   renderStart();
   renderRecommend();
+  scheduleTaskbar();
 })();
 </script>
 </body>
