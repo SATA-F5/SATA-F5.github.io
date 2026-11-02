@@ -1055,6 +1055,21 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
 #clock .t { font-size: 12px; }
 #clock .d { font-size: 11px; opacity: .88; }
 
+/* 任务栏最右侧「显示桌面」细条（Win11 同款） */
+#showDesktop {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: background .12s;
+}
+#showDesktop:hover { background: var(--tb-hover); }
+
 /* =========================================================
    开始菜单
    ========================================================= */
@@ -1511,6 +1526,205 @@ html.dark .sm-footer { background: rgba(255, 255, 255, .02); }
               background .35s, color .35s;
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* =========================================================
+   设置应用（Win11 风格）
+   ========================================================= */
+.settings {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  background: var(--frame-bg);
+  color: var(--win-text);
+}
+.st-nav {
+  width: 272px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 10px 12px 12px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--win-border);
+  overflow-y: auto;
+}
+.st-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 8px 14px;
+}
+.st-avatar {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(145deg, #b4b4b4, #7c7c7c);
+  overflow: hidden;
+}
+.st-avatar svg { width: 22px; height: 22px; opacity: .95; }
+.st-user b { display: block; font-size: 12.5px; font-weight: 600; }
+.st-user span { display: block; font-size: 10.5px; color: var(--win-sub); margin-top: 1px; }
+.st-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  margin: 0 6px 12px;
+  padding: 0 10px;
+  border-radius: 4px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  color: var(--win-sub);
+  font-size: 11.5px;
+}
+.st-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 34px;
+  padding: 0 10px;
+  margin-bottom: 1px;
+  border-radius: 5px;
+  font-size: 12.5px;
+  color: inherit;
+  cursor: pointer;
+  position: relative;
+  transition: background .12s;
+}
+.st-nav-item:hover { background: var(--flyout-hover); }
+.st-nav-item.active { background: var(--field-bg); }
+.st-nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 8px; bottom: 8px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.st-nav-item svg { flex-shrink: 0; opacity: .85; }
+.st-nav-sep { height: 1px; margin: 8px 10px; background: var(--win-border); }
+
+.st-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.st-head { flex-shrink: 0; height: 56px; display: flex; align-items: center; padding: 0 28px; }
+.st-head h1 { font-size: 20px; font-weight: 600; letter-spacing: .2px; }
+.st-body { flex: 1; overflow-y: auto; padding: 0 28px 28px; }
+.st-body::-webkit-scrollbar { width: 8px; }
+.st-body::-webkit-scrollbar-thumb { background: rgba(127, 127, 127, .3); border-radius: 4px; }
+
+.st-card {
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  border-radius: 8px;
+  padding: 2px 16px;
+  margin-bottom: 12px;
+}
+.st-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 56px;
+  padding: 6px 0;
+}
+.st-row + .st-row { border-top: 1px solid var(--win-border); }
+.st-row-icon { width: 22px; display: grid; place-items: center; color: var(--accent); flex-shrink: 0; }
+.st-row-main { flex: 1; min-width: 0; }
+.st-row-title { font-size: 12.5px; }
+.st-row-sub { font-size: 11px; color: var(--win-sub); margin-top: 2px; }
+.st-row-value { font-size: 11.5px; color: var(--win-sub); white-space: nowrap; }
+.st-chev { color: var(--win-sub); opacity: .8; flex-shrink: 0; }
+.st-section { font-size: 12.5px; font-weight: 600; margin: 20px 0 8px; }
+
+.st-btn {
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 4px;
+  border: 1px solid var(--field-border);
+  background: var(--field-bg);
+  color: inherit;
+  font-family: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: background .12s;
+  white-space: nowrap;
+}
+.st-btn:hover { background: var(--flyout-hover); }
+.st-btn.primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--on-accent);
+}
+.st-btn.primary:hover { filter: brightness(1.08); }
+
+.st-toggle {
+  position: relative;
+  width: 40px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: 1px solid var(--win-sub);
+  background: transparent;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.st-toggle::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--win-sub);
+  transform: translateY(-50%);
+  transition: left .15s, background .15s;
+}
+.st-toggle.on { background: var(--accent); border-color: var(--accent); }
+.st-toggle.on::after { left: 23px; background: #fff; }
+
+.st-storage { display: flex; flex-direction: column; gap: 12px; padding: 8px 0 4px; }
+.st-storage-item .st-storage-top { display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 5px; }
+.st-storage-bar { height: 5px; border-radius: 3px; background: var(--field-border); overflow: hidden; }
+.st-storage-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+
+.st-device { display: flex; align-items: center; gap: 16px; padding: 8px 0 16px; }
+.st-device-icon {
+  width: 56px; height: 56px;
+  display: grid; place-items: center;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(145deg, var(--icon-blue-1), var(--icon-blue-2));
+}
+.st-device b { display: block; font-size: 14px; font-weight: 600; }
+.st-device span { display: block; font-size: 11px; color: var(--win-sub); margin-top: 3px; }
+
+.st-theme-cards { display: flex; gap: 12px; padding: 10px 0 14px; }
+.st-theme-card {
+  flex: 1;
+  border: 1px solid var(--field-border);
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  transition: border-color .12s, box-shadow .12s;
+}
+.st-theme-card:hover { border-color: var(--win-sub); }
+.st-theme-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.st-theme-thumb { height: 68px; border-radius: 4px; border: 1px solid rgba(127, 127, 127, .25); }
+.st-theme-thumb.light { background: linear-gradient(145deg, #eaf2fa, #cfe4f7); }
+.st-theme-thumb.dark { background: linear-gradient(145deg, #0a1b33, #123a63); }
+.st-theme-name { font-size: 11.5px; margin-top: 6px; text-align: center; }
+
+.st-update-hero { display: flex; align-items: center; gap: 14px; padding: 12px 0 10px; }
+.st-update-check {
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: rgba(16, 137, 62, .14);
+  color: #10893e;
+}
+html.dark .st-update-check { background: rgba(76, 194, 255, .14); color: #4cc2ff; }
 
 /* =========================================================
    开机自检 / 启动动画
@@ -2153,6 +2367,8 @@ body.mobile .window.resizing { box-shadow: none !important; }
         <span class="d">----/--/--</span>
       </div>
     </div>
+
+    <button id="showDesktop" title="显示桌面" aria-label="显示桌面"></button>
   </div>
 
   <!-- 开始菜单 -->
@@ -2323,6 +2539,7 @@ const ICONS = {
   monitor: '<rect x="3" y="4.5" width="18" height="12.5" rx="1.8"/><path d="M9.2 20.5h5.6M12 17v3.5"/>',
   search:  '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/>',
   user:    '<circle cx="12" cy="8" r="3.7"/><path d="M4.8 20.4a7.5 7.5 0 0 1 14.4 0"/>',
+  settings:'<circle cx="12" cy="12" r="3.1"/><path d="M19.5 14.6a1.6 1.6 0 0 0 .32 1.77l.06.06a1.9 1.9 0 1 1-2.69 2.69l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-.97 1.47V21a1.9 1.9 0 0 1-3.8 0v-.09a1.6 1.6 0 0 0-1.05-1.47 1.6 1.6 0 0 0-1.77.32l-.06.06a1.9 1.9 0 1 1-2.69-2.69l.06-.06a1.6 1.6 0 0 0 .32-1.77 1.6 1.6 0 0 0-1.47-.97H3a1.9 1.9 0 0 1 0-3.8h.09a1.6 1.6 0 0 0 1.47-1.05 1.6 1.6 0 0 0-.32-1.77l-.06-.06a1.9 1.9 0 1 1 2.69-2.69l.06.06a1.6 1.6 0 0 0 1.77.32h.08a1.6 1.6 0 0 0 .97-1.47V3a1.9 1.9 0 0 1 3.8 0v.09a1.6 1.6 0 0 0 .97 1.47 1.6 1.6 0 0 0 1.77-.32l.06-.06a1.9 1.9 0 1 1 2.69 2.69l-.06.06a1.6 1.6 0 0 0-.32 1.77v.08a1.6 1.6 0 0 0 1.47.97H21a1.9 1.9 0 0 1 0 3.8h-.09a1.6 1.6 0 0 0-1.41.95z"/>',
   sun:     '<circle cx="12" cy="12" r="4"/><path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M18.7 5.3l-1.5 1.5M6.8 17.2l-1.5 1.5"/>',
   moon:    '<path d="M20.5 13.6A8.5 8.5 0 1 1 10.4 3.5a6.8 6.8 0 0 0 10.1 10.1z"/>',
   power:   '<path d="M12 3.6v8.2"/><path d="M6.9 6.9a7.4 7.4 0 1 0 10.2 0"/>',
@@ -4067,9 +4284,11 @@ function renderStart(filter = '') {
       return name.toLowerCase().includes(kw);
     });
 
+  const showSettings = !kw || '设置'.includes(kw);
+
   startGrid.replaceChildren();
 
-  if (!list.length) {
+  if (!list.length && !showSettings) {
     const tip = document.createElement('div');
     tip.style.cssText = 'grid-column:1/-1;padding:24px 10px;text-align:center;font-size:12px;opacity:.6;';
     tip.textContent = '没有匹配的快捷方式';
@@ -4090,6 +4309,18 @@ function renderStart(filter = '') {
     item.addEventListener('click', () => { openSlot(s, i); closeStart(); });
     startGrid.appendChild(item);
   });
+
+  if (showSettings) {
+    const item = document.createElement('div');
+    item.className = 'start-item';
+    item.title = '设置';
+    item.innerHTML = `
+      <div class="si-icon" style="--c:#44618a">${svgIcon('settings', 19, 1.75)}</div>
+      <div class="si-name">设置</div>
+    `;
+    item.addEventListener('click', () => { openSettings(); closeStart(); });
+    startGrid.appendChild(item);
+  }
 }
 
 function renderRecommend() {
@@ -4267,7 +4498,7 @@ document.getElementById('calNext').addEventListener('click', () => {
 calendarPanel.addEventListener('pointerdown', e => e.stopPropagation());
 
 /* ================= 右键菜单 ================= */
-function showCtx(x, y, items) {
+function showCtx(x, y, items, align = 'cursor') {
   ctxMenu.replaceChildren();
   items.forEach(it => {
     if (it === '-') {
@@ -4287,10 +4518,40 @@ function showCtx(x, y, items) {
 
   ctxMenu.classList.add('open');
   const r = ctxMenu.getBoundingClientRect();
-  ctxMenu.style.left = Math.min(x, window.innerWidth  - r.width  - 8) + 'px';
-  ctxMenu.style.top  = Math.min(y, window.innerHeight - r.height - 8) + 'px';
+  if (align === 'bottom-left') {
+    ctxMenu.style.left = '8px';
+    ctxMenu.style.top = Math.max(8, window.innerHeight - 48 - r.height - 6) + 'px';
+  } else {
+    ctxMenu.style.left = Math.min(x, window.innerWidth  - r.width  - 8) + 'px';
+    ctxMenu.style.top  = Math.min(y, window.innerHeight - r.height - 8) + 'px';
+  }
 }
 function hideCtx() { ctxMenu.classList.remove('open'); }
+
+/* Win+X：右键开始按钮的快捷菜单 */
+function openWinXMenu() {
+  showCtx(8, 0, [
+    { icon: 'layers',  label: '已安装的应用', action: openSettings },
+    { icon: 'file',    label: '终端', action: () => showToast('终端：演示环境未提供命令行') },
+    { icon: 'settings', label: '设置', action: openSettings },
+    { icon: 'folder',  label: '文件资源管理器', action: () => openSlot(SITES[0], 0) },
+    { icon: 'search',  label: '搜索', action: () => { closeStart(); openStart(); } },
+    '-',
+    { icon: 'power',   label: '关机或注销', action: shutdownPC },
+    { icon: 'monitor', label: '桌面', action: showDesktopAll },
+  ], 'bottom-left');
+}
+document.getElementById('startBtn').addEventListener('contextmenu', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  openWinXMenu();
+});
+
+/* 显示桌面（任务栏最右侧细条） */
+function showDesktopAll() {
+  wins.forEach(w => { if (!w.minimized) minimizeWin(w.id); });
+}
+document.getElementById('showDesktop').addEventListener('click', showDesktopAll);
 
 document.getElementById('desktop').addEventListener('contextmenu', e => {
   if (e.target.closest('.window') || e.target.closest('#taskbar')) return;
@@ -4485,6 +4746,267 @@ document.getElementById('powerOnBtn').addEventListener('click', () => {
   setBootState(false);
   location.reload();
 });
+
+/* ================= 设置（Win11 风格） ================= */
+const SETTINGS_SITE = { type: 'settings', name: '设置', icon: 'settings', color: '#0078d4' };
+const ST_PERSON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.7545 14.0002C18.9966 14.0002 20.0034 15.007 20.0034 16.2491V16.8245C20.0034 17.7188 19.6838 18.5836 19.1023 19.263C17.5329 21.0965 15.1457 22.0013 12.0004 22.0013C8.8545 22.0013 6.46849 21.0962 4.90219 19.2619C4.32242 18.583 4.00391 17.7195 4.00391 16.8267V16.2491C4.00391 15.007 5.01076 14.0002 6.25278 14.0002H17.7545ZM17.7545 15.5002H6.25278C5.83919 15.5002 5.50391 15.8355 5.50391 16.2491V16.8267C5.50391 17.3624 5.69502 17.8805 6.04287 18.2878C7.29618 19.7555 9.26206 20.5013 12.0004 20.5013C14.7387 20.5013 16.7063 19.7555 17.9627 18.2876C18.3117 17.8799 18.5034 17.361 18.5034 16.8245V16.2491C18.5034 15.8355 18.1681 15.5002 17.7545 15.5002ZM12.0004 2.00488C14.7618 2.00488 17.0004 4.24346 17.0004 7.00488C17.0004 9.76631 14.7618 12.0049 12.0004 12.0049C9.23894 12.0049 7.00036 9.76631 7.00036 7.00488C7.00036 4.24346 9.23894 2.00488 12.0004 2.00488ZM12.0004 3.50488C10.0674 3.50488 8.50036 5.07189 8.50036 7.00488C8.50036 8.93788 10.0674 10.5049 12.0004 10.5049C13.9334 10.5049 15.5004 8.93788 15.5004 7.00488C15.5004 5.07189 13.9334 3.50488 12.0004 3.50488Z"/></svg>';
+
+const ST_TITLES = {
+  system: '系统',
+  bluetooth: '蓝牙和其他设备',
+  network: '网络和 Internet',
+  personalization: '个性化',
+  apps: '应用',
+  accounts: '账户',
+  time: '时间和语言',
+  gaming: '游戏',
+  accessibility: '辅助功能',
+  privacy: '隐私和安全性',
+  update: 'Windows 更新',
+};
+
+const stRow = (icon, title, sub, right = '<span class="st-chev">›</span>') => `
+  <div class="st-row">
+    ${icon ? `<div class="st-row-icon">${svgIcon(icon, 17, 1.8)}</div>` : ''}
+    <div class="st-row-main">
+      <div class="st-row-title">${title}</div>
+      ${sub ? `<div class="st-row-sub">${sub}</div>` : ''}
+    </div>
+    ${right || ''}
+  </div>`;
+
+const stGeneric = (title) => `
+  <div class="st-card">
+    <div class="st-row">
+      <div class="st-row-icon">${svgIcon('info', 17, 1.8)}</div>
+      <div class="st-row-main">
+        <div class="st-row-title">${title}</div>
+        <div class="st-row-sub">该页面为界面演示，暂未实现具体功能。</div>
+      </div>
+    </div>
+  </div>`;
+
+const ST_PAGES = {
+  system: () => `
+    <div class="st-card">
+      ${stRow('monitor', '显示', '监视器、亮度、夜间模式、显示配置文件')}
+      ${stRow('note', '声音', '音量、输出、输入、声音设备')}
+      ${stRow('info', '通知', '来自应用和系统的提醒')}
+      ${stRow('power', '电源和电池', '睡眠、电池使用情况、快速启动')}
+      ${stRow('layers', '多任务', '贴靠窗口、桌面、任务切换')}
+    </div>
+    <div class="st-section">存储</div>
+    <div class="st-card">
+      <div class="st-storage">
+        <div class="st-storage-item">
+          <div class="st-storage-top"><span>本地磁盘 (C:) · 120 GB</span><span>52 GB 可用</span></div>
+          <div class="st-storage-bar"><div class="st-storage-fill" style="width:57%"></div></div>
+        </div>
+        <div class="st-storage-item">
+          <div class="st-storage-top"><span>数据 (D:) · 500 GB</span><span>269 GB 可用</span></div>
+          <div class="st-storage-bar"><div class="st-storage-fill" style="width:46%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="st-section">设备规格</div>
+    <div class="st-card">
+      ${stRow('monitor', '设备名称', 'WIN11-DESKTOP', '')}
+      ${stRow('file', '处理器', 'Intel(R) Xeon(R) CPU E3-1245 v3 @ 3.40GHz', '')}
+      ${stRow('layers', '机带 RAM', '16.0 GB (DDR3-1600)', '')}
+      ${stRow('hdd', '存储', '120 GB SSD + 500 GB HDD', '')}
+      ${stRow('globe', '系统类型', '64 位操作系统, 基于 x64 的处理器', '')}
+    </div>
+    <div class="st-card">
+      ${stRow('monitor', 'Windows 规格', 'Windows 11 专业版 · 版本 24H2 · 安装于 2026/10/25', '')}
+    </div>`,
+
+  personalization: () => {
+    const dark = document.documentElement.classList.contains('dark');
+    return `
+      <div class="st-card">
+        <div class="st-row" style="border:0">
+          <div class="st-row-main">
+            <div class="st-row-title">主题</div>
+            <div class="st-row-sub">选择浅色或深色外观</div>
+          </div>
+        </div>
+        <div class="st-theme-cards">
+          <div class="st-theme-card${dark ? '' : ' active'}" data-theme="light">
+            <div class="st-theme-thumb light"></div>
+            <div class="st-theme-name">浅色</div>
+          </div>
+          <div class="st-theme-card${dark ? ' active' : ''}" data-theme="dark">
+            <div class="st-theme-thumb dark"></div>
+            <div class="st-theme-name">深色</div>
+          </div>
+        </div>
+      </div>
+      <div class="st-card">
+        ${stRow('gallery', '背景', 'Bloom · 自绘壁纸（无外部素材）')}
+        ${stRow('sun', '颜色', '强调色：蓝色')}
+      </div>`;
+  },
+
+  network: () => `
+    <div class="st-card">
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('globe', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">WLAN</div>
+          <div class="st-row-sub">Home-5G · 已连接，安全</div>
+        </div>
+        <button class="st-toggle on" data-toggle="wlan" aria-label="WLAN"></button>
+      </div>
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('net', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">飞行模式</div>
+          <div class="st-row-sub">关闭无线通信</div>
+        </div>
+        <button class="st-toggle" data-toggle="airplane" aria-label="飞行模式"></button>
+      </div>
+    </div>
+    <div class="st-section">网络属性</div>
+    <div class="st-card">
+      ${stRow('globe', '名称', 'Home-5G', '')}
+      ${stRow('net', 'IPv4 地址', '192.168.1.23', '')}
+      ${stRow('net', 'DNS 服务器', '192.168.1.1', '')}
+      ${stRow('layers', '网络配置文件', '专用网络', '')}
+    </div>`,
+
+  accounts: () => `
+    <div class="st-device">
+      <div class="st-device-icon">${ST_PERSON.replace('<svg ', '<svg width="28" height="28" ')}</div>
+      <div><b>Admin</b><span>本地账户 · 管理员</span></div>
+    </div>
+    <div class="st-card">
+      ${stRow('user', '账户信息', '本地账户，未关联 Microsoft 账户', '')}
+      ${stRow('lock', '登录选项', 'PIN 已关闭，点击登录按钮直接进入', '')}
+    </div>`,
+
+  update: () => `
+    <div class="st-card">
+      <div class="st-update-hero">
+        <div class="st-update-check">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 6.5"/></svg>
+        </div>
+        <div>
+          <div class="st-row-title" style="font-size:14px;font-weight:600">你已是最新版本</div>
+          <div class="st-row-sub">上次检查：今天 20:45</div>
+        </div>
+      </div>
+      <div class="st-row">
+        <div class="st-row-main">
+          <div class="st-row-title">检查更新</div>
+          <div class="st-row-sub">获取最新的安全与功能更新</div>
+        </div>
+        <button class="st-btn primary" data-update>检查更新</button>
+      </div>
+    </div>`,
+
+  bluetooth: () => stGeneric('蓝牙和其他设备'),
+  apps: () => stGeneric('应用'),
+  time: () => stGeneric('时间和语言'),
+  gaming: () => stGeneric('游戏'),
+  accessibility: () => stGeneric('辅助功能'),
+  privacy: () => stGeneric('隐私和安全性'),
+};
+
+function openSettings() {
+  for (const w of wins.values()) {
+    if (w.site && w.site.type === 'settings') { focusWin(w.id); return; }
+  }
+  createSettingsWin();
+}
+
+function createSettingsWin(site) {
+  const w = buildWindow({
+    site: site || SETTINGS_SITE,
+    title: '设置',
+    color: '#0078d4',
+    bodyHTML: `<div class="settings">
+      <aside class="st-nav">
+        <div class="st-user">
+          <div class="st-avatar">${ST_PERSON}</div>
+          <div><b>Admin</b><span>本地账户</span></div>
+        </div>
+        <div class="st-search">${svgIcon('search', 13, 2)}<span>查找设置</span></div>
+        <nav id="stNav">
+          ${Object.keys(ST_TITLES).map((id, i) => {
+            const icons = {
+              system: 'monitor', bluetooth: 'layers', network: 'net',
+              personalization: 'gallery', apps: 'file', accounts: 'user',
+              time: 'note', gaming: 'film', accessibility: 'user',
+              privacy: 'lock', update: 'refresh',
+            };
+            const item = `<div class="st-nav-item${i === 0 ? ' active' : ''}" data-page="${id}">${svgIcon(icons[id] || 'settings', 15, 1.9)}<span>${ST_TITLES[id]}</span></div>`;
+            return id === 'update' ? `<div class="st-nav-sep"></div>${item}` : item;
+          }).join('')}
+        </nav>
+      </aside>
+      <section class="st-main">
+        <header class="st-head"><h1 id="stTitle">系统</h1></header>
+        <div class="st-body" id="stBody"></div>
+      </section>
+    </div>`,
+  });
+
+  const W = Math.min(1040, Math.max(560, window.innerWidth - 140));
+  const H = Math.min(700, Math.max(360, window.innerHeight - 130));
+  w.pos = {
+    x: Math.max(12, Math.round((window.innerWidth - W) / 2)),
+    y: Math.max(10, Math.round((window.innerHeight - 48 - H) / 2)),
+    w: W,
+    h: H,
+  };
+  applyWinLayout(w);
+
+  const nav = w.el.querySelector('#stNav');
+  const body = w.el.querySelector('#stBody');
+  const title = w.el.querySelector('#stTitle');
+
+  function goto(id) {
+    if (!ST_PAGES[id]) return;
+    title.textContent = ST_TITLES[id];
+    body.innerHTML = ST_PAGES[id]();
+    nav.querySelectorAll('.st-nav-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.page === id);
+    });
+    body.scrollTop = 0;
+  }
+
+  nav.addEventListener('click', e => {
+    const item = e.target.closest('.st-nav-item');
+    if (item) goto(item.dataset.page);
+  });
+
+  body.addEventListener('click', e => {
+    const themeCard = e.target.closest('.st-theme-card');
+    if (themeCard) {
+      applyTheme(themeCard.dataset.theme === 'dark');
+      body.querySelectorAll('.st-theme-card').forEach(c => {
+        c.classList.toggle('active', c === themeCard);
+      });
+      return;
+    }
+    const toggle = e.target.closest('.st-toggle');
+    if (toggle) { toggle.classList.toggle('on'); return; }
+    const upd = e.target.closest('[data-update]');
+    if (upd) {
+      upd.disabled = true;
+      const old = upd.textContent;
+      upd.textContent = '正在检查…';
+      setTimeout(() => {
+        upd.disabled = false;
+        upd.textContent = old;
+        showToast('Windows 已是最新版本');
+      }, 1200);
+    }
+  });
+
+  goto('system');
+  return w;
+}
 
 /* ================= 锁屏与登录 ================= */
 const lockScreenEl = document.getElementById('lockScreen');
