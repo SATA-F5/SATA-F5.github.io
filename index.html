@@ -5170,7 +5170,7 @@ window.addEventListener('resize', () => {
 /* ================= 开机动画与电源 ================= */
 const BOOT_STATE_KEY = 'sata_win_boot_state';
 /* 各阶段时长（毫秒）：自检 POST → Win11 启动动画 → 淡出 */
-const BOOT_TIMING = { post: 2000, splash: 2500, fade: 320 };
+const BOOT_TIMING = { post: 4000, splash: 2500, fade: 320 };
 const bootScreenEl = document.getElementById('bootScreen');
 
 function setBootState(booted) {
