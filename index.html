@@ -16,85 +16,17 @@
                  "Microsoft YaHei", "PingFang SC", sans-serif;
     -webkit-font-smoothing: antialiased;
     user-select: none;
-  }
-
-  /* ---------- 启动页 ---------- */
-  .launch-view {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 24px;
-  }
-  .logo { width: 88px; height: 88px; color: #fff; }
-  .logo rect { fill: currentColor; }
-  h1 { margin: 26px 0 8px; font-size: 26px; font-weight: 600; letter-spacing: .5px; }
-  .sub { margin: 0; font-size: 13px; color: #9a9a9a; }
-  .launch {
-    margin-top: 34px;
-    min-width: 212px;
-    height: 40px;
-    padding: 0 26px;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, .35);
-    background: rgba(255, 255, 255, .08);
-    color: #fff;
-    font-family: inherit;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background .15s, border-color .15s, transform .1s;
-  }
-  .launch:hover { background: rgba(255, 255, 255, .16); border-color: rgba(255, 255, 255, .6); }
-  .launch:active { transform: scale(.98); }
-  .hint {
-    margin-top: 18px;
-    max-width: 460px;
-    font-size: 12px;
-    color: #7a7a7a;
-    line-height: 1.8;
-  }
-  .hint a { color: #6cb6ff; text-decoration: none; }
-  .hint a:hover { text-decoration: underline; }
-  .blocked {
-    display: none;
-    margin-top: 14px;
-    max-width: 460px;
-    font-size: 12px;
-    line-height: 1.7;
-    color: #ff9b8a;
-  }
-  .blocked.show { display: block; }
-  .bar {
-    position: fixed;
-    left: 0; right: 0; bottom: 0;
-    height: 2px;
-    background: rgba(255, 255, 255, .07);
     overflow: hidden;
   }
-  .bar i {
-    display: block;
-    width: 28%;
-    height: 100%;
-    background: #4cc2ff;
-    animation: slide 1.8s ease-in-out infinite;
-  }
-  @keyframes slide {
-    0% { transform: translateX(-110%); }
-    100% { transform: translateX(380%); }
-  }
 
-  /* ---------- 开机自检（index 内） ---------- */
+  /* ---------- 开机自检 ---------- */
   #bootView {
     position: fixed;
     inset: 0;
     background: #000;
-    display: none;
     overflow: hidden;
     font-family: ui-monospace, Consolas, "Courier New", monospace;
   }
-  #bootView.on { display: block; }
 
   .post {
     position: absolute;
@@ -141,7 +73,8 @@
     transition: opacity .3s;
   }
   .splash.on { opacity: 1; }
-  .splash .logo { width: 80px; height: 80px; }
+  .splash .logo { width: 80px; height: 80px; color: #fff; }
+  .splash .logo rect { fill: currentColor; }
   .spin {
     width: 34px;
     height: 34px;
@@ -151,53 +84,29 @@
     animation: spin .9s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
   .boot-status {
     position: fixed;
     left: 0; right: 0;
-    bottom: 9vh;
+    bottom: 8vh;
     text-align: center;
     font-family: "Segoe UI", system-ui, sans-serif;
     font-size: 12.5px;
     color: #8a8a8a;
   }
-  .enter-btn {
-    display: none;
-    margin: 8px auto 0;
-    height: 34px;
-    padding: 0 22px;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, .35);
-    background: rgba(255, 255, 255, .08);
-    color: #fff;
-    font-family: "Segoe UI", system-ui, sans-serif;
-    font-size: 13px;
-    cursor: pointer;
+  .popup-link {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 11.5px;
+    color: #6cb6ff;
+    text-decoration: none;
+    opacity: .85;
   }
-  .enter-btn.on { display: block; }
-  .enter-btn:hover { background: rgba(255, 255, 255, .16); }
+  .popup-link:hover { text-decoration: underline; opacity: 1; }
 </style>
 </head>
 <body>
 
-<!-- 启动页 -->
-<div class="launch-view" id="launchView">
-  <svg class="logo" viewBox="0 0 24 24" aria-hidden="true">
-    <rect x="1" y="1" width="10" height="10" rx=".7"/>
-    <rect x="13" y="1" width="10" height="10" rx=".7"/>
-    <rect x="1" y="13" width="10" height="10" rx=".7"/>
-    <rect x="13" y="13" width="10" height="10" rx=".7"/>
-  </svg>
-  <h1>守禄的 Win11</h1>
-  <p class="sub">桌面模拟器 · 启动器</p>
-  <button class="launch" id="launchBtn">启动桌面</button>
-  <p class="hint">
-    点击后先播自检动画，同时后台加载桌面，加载好就直接进入锁屏。<br>
-    没有反应？<a href="./desktop.html?boot=0">直接打开桌面</a>（此时「关机」只能黑屏）。
-  </p>
-  <p class="blocked" id="blocked">浏览器拦截了新标签页，动画结束后会显示「进入桌面」按钮，点一下即可。</p>
-</div>
-
-<!-- 自检动画 -->
 <div id="bootView">
   <div class="post" id="postView">
     <div class="brand">
@@ -228,101 +137,61 @@
   </div>
 
   <div class="boot-status">
-    <span id="bootStatus">正在启动…</span>
-    <button class="enter-btn" id="enterBtn">进入桌面</button>
+    <div id="bootStatus">正在启动…</div>
+    <a class="popup-link" id="popupLink" href="./desktop.html?boot=0">以独立窗口打开（关机可关闭）</a>
   </div>
 </div>
 
 <script>
 (function () {
-  var launchView = document.getElementById('launchView');
-  var bootView = document.getElementById('bootView');
   var postView = document.getElementById('postView');
   var splashView = document.getElementById('splashView');
   var bootStatus = document.getElementById('bootStatus');
-  var enterBtn = document.getElementById('enterBtn');
-  var blocked = document.getElementById('blocked');
-  var busy = false;
-  var popup = null;
+  var popupLink = document.getElementById('popupLink');
 
-  function openDesktop() {
+  var DESKTOP = './desktop.html?boot=0';
+  var cancelled = false;
+  var started = Date.now();
+
+  // 自检 → Win11 logo
+  setTimeout(function () {
+    postView.classList.add('off');
+    splashView.classList.add('on');
+  }, 1600);
+
+  // 动画期间预加载桌面
+  var prefetch = fetch(DESKTOP).catch(function () {});
+
+  function goDesktop() {
+    if (cancelled) return;
+    location.href = DESKTOP;
+  }
+
+  var minDelay = new Promise(function (res) { setTimeout(res, 2600); });
+  var cap = new Promise(function (res) { setTimeout(res, 4600); });
+
+  // 动画至少播 2.6 秒；预加载完成就跳，最多等 4.6 秒
+  Promise.race([Promise.all([minDelay, prefetch]), cap]).then(goDesktop);
+
+  // 可选：想保留「关机即关闭页面」的独立标签页模式
+  popupLink.addEventListener('click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
     var win = null;
-    try { win = window.open('./desktop.html?boot=0', '_blank'); } catch (e) { win = null; }
+    try { win = window.open(DESKTOP, '_blank'); } catch (err) { win = null; }
     if (win) {
-      popup = win;
-      blocked.classList.remove('show');
-      enterBtn.classList.remove('on');
-      bootStatus.textContent = '桌面已打开 · 可切换到新标签页';
-      try { win.focus(); } catch (e) {}
-      var timer = setInterval(function () {
-        if (!popup || popup.closed) {
-          clearInterval(timer);
-          resetLauncher();
-        }
-      }, 900);
-      // 新标签页已经接管前台，启动器回到初始样子，按钮变成「切换到桌面」
-      setTimeout(function () {
-        if (popup && !popup.closed) {
-          launchView.style.display = '';
-          bootView.classList.remove('on');
-          var b = document.getElementById('launchBtn');
-          b.disabled = false;
-          b.textContent = '切换到桌面';
-        }
-      }, 700);
-      return true;
+      cancelled = true;
+      bootStatus.textContent = '桌面已在新标签页打开';
+      popupLink.textContent = '切换到桌面';
+      popupLink.href = '#';
+      popupLink.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        try { win.focus(); } catch (err) {}
+      });
+      try { win.focus(); } catch (err) {}
+    } else {
+      bootStatus.textContent = '浏览器拦截了新标签页，请直接使用当前页进入';
     }
-    // 被拦截：给出按钮，用户点一下即可（这次是手势，不会被拦）
-    bootStatus.textContent = '桌面已就绪';
-    enterBtn.classList.add('on');
-    blocked.classList.add('show');
-    return false;
-  }
-
-  function resetLauncher() {
-    busy = false;
-    popup = null;
-    enterBtn.classList.remove('on');
-    launchView.style.display = '';
-    bootView.classList.remove('on');
-    postView.classList.remove('off');
-    splashView.classList.remove('on');
-    bootStatus.textContent = '正在启动…';
-    blocked.classList.remove('show');
-    var b = document.getElementById('launchBtn');
-    b.disabled = false;
-    b.textContent = '启动桌面';
-  }
-
-  function launch() {
-    if (busy) {
-      if (popup && !popup.closed) { try { popup.focus(); } catch (e) {} }
-      return;
-    }
-    busy = true;
-    launchView.style.display = 'none';
-    bootView.classList.add('on');
-
-    // 自检 → logo
-    setTimeout(function () {
-      postView.classList.add('off');
-      splashView.classList.add('on');
-    }, 1600);
-
-    // 动画期间预加载桌面
-    var prefetch = fetch('./desktop.html?boot=0').catch(function () {});
-    var minDelay = new Promise(function (res) { setTimeout(res, 2600); });
-    var cap = new Promise(function (res) { setTimeout(res, 4500); });
-
-    Promise.race([Promise.all([minDelay, prefetch]), cap]).then(function () {
-      openDesktop();
-    });
-  }
-
-  document.getElementById('launchBtn').addEventListener('click', launch);
-  enterBtn.addEventListener('click', function () { openDesktop(); });
-  document.addEventListener('keydown', function (e) {
-    if (!busy && e.key === 'Enter') launch();
   });
 })();
 </script>
