@@ -949,7 +949,7 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
 /* 任务栏应用按钮（Win11 风格：40×40 命中区 + 底部运行指示条） */
 #taskbarApps {
   position: absolute;
-  left: 96px;
+  left: 56px;
   top: 0; bottom: 0;
   display: flex;
   align-items: center;
@@ -1928,25 +1928,6 @@ html.dark .st-update-check { background: rgba(76, 194, 255, .14); color: #4cc2ff
 .tv-preview svg { width: 46px; height: 46px; }
 .tv-preview img { width: 46px; height: 46px; object-fit: contain; }
 
-#taskViewBtn {
-  position: absolute;
-  left: 52px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  transition: background .12s;
-}
-#taskViewBtn:hover { background: var(--tb-hover); }
-#taskViewBtn:active { background: var(--tb-active); }
-
 /* 日历里的通知区 */
 .cal-notifs { margin-bottom: 16px; }
 .cal-notifs-head {
@@ -2716,14 +2697,6 @@ body.mobile .window.resizing { box-shadow: none !important; }
         <rect x="13" y="2" width="9" height="9" rx="1"/>
         <rect x="2" y="13" width="9" height="9" rx="1"/>
         <rect x="13" y="13" width="9" height="9" rx="1"/>
-      </svg>
-    </button>
-
-    <button id="taskViewBtn" title="任务视图" aria-label="任务视图">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="6.5" width="12.5" height="11" rx="1.8"/>
-        <path d="M7.5 4.5h11a2 2 0 0 1 2 2v10"/>
       </svg>
     </button>
 
@@ -5236,7 +5209,6 @@ document.getElementById('showDesktop').addEventListener('click', showDesktopAll)
 /* ================= 任务视图 ================= */
 const taskViewEl = document.getElementById('taskView');
 const tvGridEl = document.getElementById('tvGrid');
-const taskViewBtnEl = document.getElementById('taskViewBtn');
 
 function renderTaskView() {
   if (!tvGridEl) return;
@@ -5270,7 +5242,6 @@ function renderTaskView() {
 function openTaskView() {
   renderTaskView();
   taskViewEl.classList.add('open');
-  taskViewBtnEl.classList.add('active');
   closeStart();
   closeQuickPanel();
   closeCalendar();
@@ -5278,13 +5249,51 @@ function openTaskView() {
 
 function closeTaskView() {
   taskViewEl.classList.remove('open');
-  taskViewBtnEl.classList.remove('active');
 }
 
-taskViewBtnEl.addEventListener('click', e => {
-  e.stopPropagation();
-  taskViewEl.classList.contains('open') ? closeTaskView() : openTaskView();
-});
+/* 从桌面（或左边缘）向右滑打开任务视图 */
+(function initTaskViewGesture() {
+  let tracking = false;
+  let startX = 0;
+  let startY = 0;
+
+  function blocked(target) {
+    return target.closest('.window')
+      || target.closest('#taskbar')
+      || target.closest('#startMenu')
+      || target.closest('#quickPanel')
+      || target.closest('#calendarPanel')
+      || target.closest('#ctxMenu')
+      || target.closest('#taskView')
+      || target.closest('.snap-popover')
+      || target.closest('#lockScreen');
+  }
+
+  document.addEventListener('pointerdown', e => {
+    if (document.documentElement.classList.contains('locked')) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (blocked(e.target)) return;
+    tracking = true;
+    startX = e.clientX;
+    startY = e.clientY;
+  });
+
+  document.addEventListener('pointermove', e => {
+    if (!tracking) return;
+    const dx = e.clientX - startX;
+    const dy = Math.abs(e.clientY - startY);
+    // 向右滑 80px 以上、且明显是横向手势
+    if (dx > 80 && dx > dy * 1.6) {
+      tracking = false;
+      openTaskView();
+    }
+  });
+
+  function stop() { tracking = false; }
+  document.addEventListener('pointerup', stop);
+  document.addEventListener('pointercancel', stop);
+})();
+
 taskViewEl.addEventListener('click', e => {
   if (e.target === taskViewEl) closeTaskView();
 });
