@@ -1941,6 +1941,53 @@ html.dark .st-update-check { background: rgba(76, 194, 255, .14); color: #4cc2ff
 }
 #clock { position: relative; }
 
+/* ---- 文件资源管理器：新建/重命名对话框 ---- */
+.exp-dialog {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, .32);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+.exp-dialog-box {
+  width: 320px;
+  max-width: calc(100% - 32px);
+  padding: 18px;
+  border-radius: 8px;
+  background: var(--win-bg);
+  border: 1px solid var(--win-border);
+  box-shadow: var(--win-shadow);
+  color: var(--win-text);
+}
+.exp-dialog-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+.exp-dialog-input {
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 4px;
+  border: 1px solid var(--field-border);
+  background: var(--field-bg);
+  color: inherit;
+  font-family: inherit;
+  font-size: 12.5px;
+  outline: none;
+}
+.exp-dialog-input:focus { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.exp-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+/* ---- 桌面图标大小 ---- */
+#icon-layer.icons-lg { grid-auto-columns: 112px; grid-template-rows: repeat(auto-fill, 118px); }
+#icon-layer.icons-lg .dicon { width: 112px; height: 118px; }
+#icon-layer.icons-lg .dicon-glyph { width: 56px; height: 56px; }
+#icon-layer.icons-lg .dicon-label { max-width: 104px; }
+#icon-layer.icons-sm { grid-auto-columns: 78px; grid-template-rows: repeat(auto-fill, 82px); }
+#icon-layer.icons-sm .dicon { width: 78px; height: 82px; }
+#icon-layer.icons-sm .dicon-glyph { width: 34px; height: 34px; }
+#icon-layer.icons-sm .dicon-label { max-width: 72px; font-size: 10.5px; }
+
 /* =========================================================
    开机自检 / 启动动画
    ========================================================= */
@@ -4266,6 +4313,83 @@ function createThisPCWin(site) {
     w.el.appendChild(viewer);
   }
 
+  /* ---- 新建 / 重命名 / 删除 ---- */
+  function folderNode() {
+    const n = nodeAt(state.path);
+    return n && Array.isArray(n.children) ? n : null;
+  }
+
+  function uniqueChildName(n, base) {
+    const names = new Set((n.children || []).map(c => c.name));
+    if (!names.has(base)) return base;
+    let i = 2;
+    while (names.has(`${base} (${i})`)) i++;
+    return `${base} (${i})`;
+  }
+
+  function askName(title, value, onOk) {
+    const dlg = document.createElement('div');
+    dlg.className = 'exp-dialog';
+    dlg.innerHTML = `
+      <div class="exp-dialog-box">
+        <div class="exp-dialog-title">${title}</div>
+        <input class="exp-dialog-input" value="${value.replace(/"/g, '&quot;')}">
+        <div class="exp-dialog-actions">
+          <button class="st-btn" data-act="cancel">取消</button>
+          <button class="st-btn primary" data-act="ok">确定</button>
+        </div>
+      </div>`;
+    w.el.appendChild(dlg);
+    const input = dlg.querySelector('.exp-dialog-input');
+    setTimeout(() => { input.focus(); input.select(); }, 30);
+    const close = () => dlg.remove();
+    dlg.addEventListener('pointerdown', e => { if (e.target === dlg) close(); });
+    dlg.querySelector('[data-act="cancel"]').addEventListener('click', close);
+    dlg.querySelector('[data-act="ok"]').addEventListener('click', () => {
+      const v = input.value.trim();
+      if (!v) { input.focus(); return; }
+      close();
+      onOk(v);
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); dlg.querySelector('[data-act="ok"]').click(); }
+      if (e.key === 'Escape') { e.preventDefault(); close(); }
+    });
+  }
+
+  function createFolder() {
+    const n = folderNode();
+    if (!n) { showToast('此位置不能新建文件夹'); return; }
+    askName('新建文件夹', uniqueChildName(n, '新建文件夹'), name => {
+      if (n.children.some(c => c.name === name)) { showToast('同名项目已存在'); return; }
+      n.children.push({ name, type: 'folder', children: [] });
+      render();
+      showToast(`已创建文件夹「${name}」`);
+    });
+  }
+
+  function renameChild(k) {
+    const n = folderNode();
+    if (!n) return;
+    askName('重命名', k.name, name => {
+      if (name === k.name) return;
+      if (n.children.some(c => c.name === name && c !== k)) { showToast('同名项目已存在'); return; }
+      k.name = name;
+      render();
+      showToast('已重命名');
+    });
+  }
+
+  function deleteChild(k) {
+    const n = folderNode();
+    if (!n) return;
+    const i = n.children.indexOf(k);
+    if (i < 0) return;
+    n.children.splice(i, 1);
+    render();
+    showToast(`已删除「${k.name}」`);
+  }
+
   function render() {
     const node = nodeAt(state.path);
     if (!node) { setPath([], false); return; }
@@ -4276,6 +4400,7 @@ function createThisPCWin(site) {
       <button class="exp-nav ${state.back.length ? '' : 'dim'}" title="后退">${svgIcon('back', 14, 2)}</button>
       <button class="exp-nav ${state.fwd.length ? '' : 'dim'}" title="前进">${svgIcon('forward', 14, 2)}</button>
       <button class="exp-nav" title="刷新">${svgIcon('reload', 14, 2.1)}</button>
+      <button class="exp-nav" title="新建文件夹">${svgIcon('plus', 14, 2.2)}</button>
       <div class="exp-address">
         <span style="display:grid;place-items:center;color:var(--accent)">${svgIcon('monitor', 13, 2)}</span>
         <span class="exp-pathbar">${crumbs.map((c, i) => {
@@ -4374,9 +4499,48 @@ function createThisPCWin(site) {
       });
     });
 
+    // 右键：文件 / 文件夹
+    main.querySelectorAll('.file, .folder[data-node]').forEach(el => {
+      el.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        const name = el.dataset.file || el.dataset.node;
+        const k = (node.children || []).find(c => c.name === name);
+        if (!k) return;
+        const isFile = !!el.dataset.file;
+        showCtx(e.clientX, e.clientY, [
+          { icon: isFile ? 'file' : 'folder', label: '打开', action: () => {
+            if (isFile) openFile(k, state.path);
+            else setPath([...state.path, k.name]);
+          } },
+          { icon: 'doc', label: '重命名', action: () => renameChild(k) },
+          { icon: 'close', label: '删除', action: () => deleteChild(k) },
+        ]);
+      });
+    });
+
+    // 右键：空白区域
+    if (!main.dataset.ctxBound) {
+      main.dataset.ctxBound = '1';
+      main.addEventListener('contextmenu', e => {
+        if (e.target.closest('.file') || e.target.closest('.folder') || e.target.closest('.drive')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        showCtx(e.clientX, e.clientY, [
+          { icon: 'plus', label: '新建文件夹', action: createFolder },
+          { icon: 'refresh', label: '刷新', action: render },
+        ]);
+      });
+    }
+
     explorer.querySelector('.exp-toolbar').querySelectorAll('.exp-nav').forEach(btn => {
       const t = btn.title;
-      btn.addEventListener('click', () => { if (t === '后退') goBack(); else if (t === '前进') goForward(); else render(); });
+      btn.addEventListener('click', () => {
+        if (t === '后退') goBack();
+        else if (t === '前进') goForward();
+        else if (t === '新建文件夹') createFolder();
+        else render();
+      });
     });
     explorer.querySelectorAll('.exp-crumb:not(.sep)').forEach((c, i) => {
       c.addEventListener('click', () => {
@@ -4554,6 +4718,41 @@ function startResize(e, w) {
 }
 
 /* ================= 桌面图标 ================= */
+/* 桌面图标大小 / 排序 */
+let desktopIconSize = 'md';
+function applyDesktopIconSize() {
+  const layer = document.getElementById('icon-layer');
+  if (!layer) return;
+  layer.classList.toggle('icons-lg', desktopIconSize === 'lg');
+  layer.classList.toggle('icons-sm', desktopIconSize === 'sm');
+}
+function cycleDesktopIconSize() {
+  desktopIconSize = desktopIconSize === 'md' ? 'lg' : desktopIconSize === 'lg' ? 'sm' : 'md';
+  applyDesktopIconSize();
+  showToast(`图标大小：${desktopIconSize === 'lg' ? '大' : desktopIconSize === 'sm' ? '小' : '中'}`);
+}
+function siteDisplayName(s) {
+  return s.type === 'edge' ? 'Microsoft Edge' : s.type === 'thispc' ? '此电脑' : (s.name || '');
+}
+function sortSites(mode) {
+  const nonEmpty = sites.filter(s => !isEmptySlot(s));
+  nonEmpty.sort((a, b) => {
+    if (mode === 'type') {
+      const rank = s => s.type === 'thispc' ? 0 : s.type === 'edge' ? 1 : 2;
+      const d = rank(a) - rank(b);
+      if (d) return d;
+    }
+    return siteDisplayName(a).localeCompare(siteDisplayName(b), 'zh-CN');
+  });
+  const next = nonEmpty.concat(sites.filter(s => isEmptySlot(s)));
+  sites.forEach((_, i) => { sites[i] = next[i]; });
+  renderIcons();
+  renderStart();
+  renderRecommend();
+  scheduleTaskbar();
+  showToast(mode === 'type' ? '已按类型排序' : '已按名称排序');
+}
+
 function renderIcons() {
   iconLayer.replaceChildren();
   sites.forEach((s, i) => {
@@ -5032,9 +5231,13 @@ document.getElementById('desktop').addEventListener('contextmenu', e => {
   const used = sites.filter(s => !isEmptySlot(s)).length;
   showCtx(e.clientX, e.clientY, [
     { icon: 'refresh', label: '刷新',       action: renderIcons },
-    { icon: 'layers',  label: '整理图标',   action: renderIcons },
-    { icon: 'refresh', label: '重新读取名称', action: refreshTitles },
+    { icon: 'layers',  label: '切换图标大小', action: cycleDesktopIconSize },
     '-',
+    { icon: 'doc',     label: '按名称排序', action: () => sortSites('name') },
+    { icon: 'layers',  label: '按类型排序', action: () => sortSites('type') },
+    '-',
+    { icon: 'monitor', label: '显示设置',   action: () => openSettings('system') },
+    { icon: 'sun',     label: '个性化',     action: () => openSettings('personalization') },
     { icon: isDark ? 'sun' : 'moon', label: isDark ? '切换到浅色模式' : '切换到深色模式', action: toggleTheme },
     '-',
     { icon: 'info',    label: `已启用 ${used} / ${SLOT_COUNT} 个位置`, disabled: true },
@@ -5405,14 +5608,18 @@ const ST_PAGES = {
   privacy: () => stGeneric('隐私和安全性'),
 };
 
-function openSettings() {
+function openSettings(page = 'system') {
   for (const w of wins.values()) {
-    if (w.site && w.site.type === 'settings') { focusWin(w.id); return; }
+    if (w.site && w.site.type === 'settings') {
+      focusWin(w.id);
+      if (typeof w.settingsGoto === 'function') w.settingsGoto(page);
+      return;
+    }
   }
-  createSettingsWin();
+  createSettingsWin(undefined, page);
 }
 
-function createSettingsWin(site) {
+function createSettingsWin(site, initialPage = 'system') {
   const w = buildWindow({
     site: site || SETTINGS_SITE,
     title: '设置',
@@ -5497,7 +5704,8 @@ function createSettingsWin(site) {
     }
   });
 
-  goto('system');
+  w.settingsGoto = goto;
+  goto(initialPage);
   return w;
 }
 
