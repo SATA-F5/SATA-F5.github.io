@@ -60,9 +60,6 @@
   --etab-active-text: #1a1a1a;
   --etab-shadow: 0 1px 3px rgba(0, 0, 0, .1);
 
-  --ip-shadow: 8px 0 40px rgba(0, 0, 0, .16), 2px 0 10px rgba(0, 0, 0, .08);
-  --ip-card-bg: rgba(255, 255, 255, .72);
-  --ip-card-border: rgba(0, 0, 0, .06);
 
   --badge-bg: rgba(255, 255, 255, .95);
   --badge-border: rgba(0, 0, 0, .16);
@@ -127,9 +124,6 @@ html.dark {
   --etab-active-text: #ffffff;
   --etab-shadow: 0 1px 3px rgba(0, 0, 0, .35);
 
-  --ip-shadow: 8px 0 40px rgba(0, 0, 0, .55), 2px 0 10px rgba(0, 0, 0, .35);
-  --ip-card-bg: rgba(255, 255, 255, .04);
-  --ip-card-border: rgba(255, 255, 255, .07);
 
   --badge-bg: rgba(43, 43, 43, .95);
   --badge-border: rgba(255, 255, 255, .22);
@@ -1062,279 +1056,6 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
 #clock .d { font-size: 11px; opacity: .88; }
 
 /* =========================================================
-   信息栏
-   ========================================================= */
-#infoPanel {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 296px;
-  max-width: calc(100vw - 20px);
-  max-height: min(520px, calc(100vh - 80px));
-  z-index: 550;
-  display: flex;
-  flex-direction: column;
-  background: var(--flyout-bg);
-  color: var(--flyout-text);
-  border: 1px solid var(--flyout-border);
-  border-left: none;
-  border-radius: 0 10px 10px 0;
-  box-shadow: var(--ip-shadow);
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
-  transform: translate(-100%, -50%);
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    transform .4s cubic-bezier(.2, .9, .25, 1.05),
-    opacity .25s ease .05s,
-    background .35s, color .35s;
-}
-#infoPanel.open {
-  transform: translate(0, -50%);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-#infoTrigger {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 48px;
-  width: 8px;
-  z-index: 400;
-}
-body.info-open #infoTrigger { pointer-events: none; }
-
-.ip-header {
-  flex-shrink: 0;
-  height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 8px 0 14px;
-  border-bottom: 1px solid var(--flyout-border);
-}
-.ip-title {
-  font-size: 12.5px;
-  font-weight: 600;
-  letter-spacing: .2px;
-}
-.ip-actions { display: flex; gap: 2px; }
-.ip-act-btn {
-  width: 28px; height: 28px;
-  display: grid; place-items: center;
-  border: none;
-  background: transparent;
-  color: inherit;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background .12s;
-}
-.ip-act-btn:hover { background: var(--flyout-hover); }
-.ip-act-btn svg { display: block; }
-
-.ip-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.ip-body::-webkit-scrollbar { width: 5px; }
-.ip-body::-webkit-scrollbar-thumb {
-  background: rgba(127, 127, 127, .28);
-  border-radius: 3px;
-}
-
-.ip-card {
-  background: var(--ip-card-bg);
-  border: 1px solid var(--ip-card-border);
-  border-radius: 7px;
-  padding: 10px 11px;
-  transition: background .35s, border-color .35s;
-}
-.ip-card-title {
-  display: flex; align-items: center; justify-content: space-between;
-  font-size: 11.5px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--flyout-text);
-}
-.ip-card-title .ip-card-sub {
-  font-size: 10.5px;
-  font-weight: 400;
-  color: var(--flyout-sub);
-}
-
-.ip-weather {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 11px;
-  background: linear-gradient(135deg,
-              color-mix(in srgb, var(--accent) 20%, var(--ip-card-bg)),
-              var(--ip-card-bg));
-  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
-}
-.ip-weather-icon {
-  width: 38px; height: 38px;
-  flex-shrink: 0;
-  display: grid; place-items: center;
-  color: #fbbf24;
-}
-.ip-weather-icon svg { width: 30px; height: 30px; }
-.ip-weather-main { flex: 1; min-width: 0; }
-.ip-weather-temp {
-  font-size: 22px;
-  font-weight: 300;
-  line-height: 1;
-  letter-spacing: -.3px;
-  margin-bottom: 2px;
-}
-.ip-weather-loc {
-  font-size: 11px;
-  color: var(--flyout-sub);
-}
-.ip-weather-extra {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 10px;
-  color: var(--flyout-sub);
-  text-align: right;
-}
-
-.ip-stat {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 10.5px;
-  padding: 3px 0;
-}
-.ip-stat + .ip-stat { margin-top: 1px; }
-.ip-stat-label {
-  width: 32px;
-  flex-shrink: 0;
-  color: var(--flyout-sub);
-}
-.ip-stat-bar {
-  flex: 1;
-  height: 5px;
-  border-radius: 3px;
-  background: var(--field-border);
-  overflow: hidden;
-}
-.ip-stat-fill {
-  height: 100%;
-  border-radius: 3px;
-  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #fff));
-  transition: width .4s ease;
-}
-.ip-stat-val {
-  width: 30px;
-  text-align: right;
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-  color: var(--flyout-sub);
-}
-
-.ip-shortcuts {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2px;
-}
-.ip-shortcut {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 7px 2px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background .13s;
-}
-.ip-shortcut:hover { background: var(--flyout-hover); }
-.ip-shortcut-icon {
-  width: 26px; height: 26px;
-  display: grid; place-items: center;
-  border-radius: 6px;
-  color: #fff;
-  background: linear-gradient(145deg, var(--c, #4a7bff), color-mix(in srgb, var(--c, #4a7bff) 62%, #000));
-  overflow: hidden;
-}
-.ip-shortcut-icon.edge { background: linear-gradient(145deg, #0F82D8, #23B8A6); }
-.ip-shortcut-icon.thispc { background: linear-gradient(145deg, var(--icon-blue-1), var(--icon-blue-2)); }
-.ip-shortcut-icon.plain { background: transparent; }
-.ip-shortcut-icon.plain img {
-  width: 100%; height: 100%;
-  object-fit: contain; display: block;
-  border-radius: 6px;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, .35));
-}
-.ip-shortcut-name {
-  font-size: 10px;
-  text-align: center;
-  max-width: 60px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--flyout-text);
-}
-
-.ip-windows {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.ip-window-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background .12s;
-  font-size: 11.5px;
-}
-.ip-window-item:hover { background: var(--flyout-hover); }
-.ip-window-item.active {
-  background: color-mix(in srgb, var(--accent) 15%, transparent);
-}
-.ip-window-icon {
-  width: 18px; height: 18px;
-  flex-shrink: 0;
-  display: grid; place-items: center;
-  border-radius: 4px;
-  color: #fff;
-  background: linear-gradient(145deg, var(--c, #4a7bff), color-mix(in srgb, var(--c, #4a7bff) 62%, #000));
-  overflow: hidden;
-}
-.ip-window-icon.edge { background: linear-gradient(145deg, #0F82D8, #23B8A6); }
-.ip-window-icon.thispc { background: linear-gradient(145deg, var(--icon-blue-1), var(--icon-blue-2)); }
-.ip-window-icon.plain { background: transparent; }
-.ip-window-icon.plain img {
-  width: 100%; height: 100%;
-  object-fit: contain; display: block;
-  border-radius: 4px;
-}
-.ip-window-name {
-  flex: 1; min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ip-empty {
-  padding: 12px;
-  text-align: center;
-  font-size: 10.5px;
-  color: var(--flyout-sub);
-  opacity: .7;
-}
-
-/* =========================================================
    开始菜单
    ========================================================= */
 #startMenu {
@@ -1944,7 +1665,6 @@ body.booting { overflow: hidden; }
 html.locked #icon-layer,
 html.locked #taskbar,
 html.locked #windows,
-html.locked #infoPanel,
 html.locked #toast {
   visibility: hidden;
 }
@@ -1972,9 +1692,9 @@ html.locked #toast {
   transition: backdrop-filter .6s ease, background .6s ease;
 }
 #lockScreen.signin::before {
-  background: rgba(0, 0, 0, .28);
-  backdrop-filter: blur(36px) brightness(.62) saturate(.9);
-  -webkit-backdrop-filter: blur(36px) brightness(.62) saturate(.9);
+  background: rgba(0, 0, 0, .42);
+  backdrop-filter: blur(36px) brightness(.56) saturate(.9);
+  -webkit-backdrop-filter: blur(36px) brightness(.56) saturate(.9);
 }
 
 .lock-clock {
@@ -2052,76 +1772,25 @@ html.locked #toast {
   flex-direction: column;
   align-items: center;
 }
-.signin-field {
-  width: 268px;
-  height: 34px;
+.signin-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 190px;
+  height: 34px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, .10);
-  border: 1px solid rgba(255, 255, 255, .34);
-  transition: background .15s, border-color .15s;
-}
-.signin-field:focus-within {
-  background: rgba(255, 255, 255, .16);
-  border-color: rgba(255, 255, 255, .62);
-}
-.signin-field input {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  padding: 0 10px;
-  border: 0;
-  outline: 0;
-  background: transparent;
+  border: 1px solid rgba(255, 255, 255, .45);
+  background: rgba(255, 255, 255, .18);
   color: #fff;
   font-family: inherit;
   font-size: 13px;
-  letter-spacing: .28em;
-  -webkit-text-security: disc;
-}
-.signin-field input::placeholder {
-  color: rgba(255, 255, 255, .55);
-  letter-spacing: .04em;
-  -webkit-text-security: none;
-}
-.signin-go {
-  width: 38px;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  border: 0;
-  background: transparent;
-  color: #fff;
-  opacity: .78;
   cursor: pointer;
-  transition: opacity .12s, background .12s;
+  transition: background .15s, border-color .15s, transform .1s;
 }
-.signin-go:hover { opacity: 1; background: rgba(255, 255, 255, .10); }
-.signin-go svg { width: 17px; height: 17px; }
-
-.signin-opt {
-  margin-top: 12px;
-  padding: 4px 10px;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  color: rgba(255, 255, 255, .78);
-  font-family: inherit;
-  font-size: 11.5px;
-  cursor: pointer;
-  transition: background .12s, color .12s;
-}
-.signin-opt:hover { background: rgba(255, 255, 255, .10); color: #fff; }
-.signin-hint {
-  height: 14px;
-  margin-top: 8px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, .72);
-  opacity: 0;
-  transition: opacity .2s;
-}
-.signin-hint.show { opacity: 1; }
+.signin-btn:hover { background: rgba(255, 255, 255, .24); border-color: rgba(255, 255, 255, .55); }
+.signin-btn:active { transform: scale(.98); background: rgba(255, 255, 255, .3); }
+.signin-btn svg { width: 16px; height: 16px; }
 
 .signin-welcome {
   margin-top: 24px;
@@ -2131,8 +1800,7 @@ html.locked #toast {
   font-size: 13px;
 }
 #lockScreen.welcome .signin-name,
-#lockScreen.welcome .signin-form,
-#lockScreen.welcome .signin-hint { display: none; }
+#lockScreen.welcome .signin-form { display: none; }
 #lockScreen.welcome .signin-welcome { display: flex; }
 .signin-spin {
   width: 18px;
@@ -2192,7 +1860,7 @@ html.locked #toast {
 @media (max-width: 720px) {
   .lock-clock { left: 8%; top: 14%; }
   .lock-tip { display: none; }
-  .signin-field { width: min(268px, 78vw); }
+  .signin-btn { width: min(190px, 70vw); }
 }
 
 /* =========================================================
@@ -2202,7 +1870,6 @@ body.mobile #wallpaper::before { filter: blur(40px) saturate(1.15); }
 body.mobile .window,
 body.mobile #taskbar,
 body.mobile #startMenu,
-body.mobile #infoPanel,
 body.mobile #quickPanel,
 body.mobile #calendarPanel,
 body.mobile #ctxMenu,
@@ -2231,7 +1898,6 @@ body.mobile .window.resizing { box-shadow: none !important; }
   .sm-footer { margin: 0 -20px; padding: 0 20px; }
   #startGrid { grid-template-columns: repeat(4, 1fr); }
   .sm-recommend { grid-template-columns: 1fr; }
-  #infoPanel { width: calc(100vw - 20px); }
   #quickPanel, #calendarPanel { right: 8px; width: calc(100vw - 16px); bottom: 74px; max-height: calc(100vh - 98px); }
   .exp-sidebar { display: none; }
   .edge-tiles { grid-template-columns: repeat(2, 88px); }
@@ -2328,16 +1994,11 @@ body.mobile .window.resizing { box-shadow: none !important; }
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.7545 14.0002C18.9966 14.0002 20.0034 15.007 20.0034 16.2491V16.8245C20.0034 17.7188 19.6838 18.5836 19.1023 19.263C17.5329 21.0965 15.1457 22.0013 12.0004 22.0013C8.8545 22.0013 6.46849 21.0962 4.90219 19.2619C4.32242 18.583 4.00391 17.7195 4.00391 16.8267V16.2491C4.00391 15.007 5.01076 14.0002 6.25278 14.0002H17.7545ZM17.7545 15.5002H6.25278C5.83919 15.5002 5.50391 15.8355 5.50391 16.2491V16.8267C5.50391 17.3624 5.69502 17.8805 6.04287 18.2878C7.29618 19.7555 9.26206 20.5013 12.0004 20.5013C14.7387 20.5013 16.7063 19.7555 17.9627 18.2876C18.3117 17.8799 18.5034 17.361 18.5034 16.8245V16.2491C18.5034 15.8355 18.1681 15.5002 17.7545 15.5002ZM12.0004 2.00488C14.7618 2.00488 17.0004 4.24346 17.0004 7.00488C17.0004 9.76631 14.7618 12.0049 12.0004 12.0049C9.23894 12.0049 7.00036 9.76631 7.00036 7.00488C7.00036 4.24346 9.23894 2.00488 12.0004 2.00488ZM12.0004 3.50488C10.0674 3.50488 8.50036 5.07189 8.50036 7.00488C8.50036 8.93788 10.0674 10.5049 12.0004 10.5049C13.9334 10.5049 15.5004 8.93788 15.5004 7.00488C15.5004 5.07189 13.9334 3.50488 12.0004 3.50488Z"/></svg>
     </div>
     <div class="signin-name">Admin</div>
-    <form class="signin-form" id="signinForm" autocomplete="off">
-      <div class="signin-field">
-        <input id="signinInput" type="password" placeholder="PIN" aria-label="PIN"
-               autocomplete="off" spellcheck="false" inputmode="numeric">
-        <button class="signin-go" type="submit" title="登录" aria-label="登录">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.2673 4.20889C12.9674 3.9232 12.4926 3.93475 12.2069 4.23467C11.9212 4.5346 11.9328 5.00933 12.2327 5.29502L18.4841 11.2496H3.75C3.33579 11.2496 3 11.5854 3 11.9996C3 12.4138 3.33579 12.7496 3.75 12.7496H18.4842L12.2327 18.7043C11.9328 18.99 11.9212 19.4648 12.2069 19.7647C12.4926 20.0646 12.9674 20.0762 13.2673 19.7905L20.6862 12.7238C20.8551 12.5629 20.9551 12.3576 20.9861 12.1443C20.9952 12.0975 21 12.0491 21 11.9996C21 11.9501 20.9952 11.9016 20.986 11.8547C20.955 11.6415 20.855 11.4364 20.6862 11.2756L13.2673 4.20889Z"/></svg>
-        </button>
-      </div>
-      <button class="signin-opt" type="button" id="signinOpt">登录选项</button>
-      <div class="signin-hint" id="signinHint">本地模拟登录：任意 PIN 或留空直接回车</div>
+    <form class="signin-form" id="signinForm">
+      <button class="signin-btn" type="submit">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2673 4.20889C12.9674 3.9232 12.4926 3.93475 12.2069 4.23467C11.9212 4.5346 11.9328 5.00933 12.2327 5.29502L18.4841 11.2496H3.75C3.33579 11.2496 3 11.5854 3 11.9996C3 12.4138 3.33579 12.7496 3.75 12.7496H18.4842L12.2327 18.7043C11.9328 18.99 11.9212 19.4648 12.2069 19.7647C12.4926 20.0646 12.9674 20.0762 13.2673 19.7905L20.6862 12.7238C20.8551 12.5629 20.9551 12.3576 20.9861 12.1443C20.9952 12.0975 21 12.0491 21 11.9996C21 11.9501 20.9952 11.9016 20.986 11.8547C20.955 11.6415 20.855 11.4364 20.6862 11.2756L13.2673 4.20889Z"/></svg>
+        <span>登录</span>
+      </button>
     </form>
     <div class="signin-welcome">
       <span class="signin-spin" aria-hidden="true"></span>
@@ -2450,18 +2111,6 @@ body.mobile .window.resizing { box-shadow: none !important; }
     <div id="taskbarApps"></div>
 
     <div id="tray">
-      <!-- 信息栏 -->
-      <button class="tray-btn" id="infoBtn" title="信息栏 (Ctrl+I)">
-        <span class="tray-icon-wrap">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
-               stroke-linejoin="round">
-            <path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-8l-4 3.5V17H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/>
-            <path d="M7.5 9.5h9M7.5 12.5h6.5M7.5 15.5h4"/>
-          </svg>
-        </span>
-      </button>
-
       <!-- ★ 新增：主题切换按钮（独立，常显） -->
       <button class="tray-btn" id="themeBtnTop" title="切换主题">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
@@ -2505,88 +2154,6 @@ body.mobile .window.resizing { box-shadow: none !important; }
       </div>
     </div>
   </div>
-
-  <!-- 信息栏 -->
-  <div id="infoPanel">
-    <div class="ip-header">
-      <span class="ip-title">信息栏</span>
-      <div class="ip-actions">
-        <button class="ip-act-btn" id="ipThemeBtn" title="切换主题">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
-            <circle cx="12" cy="12" r="4"/>
-            <path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M18.7 5.3l-1.5 1.5M6.8 17.2l-1.5 1.5"/>
-          </svg>
-        </button>
-        <button class="ip-act-btn" id="ipClose" title="关闭">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-            <path d="M5 5l14 14M19 5L5 19"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-    <div class="ip-body">
-      <div class="ip-card ip-weather">
-        <div class="ip-weather-icon">
-          <svg viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
-               stroke-linejoin="round">
-            <circle cx="12" cy="12" r="4"/>
-            <path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M18.7 5.3l-1.5 1.5M6.8 17.2l-1.5 1.5"/>
-          </svg>
-        </div>
-        <div class="ip-weather-main">
-          <div class="ip-weather-temp">22°</div>
-          <div class="ip-weather-loc">深圳 · 晴</div>
-        </div>
-        <div class="ip-weather-extra">
-          <span>湿度 56%</span>
-          <span>风 3 级</span>
-        </div>
-      </div>
-
-      <div class="ip-card">
-        <div class="ip-card-title">
-          <span>系统状态</span>
-          <span class="ip-card-sub">实时</span>
-        </div>
-        <div class="ip-stat">
-          <span class="ip-stat-label">CPU</span>
-          <div class="ip-stat-bar"><div class="ip-stat-fill" id="statCpu" style="width:32%"></div></div>
-          <span class="ip-stat-val" id="statCpuVal">32%</span>
-        </div>
-        <div class="ip-stat">
-          <span class="ip-stat-label">内存</span>
-          <div class="ip-stat-bar"><div class="ip-stat-fill" id="statMem" style="width:58%"></div></div>
-          <span class="ip-stat-val" id="statMemVal">58%</span>
-        </div>
-        <div class="ip-stat">
-          <span class="ip-stat-label">磁盘</span>
-          <div class="ip-stat-bar"><div class="ip-stat-fill" id="statDisk" style="width:73%"></div></div>
-          <span class="ip-stat-val" id="statDiskVal">73%</span>
-        </div>
-      </div>
-
-      <div class="ip-card">
-        <div class="ip-card-title">
-          <span>快捷方式</span>
-          <span class="ip-card-sub">本地 HTML</span>
-        </div>
-        <div class="ip-shortcuts" id="ipShortcuts"></div>
-      </div>
-
-      <div class="ip-card">
-        <div class="ip-card-title">
-          <span>已打开的窗口</span>
-          <span class="ip-card-sub" id="ipWindowCount">0</span>
-        </div>
-        <div class="ip-windows" id="ipWindows"></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="infoTrigger"></div>
 
   <!-- 开始菜单 -->
   <div id="startMenu">
@@ -2822,8 +2389,6 @@ const clockT    = document.querySelector('#clock .t');
 const clockD    = document.querySelector('#clock .d');
 const quickPanel= document.getElementById('quickPanel');
 const calendarPanel = document.getElementById('calendarPanel');
-const infoPanel = document.getElementById('infoPanel');
-const infoTrigger = document.getElementById('infoTrigger');
 
 const SLOT_COUNT = 6;
 const sites = SITES.slice(0, SLOT_COUNT);
@@ -3008,7 +2573,6 @@ function buildWindow({ site, title, color, bodyHTML, extraClass = '' }) {
   applyWinLayout(w);
   bindWindowBase(el, w);
   focusWin(id);
-  renderInfoWindows();
   return w;
 }
 
@@ -4323,7 +3887,6 @@ function focusWin(id) {
   w.minimized = false;
   w.el.classList.remove('minimized');
   wins.forEach((v, k) => v.el.classList.toggle('focused', k === id));
-  renderInfoWindows();
 }
 
 function minimizeWin(id) {
@@ -4332,7 +3895,6 @@ function minimizeWin(id) {
   w.minimized = true;
   w.el.classList.add('minimized');
   if (activeId === id) activeId = null;
-  renderInfoWindows();
 }
 
 function toggleMax(id) {
@@ -4360,7 +3922,6 @@ function closeWin(id) {
     w.el.remove();
     wins.delete(id);
     if (activeId === id) activeId = null;
-    renderInfoWindows();
   }, 180);
 }
 
@@ -4487,7 +4048,6 @@ document.getElementById('desktop').addEventListener('pointerdown', e => {
   if (e.target.closest('.dicon') || e.target.closest('.window')
       || e.target.closest('#taskbar') || e.target.closest('#startMenu')
       || e.target.closest('#quickPanel') || e.target.closest('#calendarPanel')
-      || e.target.closest('#infoPanel')
       || e.target.closest('#ctxMenu')) return;
   closeStart();
   closeQuickPanel();
@@ -4706,161 +4266,6 @@ document.getElementById('calNext').addEventListener('click', () => {
 });
 calendarPanel.addEventListener('pointerdown', e => e.stopPropagation());
 
-/* =========================================================
-   信息栏
-   ========================================================= */
-let infoOpenTimer = null;
-let infoCloseTimer = null;
-
-function openInfoPanel() {
-  clearTimeout(infoCloseTimer);
-  if (infoPanel.classList.contains('open')) return;
-  infoPanel.classList.add('open');
-  document.body.classList.add('info-open');
-  renderInfoShortcuts();
-  renderInfoWindows();
-  startStatUpdate();
-}
-
-function closeInfoPanel() {
-  clearTimeout(infoOpenTimer);
-  infoPanel.classList.remove('open');
-  document.body.classList.remove('info-open');
-  stopStatUpdate();
-}
-
-document.getElementById('infoBtn').addEventListener('click', e => {
-  e.stopPropagation();
-  if (infoPanel.classList.contains('open')) closeInfoPanel();
-  else openInfoPanel();
-});
-
-infoTrigger.addEventListener('mouseenter', () => {
-  if (isMobile) return;
-  clearTimeout(infoCloseTimer);
-  infoOpenTimer = setTimeout(openInfoPanel, 250);
-});
-infoTrigger.addEventListener('mouseleave', () => clearTimeout(infoOpenTimer));
-
-infoPanel.addEventListener('mouseleave', () => {
-  if (isMobile) return;
-  clearTimeout(infoCloseTimer);
-  infoCloseTimer = setTimeout(closeInfoPanel, 600);
-});
-infoPanel.addEventListener('mouseenter', () => clearTimeout(infoCloseTimer));
-
-document.getElementById('ipClose').addEventListener('click', e => {
-  e.stopPropagation();
-  closeInfoPanel();
-});
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeInfoPanel();
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'i') {
-    e.preventDefault();
-    infoPanel.classList.contains('open') ? closeInfoPanel() : openInfoPanel();
-  }
-});
-
-document.addEventListener('dblclick', e => {
-  if (e.clientX < 20) {
-    infoPanel.classList.contains('open') ? closeInfoPanel() : openInfoPanel();
-  }
-});
-
-function renderInfoShortcuts() {
-  const wrap = document.getElementById('ipShortcuts');
-  wrap.replaceChildren();
-  const locals = sites.filter(s => s.type === 'local' && !isEmptySlot(s)).slice(0, 4);
-  locals.forEach(s => {
-    const v = slotVisual(s, 0);
-    const item = document.createElement('div');
-    item.className = 'ip-shortcut';
-    item.title = v.label;
-    item.innerHTML = `
-      <div class="ip-shortcut-icon${v.cls ? ' ' + v.cls : ''}" style="--c:${v.color}">${v.html}</div>
-      <div class="ip-shortcut-name">${v.label}</div>
-    `;
-    attachImgFallback(item.querySelector('.ip-shortcut-icon'), 'globe', 16, 2);
-    item.addEventListener('click', () => {
-      openSlot(s, sites.indexOf(s));
-      closeInfoPanel();
-    });
-    wrap.appendChild(item);
-  });
-  if (locals.length === 0) {
-    wrap.innerHTML = '<div class="ip-empty" style="grid-column:1/-1">暂无快捷方式</div>';
-  }
-}
-
-function renderInfoWindows() {
-  const wrap = document.getElementById('ipWindows');
-  const count = document.getElementById('ipWindowCount');
-  if (!wrap) return;
-  wrap.replaceChildren();
-  count.textContent = wins.size;
-
-  if (wins.size === 0) {
-    wrap.innerHTML = '<div class="ip-empty">暂无打开的窗口</div>';
-    return;
-  }
-
-  wins.forEach((w, id) => {
-    const s = w.site;
-    const g = smallGlyphHTML(s, 13, 2);
-    const item = document.createElement('div');
-    item.className = 'ip-window-item' + (activeId === id ? ' active' : '');
-    item.innerHTML = `
-      <div class="ip-window-icon ${g.cls}" style="--c:${s.color || '#0078d4'}">${g.html}</div>
-      <div class="ip-window-name">${s.type === 'edge' ? 'Microsoft Edge' : s.type === 'thispc' ? '此电脑' : s.name}</div>
-    `;
-    attachImgFallback(item.querySelector('.ip-window-icon'), 'globe', 13, 2);
-    item.addEventListener('click', () => {
-      focusWin(id);
-      closeInfoPanel();
-    });
-    wrap.appendChild(item);
-  });
-}
-
-let statTimer = null;
-// 性能数值状态：以页面初始值为起点，采用小幅随机游走，
-// 每次刷新只在当前值附近轻微浮动，模拟真实负载的平缓波动。
-const statState = { cpu: 32, mem: 58, disk: 73 };
-const clampStat = (v, min, max) => Math.min(max, Math.max(min, v));
-
-function startStatUpdate() {
-  if (statTimer) return;
-  updateStats();
-  statTimer = setInterval(updateStats, 2000);
-}
-function stopStatUpdate() {
-  if (statTimer) { clearInterval(statTimer); statTimer = null; }
-}
-function updateStats() {
-  // 每 2 秒仅在当前值附近小幅浮动：CPU ±4、内存 ±3、磁盘 ±1.5
-  statState.cpu  = clampStat(statState.cpu  + (Math.random() * 8  - 4),    8, 92);
-  statState.mem  = clampStat(statState.mem  + (Math.random() * 6  - 3),   25, 88);
-  statState.disk = clampStat(statState.disk + (Math.random() * 3  - 1.5), 40, 90);
-  const cpu  = Math.round(statState.cpu);
-  const mem  = Math.round(statState.mem);
-  const disk = Math.round(statState.disk);
-
-  const cpuBar = document.getElementById('statCpu');
-  const memBar = document.getElementById('statMem');
-  const diskBar = document.getElementById('statDisk');
-  const cpuVal = document.getElementById('statCpuVal');
-  const memVal = document.getElementById('statMemVal');
-  const diskVal = document.getElementById('statDiskVal');
-
-  if (cpuBar) cpuBar.style.width = cpu + '%';
-  if (memBar) memBar.style.width = mem + '%';
-  if (diskBar) diskBar.style.width = disk + '%';
-  if (cpuVal) cpuVal.textContent = cpu + '%';
-  if (memVal) memVal.textContent = mem + '%';
-  if (diskVal) diskVal.textContent = disk + '%';
-}
-
 /* ================= 右键菜单 ================= */
 function showCtx(x, y, items) {
   ctxMenu.replaceChildren();
@@ -4897,8 +4302,6 @@ document.getElementById('desktop').addEventListener('contextmenu', e => {
     { icon: 'layers',  label: '整理图标',   action: renderIcons },
     { icon: 'refresh', label: '重新读取名称', action: refreshTitles },
     '-',
-    { icon: 'info',    label: '打开信息栏',  action: openInfoPanel },
-    '-',
     { icon: isDark ? 'sun' : 'moon', label: isDark ? '切换到浅色模式' : '切换到深色模式', action: toggleTheme },
     '-',
     { icon: 'info',    label: `已启用 ${used} / ${SLOT_COUNT} 个位置`, disabled: true },
@@ -4915,7 +4318,6 @@ async function refreshTitles() {
   renderIcons();
   renderStart();
   renderRecommend();
-  renderInfoShortcuts();
   showToast('快捷方式名称已更新');
 }
 
@@ -4941,14 +4343,6 @@ function updateThemeIcons(isDark) {
       ? svgIcon('sun', 16, 1.8)
       : svgIcon('moon', 16, 1.8);
     smBtn.title = isDark ? '切换到浅色模式' : '切换到深色模式';
-  }
-  // 信息栏主题按钮
-  const ipBtn = document.getElementById('ipThemeBtn');
-  if (ipBtn) {
-    ipBtn.innerHTML = isDark
-      ? svgIcon('sun', 13, 1.7)
-      : svgIcon('moon', 13, 1.7);
-    ipBtn.title = isDark ? '切换到浅色模式' : '切换到深色模式';
   }
 }
 
@@ -4986,10 +4380,6 @@ document.getElementById('themeBtn').addEventListener('click', e => {
   e.stopPropagation();
   toggleTheme();
 });
-document.getElementById('ipThemeBtn').addEventListener('click', e => {
-  e.stopPropagation();
-  toggleTheme();
-});
 
 /* ================= 时钟 ================= */
 function tick() {
@@ -5007,7 +4397,6 @@ document.addEventListener('keydown', e => {
     closeQuickPanel();
     closeCalendar();
     hideCtx();
-    closeInfoPanel();
   }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault();
@@ -5101,8 +4490,6 @@ document.getElementById('powerOnBtn').addEventListener('click', () => {
 const lockScreenEl = document.getElementById('lockScreen');
 const lockTimeEl = document.getElementById('lockTime');
 const lockDateEl = document.getElementById('lockDate');
-const signinInputEl = document.getElementById('signinInput');
-const signinHintEl = document.getElementById('signinHint');
 let lockMsgTimer = 0;
 
 function updateLockClock() {
@@ -5131,13 +4518,11 @@ function showLockMsg(text) {
 function enterSignin() {
   if (!lockScreenEl || lockScreenEl.classList.contains('signin')) return;
   lockScreenEl.classList.add('signin');
-  setTimeout(() => { if (signinInputEl) signinInputEl.focus(); }, 280);
 }
 
 function unlockDesktop() {
   if (!lockScreenEl || lockScreenEl.classList.contains('welcome')) return;
   lockScreenEl.classList.add('welcome');
-  if (signinInputEl) signinInputEl.blur();
   setTimeout(() => {
     lockScreenEl.classList.add('done');
     document.documentElement.classList.remove('locked');
@@ -5156,11 +4541,6 @@ if (lockScreenEl) {
     e.preventDefault();
     unlockDesktop();
   });
-  document.getElementById('signinOpt').addEventListener('click', () => {
-    if (!signinHintEl) return;
-    signinHintEl.classList.add('show');
-    setTimeout(() => signinHintEl.classList.remove('show'), 2600);
-  });
   document.getElementById('lockNet').addEventListener('click', () => showLockMsg('WLAN 已连接 · 网络访问正常'));
   document.getElementById('lockA11y').addEventListener('click', () => showLockMsg('辅助功能：放大镜 / 高对比度（示意）'));
   document.getElementById('lockPower').addEventListener('click', () => {
@@ -5173,7 +4553,11 @@ if (lockScreenEl) {
 
 document.addEventListener('keydown', e => {
   if (!lockScreenEl || !lockScreenEl.isConnected) return;
-  if (lockScreenEl.classList.contains('signin') || lockScreenEl.classList.contains('done')) return;
+  if (lockScreenEl.classList.contains('done')) return;
+  if (lockScreenEl.classList.contains('signin')) {
+    if (e.key === 'Enter') { e.preventDefault(); unlockDesktop(); }
+    return;
+  }
   if (e.key === 'Tab' || e.key === 'Shift' || e.altKey || e.ctrlKey || e.metaKey) return;
   e.preventDefault();
   enterSignin();
