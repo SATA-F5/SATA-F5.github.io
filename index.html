@@ -166,6 +166,15 @@ body.dragging iframe { pointer-events: none; }
   pointer-events: none;
   transform: rotate(9deg);
 }
+#wallpaper.has-photo {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+#wallpaper.has-photo .bloom { display: none; }
+#wallpaper.has-photo::after {
+  background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, .22));
+}
 #wallpaper::after {
   content: "";
   position: absolute; left: 0; top: 0; right: 0; bottom: 0;
@@ -1717,6 +1726,51 @@ html.dark .sm-footer { background: rgba(255, 255, 255, .02); }
 .st-theme-thumb.light { background: linear-gradient(145deg, #eaf2fa, #cfe4f7); }
 .st-theme-thumb.dark { background: linear-gradient(145deg, #0a1b33, #123a63); }
 .st-theme-name { font-size: 11.5px; margin-top: 6px; text-align: center; }
+
+/* 壁纸选择 */
+.st-wallpapers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 6px 0 14px;
+}
+.st-wall {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  border: 1px solid var(--field-border);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color .12s, box-shadow .12s;
+}
+.st-wall:hover { border-color: var(--win-sub); }
+.st-wall.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.st-wall-thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background-size: cover;
+  background-position: center;
+}
+.st-wall-thumb.bloom {
+  background:
+    radial-gradient(40% 34% at 50% 50%, rgba(255, 255, 255, .95), transparent 70%),
+    linear-gradient(135deg, #dbeafb, #8ab6e8 55%, #5b7fd6);
+}
+.st-wall-name {
+  padding: 0 6px 8px;
+  font-size: 11px;
+  text-align: center;
+  color: var(--win-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .st-update-hero { display: flex; align-items: center; gap: 14px; padding: 12px 0 10px; }
 .st-update-check {
@@ -5316,6 +5370,44 @@ function toggleTheme() {
   applyTheme(isDark);
 })();
 
+/* ================= 壁纸 ================= */
+const WALLPAPERS = [
+  { id: 'bloom', name: '默认 Bloom' },
+  { id: 'bloom-light', name: 'Bloom 浅色', src: './assets/wallpapers/bloom-light.jpg', thumb: './assets/wallpapers/bloom-light-thumb.jpg' },
+  { id: 'bloom-dark', name: 'Bloom 深色', src: './assets/wallpapers/bloom-dark.jpg', thumb: './assets/wallpapers/bloom-dark-thumb.jpg' },
+  { id: 'sunrise', name: '日出', src: './assets/wallpapers/sunrise.jpg', thumb: './assets/wallpapers/sunrise-thumb.jpg' },
+  { id: 'flow', name: '流', src: './assets/wallpapers/flow.jpg', thumb: './assets/wallpapers/flow-thumb.jpg' },
+  { id: 'glow', name: '光晕', src: './assets/wallpapers/glow.jpg', thumb: './assets/wallpapers/glow-thumb.jpg' },
+];
+let currentWallpaper = 'bloom';
+
+function applyWallpaper(id, save = true) {
+  const wp = WALLPAPERS.find(w => w.id === id) || WALLPAPERS[0];
+  currentWallpaper = wp.id;
+  const wall = document.getElementById('wallpaper');
+  if (wall) {
+    if (wp.src) {
+      wall.classList.add('has-photo');
+      wall.style.backgroundImage = `url("${wp.src}")`;
+    } else {
+      wall.classList.remove('has-photo');
+      wall.style.backgroundImage = '';
+    }
+  }
+  if (save) {
+    try { localStorage.setItem('win11-wallpaper-v1', wp.id); } catch (e) { /* 忽略 */ }
+  }
+  document.querySelectorAll('.st-wall').forEach(el => {
+    el.classList.toggle('active', el.dataset.wall === wp.id);
+  });
+}
+
+(function initWallpaper() {
+  let saved = null;
+  try { saved = localStorage.getItem('win11-wallpaper-v1'); } catch (_) {}
+  applyWallpaper(saved || 'bloom', false);
+})();
+
 // 子页面里切换主题时，桌面也跟着变
 window.addEventListener('storage', e => {
   if (e.key !== 'win11nav-theme-v21' || !e.newValue) return;
@@ -5539,7 +5631,20 @@ const ST_PAGES = {
         </div>
       </div>
       <div class="st-card">
-        ${stRow('gallery', '背景', 'Bloom · 自绘壁纸（无外部素材）')}
+        <div class="st-row" style="border:0">
+          <div class="st-row-icon">${svgIcon('gallery', 17, 1.8)}</div>
+          <div class="st-row-main">
+            <div class="st-row-title">背景</div>
+            <div class="st-row-sub">选择桌面壁纸（内置 Windows 11 官方壁纸）</div>
+          </div>
+        </div>
+        <div class="st-wallpapers">
+          ${WALLPAPERS.map(w => `
+            <button class="st-wall${currentWallpaper === w.id ? ' active' : ''}" data-wall="${w.id}" title="${w.name}">
+              <span class="st-wall-thumb${w.thumb ? '' : ' bloom'}"${w.thumb ? ` style="background-image:url('${w.thumb}')"` : ''}></span>
+              <span class="st-wall-name">${w.name}</span>
+            </button>`).join('')}
+        </div>
         ${stRow('sun', '颜色', '强调色：蓝色')}
       </div>`;
   },
@@ -5688,6 +5793,11 @@ function createSettingsWin(site, initialPage = 'system') {
       body.querySelectorAll('.st-theme-card').forEach(c => {
         c.classList.toggle('active', c === themeCard);
       });
+      return;
+    }
+    const wallCard = e.target.closest('.st-wall');
+    if (wallCard) {
+      applyWallpaper(wallCard.dataset.wall);
       return;
     }
     const toggle = e.target.closest('.st-toggle');
