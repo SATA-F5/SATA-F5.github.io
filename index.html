@@ -2229,9 +2229,11 @@ html.locked #toast {
   transition: backdrop-filter .6s ease, background .6s ease;
 }
 #lockScreen.signin::before {
-  background: rgba(0, 0, 0, .42);
-  backdrop-filter: blur(36px) brightness(.56) saturate(.9);
-  -webkit-backdrop-filter: blur(36px) brightness(.56) saturate(.9);
+  background:
+    linear-gradient(135deg, rgba(12, 26, 52, .74), rgba(40, 22, 72, .62) 55%, rgba(8, 22, 44, .78)),
+    radial-gradient(80% 70% at 50% 40%, rgba(76, 194, 255, .14), transparent 70%);
+  backdrop-filter: blur(38px) brightness(.58) saturate(1.05);
+  -webkit-backdrop-filter: blur(38px) brightness(.58) saturate(1.05);
 }
 
 .lock-clock {
@@ -2283,24 +2285,58 @@ html.locked #toast {
 }
 #lockScreen.signin .signin-pane { opacity: 1; pointer-events: auto; transform: none; }
 
+/* 渐变磨砂玻璃卡片 */
+.signin-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  padding: 36px 34px 30px;
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .24) 0%, rgba(255, 255, 255, .06) 46%, rgba(120, 170, 255, .14) 100%);
+  border: 1px solid rgba(255, 255, 255, .34);
+  box-shadow:
+    0 32px 72px rgba(0, 0, 0, .40),
+    0 2px 10px rgba(0, 0, 0, .18),
+    inset 0 1px 0 rgba(255, 255, 255, .48),
+    inset 0 -1px 0 rgba(255, 255, 255, .06);
+  backdrop-filter: blur(28px) saturate(165%);
+  -webkit-backdrop-filter: blur(28px) saturate(165%);
+  overflow: hidden;
+}
+.signin-card::before {
+  content: "";
+  position: absolute;
+  inset: -60% -25%;
+  background: conic-gradient(from 210deg at 32% 22%,
+    rgba(76, 194, 255, .32), transparent 34%,
+    rgba(150, 100, 255, .26) 62%, transparent 82%);
+  opacity: .55;
+  pointer-events: none;
+}
+.signin-card > * { position: relative; z-index: 1; }
+
 .signin-avatar {
   width: 96px;
   height: 96px;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  color: #f2f2f2;
-  background: rgba(255, 255, 255, .14);
-  border: 1px solid rgba(255, 255, 255, .26);
-  box-shadow: 0 8px 26px rgba(0, 0, 0, .28);
+  color: #f6f8ff;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .38), rgba(255, 255, 255, .10));
+  border: 1px solid rgba(255, 255, 255, .42);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .26), inset 0 1px 0 rgba(255, 255, 255, .55);
   overflow: hidden;
 }
-.signin-avatar svg { width: 54px; height: 54px; opacity: .92; }
+.signin-avatar svg { width: 54px; height: 54px; opacity: .94; }
 .signin-name {
   margin-top: 18px;
   font-size: 20px;
-  font-weight: 400;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, .4);
+  font-weight: 500;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .35);
 }
 
 .signin-form {
@@ -2314,19 +2350,22 @@ html.locked #toast {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 190px;
-  height: 34px;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, .45);
-  background: rgba(255, 255, 255, .18);
+  width: 200px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, .40);
+  background: linear-gradient(135deg, rgba(76, 194, 255, .92), rgba(124, 104, 255, .92));
   color: #fff;
   font-family: inherit;
   font-size: 13px;
   cursor: pointer;
-  transition: background .15s, border-color .15s, transform .1s;
+  box-shadow:
+    0 10px 26px rgba(30, 80, 180, .35),
+    inset 0 1px 0 rgba(255, 255, 255, .50);
+  transition: filter .15s, border-color .15s, transform .1s;
 }
-.signin-btn:hover { background: rgba(255, 255, 255, .24); border-color: rgba(255, 255, 255, .55); }
-.signin-btn:active { transform: scale(.98); background: rgba(255, 255, 255, .3); }
+.signin-btn:hover { filter: brightness(1.08); border-color: rgba(255, 255, 255, .62); }
+.signin-btn:active { transform: scale(.98); filter: brightness(.95); }
 .signin-btn svg { width: 16px; height: 16px; }
 
 .signin-welcome {
@@ -2555,6 +2594,7 @@ body.mobile .window.resizing { box-shadow: none !important; }
   <div class="lock-tip">点击或按任意键继续</div>
 
   <div class="signin-pane">
+    <div class="signin-card">
     <div class="signin-avatar" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.7545 14.0002C18.9966 14.0002 20.0034 15.007 20.0034 16.2491V16.8245C20.0034 17.7188 19.6838 18.5836 19.1023 19.263C17.5329 21.0965 15.1457 22.0013 12.0004 22.0013C8.8545 22.0013 6.46849 21.0962 4.90219 19.2619C4.32242 18.583 4.00391 17.7195 4.00391 16.8267V16.2491C4.00391 15.007 5.01076 14.0002 6.25278 14.0002H17.7545ZM17.7545 15.5002H6.25278C5.83919 15.5002 5.50391 15.8355 5.50391 16.2491V16.8267C5.50391 17.3624 5.69502 17.8805 6.04287 18.2878C7.29618 19.7555 9.26206 20.5013 12.0004 20.5013C14.7387 20.5013 16.7063 19.7555 17.9627 18.2876C18.3117 17.8799 18.5034 17.361 18.5034 16.8245V16.2491C18.5034 15.8355 18.1681 15.5002 17.7545 15.5002ZM12.0004 2.00488C14.7618 2.00488 17.0004 4.24346 17.0004 7.00488C17.0004 9.76631 14.7618 12.0049 12.0004 12.0049C9.23894 12.0049 7.00036 9.76631 7.00036 7.00488C7.00036 4.24346 9.23894 2.00488 12.0004 2.00488ZM12.0004 3.50488C10.0674 3.50488 8.50036 5.07189 8.50036 7.00488C8.50036 8.93788 10.0674 10.5049 12.0004 10.5049C13.9334 10.5049 15.5004 8.93788 15.5004 7.00488C15.5004 5.07189 13.9334 3.50488 12.0004 3.50488Z"/></svg>
     </div>
@@ -2568,6 +2608,7 @@ body.mobile .window.resizing { box-shadow: none !important; }
     <div class="signin-welcome">
       <span class="signin-spin" aria-hidden="true"></span>
       <span>欢迎</span>
+    </div>
     </div>
   </div>
 
