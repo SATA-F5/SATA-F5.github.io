@@ -828,6 +828,12 @@ html.dark .exp-side-item .si.gray { color: #9ca3af; }
   background: rgba(120, 134, 160, .13);
 }
 html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
+
+/* Windows 11 图标包 */
+.pk-ico { width: 100%; height: 100%; object-fit: contain; display: block; }
+.folder-icon.plain, .file-icon.plain { background: transparent; }
+.folder-icon.plain .pk-ico, .file-icon.plain .pk-ico { filter: drop-shadow(0 2px 5px rgba(0, 0, 0, .22)); }
+.exp-side-item .pk-ico { width: 16px; height: 16px; }
 .file-info { flex: 1; min-width: 0; }
 .file-name {
   font-size: 12.5px;
@@ -2966,6 +2972,52 @@ const ICONS = {
   a11y:    '<circle cx="12" cy="5.5" r="2"/><path d="M4 9h16M12 9v10l-3 4M12 19l3 4"/>',
 };
 
+/* ================= Windows 11 图标包（assets/icons，Public Domain） ================= */
+const PK = {
+  computer: './assets/icons/computer.png',
+  explorer: './assets/icons/explorer.png',
+  folder: './assets/icons/folder.png',
+  folderDesktop: './assets/icons/folder-desktop.png',
+  folderDocuments: './assets/icons/folder-documents.png',
+  folderDownloads: './assets/icons/folder-downloads.png',
+  folderPictures: './assets/icons/folder-pictures.png',
+  folderMusic: './assets/icons/folder-music.png',
+  folderVideos: './assets/icons/folder-videos.png',
+  fileImage: './assets/icons/file-image.png',
+  fileVideo: './assets/icons/file-video.png',
+  fileAudio: './assets/icons/file-audio.png',
+  fileZip: './assets/icons/file-zip.png',
+  fileExe: './assets/icons/file-exe.png',
+  fileText: './assets/icons/file-text.png',
+  settings: './assets/icons/settings.png',
+  network: './assets/icons/network.png',
+};
+
+function pkImg(src, cls = '') {
+  return `<img class="pk-ico${cls ? ' ' + cls : ''}" src="${src}" alt="">`;
+}
+
+function quickFolderIcon(k) {
+  const map = {
+    '桌面': PK.folderDesktop,
+    '文档': PK.folderDocuments,
+    '下载': PK.folderDownloads,
+    '图片': PK.folderPictures,
+    '音乐': PK.folderMusic,
+    '视频': PK.folderVideos,
+  };
+  return map[k] || PK.folder;
+}
+
+function fileIconFor(name) {
+  if (/\.(png|jpe?g|gif|webp|bmp|svg|ico)$/i.test(name)) return PK.fileImage;
+  if (/\.(mp4|mkv|mov|avi|webm)$/i.test(name)) return PK.fileVideo;
+  if (/\.(mp3|wav|flac|m4a|ogg|m3u)$/i.test(name)) return PK.fileAudio;
+  if (/\.(zip|7z|rar|gz|tar)$/i.test(name)) return PK.fileZip;
+  if (/\.(exe|msi|bat|cmd|dll)$/i.test(name)) return PK.fileExe;
+  return PK.fileText;
+}
+
 function svgIcon(name, size = 24, sw = 1.8) {
   const path = ICONS[name] || ICONS.globe;
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"
@@ -3087,23 +3139,24 @@ function showToast(msg) {
 /* ================= 图标渲染工具 ================= */
 function glyphHTML(s, size = 24, sw = 1.8) {
   if (s.type === 'edge')   return { html: '<svg class="app-logo" aria-hidden="true"><use href="#ico-edge"/></svg>',   cls: 'plain' };
-  if (s.type === 'thispc') return { html: '<svg class="app-logo" aria-hidden="true"><use href="#ico-thispc"/></svg>', cls: 'plain' };
+  if (s.type === 'thispc') return { html: pkImg(PK.computer), cls: 'plain' };
   if (s.type === 'local')  return {
     html: `<img src="${s.icon}" alt="${s.name}">`,
     cls: 'plain'
   };
-  if (s.type === 'settings') return { html: svgIcon('settings', 22, 1.9), cls: '' };
+  if (s.type === 'settings') return { html: pkImg(PK.settings), cls: 'plain' };
   if (isEmptySlot(s)) return { html: svgIcon('plus', 24, 2.2), cls: '' };
   return { html: svgIcon(s.icon, size, sw), cls: '' };
 }
 
 function smallGlyphHTML(s, size = 12, sw = 2.4) {
   if (s.type === 'edge')   return { html: '<svg class="app-logo" aria-hidden="true"><use href="#ico-edge"/></svg>',   cls: 'plain' };
-  if (s.type === 'thispc') return { html: '<svg class="app-logo" aria-hidden="true"><use href="#ico-thispc"/></svg>', cls: 'plain' };
+  if (s.type === 'thispc') return { html: pkImg(PK.computer), cls: 'plain' };
   if (s.type === 'local')  return {
     html: `<img src="${s.icon}" alt="">`,
     cls: 'plain'
   };
+  if (s.type === 'settings') return { html: pkImg(PK.settings), cls: 'plain' };
   return { html: svgIcon(s.icon || 'globe', size, sw), cls: '' };
 }
 
@@ -4467,14 +4520,14 @@ function createThisPCWin(site) {
 
     // 侧栏
     explorer.querySelector('.exp-sidebar').innerHTML = `
-      <div class="exp-side-item ${state.path.length ? '' : 'active'}" data-go=""><span class="si blue">${svgIcon('monitor', 14, 2)}</span>此电脑</div>
+      <div class="exp-side-item ${state.path.length ? '' : 'active'}" data-go=""><span class="si">${pkImg(PK.computer)}</span>此电脑</div>
       <div class="exp-divider"></div>
       ${quickKeys.map(k => `
         <div class="exp-side-item ${state.path[0] === k && state.path.length === 1 ? 'active' : ''}" data-go="${k}">
-          <span class="si ${k === '桌面' ? 'blue' : k === '下载' ? 'green' : k === '文档' ? 'gold' : k === '图片' ? 'pink' : k === '音乐' ? 'purple' : 'red'}">${svgIcon(k === '桌面' ? 'monitor' : k === '下载' ? 'down' : k === '文档' ? 'doc' : k === '图片' ? 'image' : k === '音乐' ? 'note' : 'film', 14, 2)}</span>${k}
+          <span class="si">${pkImg(quickFolderIcon(k))}</span>${k}
         </div>`).join('')}
       <div class="exp-divider"></div>
-      <div class="exp-side-item"><span class="si gray">${svgIcon('net', 14, 2)}</span>网络</div>`;
+      <div class="exp-side-item"><span class="si">${pkImg(PK.network)}</span>网络</div>`;
 
     // 主内容
     const main = explorer.querySelector('.exp-main');
@@ -4492,11 +4545,9 @@ function createThisPCWin(site) {
           </div>`;
       }).join('');
       const folderHTML = node.quickKeys.map(k => {
-        const f = node.quick[k];
-        const icon = k === '桌面' ? 'monitor' : k === '下载' ? 'down' : k === '文档' ? 'doc' : k === '图片' ? 'image' : k === '音乐' ? 'note' : 'film';
         return `
           <div class="folder" data-quick="${k}">
-            <div class="folder-icon">${svgIcon(icon, 18, 1.8)}</div>
+            <div class="folder-icon plain">${pkImg(quickFolderIcon(k))}</div>
             <div class="folder-name">${k}</div>
           </div>`;
       }).join('');
@@ -4517,12 +4568,12 @@ function createThisPCWin(site) {
         main.innerHTML = `<div class="exp-group"><div class="exp-grid">${kids.map(k => {
           if (k.type === 'folder') {
             return `<div class="folder" data-node="${k.name}">
-              <div class="folder-icon">${svgIcon('folder', 18, 1.8)}</div>
+              <div class="folder-icon plain">${pkImg(PK.folder)}</div>
               <div class="folder-name">${k.name}</div>
             </div>`;
           }
           return `<div class="file" data-file="${k.name}" data-size="${k.size}">
-            <div class="file-icon">${svgIcon('file', 18, 1.8)}</div>
+            <div class="file-icon plain">${pkImg(fileIconFor(k.name))}</div>
             <div class="file-info">
               <div class="file-name">${k.name}</div>
               <div class="file-meta">${k.size}</div>
@@ -4883,7 +4934,7 @@ function renderStart(filter = '') {
     item.className = 'start-item';
     item.title = '设置';
     item.innerHTML = `
-      <div class="si-icon" style="--c:#44618a">${svgIcon('settings', 19, 1.75)}</div>
+      <div class="si-icon plain">${pkImg(PK.settings)}</div>
       <div class="si-name">设置</div>
     `;
     item.addEventListener('click', () => { openSettings(); closeStart(); });
@@ -4967,7 +5018,7 @@ function renderAllApps(kw = '') {
       wrap.appendChild(head);
     }
     const v = it.kind === 'settings'
-      ? { html: svgIcon('settings', 16, 1.9), cls: '', color: '#44618a', label: '设置' }
+      ? { html: pkImg(PK.settings), cls: 'plain', color: '#44618a', label: '设置' }
       : slotVisual(it.site, it.index);
     const btn = document.createElement('button');
     btn.type = 'button';
