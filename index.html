@@ -1070,6 +1070,7 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
   height: 20px;
 }
 .tray-icon-wrap svg { display: block; }
+#tray .tray-icons svg[hidden], .tray-icon-wrap svg[hidden] { display: none !important; }
 
 #clock {
   display: flex;
@@ -1775,6 +1776,7 @@ html.dark .qp-ibtn:hover { background: rgba(255, 255, 255, .09); }
 .st-row + .st-row { border-top: 1px solid var(--win-border); }
 .st-row-icon { width: 22px; display: grid; place-items: center; color: var(--accent); flex-shrink: 0; }
 .st-row-main { flex: 1; min-width: 0; }
+.st-row-val { flex-shrink: 0; font-size: 12px; color: var(--win-sub); }
 .st-row-title { font-size: 12.5px; }
 .st-row-sub { font-size: 11px; color: var(--win-sub); margin-top: 2px; }
 .st-row-value { font-size: 11.5px; color: var(--win-sub); white-space: nowrap; }
@@ -1827,6 +1829,37 @@ html.dark .qp-ibtn:hover { background: rgba(255, 255, 255, .09); }
 }
 .st-toggle.on { background: var(--accent); border-color: var(--accent); }
 .st-toggle.on::after { left: 23px; background: #fff; }
+
+.st-slider {
+  width: 100%;
+  margin-top: 9px;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--accent) 0 var(--val, 60%), var(--field-border) var(--val, 60%) 100%);
+  outline: none;
+  cursor: pointer;
+}
+.st-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+  cursor: pointer;
+}
+.st-slider::-moz-range-thumb {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+  cursor: pointer;
+}
+.st-slider::-moz-range-track { height: 4px; border-radius: 2px; background: var(--field-border); }
+.st-slider::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--accent); }
 
 .st-storage { display: flex; flex-direction: column; gap: 12px; padding: 8px 0 4px; }
 .st-storage-item .st-storage-top { display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 5px; }
@@ -2557,6 +2590,181 @@ html.locked #toast {
 }
 
 /* =========================================================
+   经典应用（记事本 / 计算器 / 画图 / 命令提示符 / 任务管理器）
+   ========================================================= */
+.cl-apps {
+  flex: 1; min-height: 0;
+  overflow: auto;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-content: start;
+  grid-auto-rows: min-content;
+  background: var(--win-bg);
+}
+.cl-app {
+  display: flex; align-items: center; gap: 12px;
+  min-height: 64px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--win-border);
+  background: var(--field-bg);
+  color: var(--win-text);
+  text-align: left;
+  cursor: pointer;
+  transition: background .13s, border-color .13s;
+}
+.cl-app:hover { background: var(--tb-hover); border-color: var(--border-strong, var(--win-border)); }
+.cl-app > span:last-child { min-width: 0; }
+.cl-app-ico {
+  width: 38px; height: 38px;
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--c, #0f6cbd);
+}
+.cl-app-name { display: block; font-size: 13px; font-weight: 600; }
+.cl-app-desc {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--win-sub);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.np, .calc, .paint, .cmd, .tm { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.np, .calc { background: var(--win-bg); color: var(--win-text); }
+
+.np-bar {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--win-border);
+}
+.np-bar button {
+  height: 28px; padding: 0 10px;
+  border: 1px solid transparent; border-radius: 5px;
+  background: transparent; color: inherit;
+  font-size: 12px; cursor: pointer;
+}
+.np-bar button:hover { background: var(--tb-hover); }
+.np-size { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--win-sub); }
+.np-size select {
+  height: 26px; border-radius: 5px;
+  border: 1px solid var(--field-border);
+  background: var(--field-bg); color: inherit; font-size: 11.5px;
+}
+.np-text {
+  flex: 1; min-height: 0;
+  resize: none; border: none; outline: none;
+  padding: 14px 16px;
+  background: transparent; color: inherit;
+  font: 13px/1.7 Consolas, "Cascadia Mono", "Microsoft YaHei", monospace;
+}
+.np-status {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 12px;
+  border-top: 1px solid var(--win-border);
+  font-size: 11px; color: var(--win-sub);
+}
+
+.calc { padding: 12px; gap: 10px; }
+.calc-display { text-align: right; padding: 10px 8px 2px; }
+.calc-expr { min-height: 16px; font-size: 11.5px; color: var(--win-sub); font-variant-numeric: tabular-nums; }
+.calc-num {
+  font-size: 34px; font-weight: 600; line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.calc-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.calc-grid button {
+  border-radius: 6px;
+  border: 1px solid var(--field-border);
+  background: var(--field-bg);
+  color: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.calc-grid button:hover { background: var(--tb-hover); }
+.calc-grid button.fn { font-size: 12.5px; color: var(--win-sub); }
+.calc-grid button.op { color: var(--accent); font-size: 17px; }
+.calc-grid button.eq { background: var(--accent); border-color: transparent; color: var(--on-accent); font-size: 18px; }
+.calc-grid button.eq:hover { filter: brightness(1.06); }
+
+.paint { background: var(--win-bg); color: var(--win-text); }
+.paint-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--win-border);
+}
+.paint-swatches { display: flex; gap: 4px; }
+.paint-swatch {
+  width: 17px; height: 17px; padding: 0;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, .18);
+  cursor: pointer;
+}
+.paint-swatch.active { box-shadow: 0 0 0 2px var(--accent); }
+.paint-bar button {
+  height: 26px; padding: 0 9px;
+  border-radius: 5px;
+  border: 1px solid var(--field-border);
+  background: var(--field-bg); color: inherit;
+  font-size: 11.5px; cursor: pointer;
+}
+.paint-bar button:hover { background: var(--tb-hover); }
+.paint-bar label { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--win-sub); }
+.paint-bar input[type="range"] { width: 72px; }
+.paint-wrap { flex: 1; min-height: 0; position: relative; background: #fff; }
+.paint-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+
+.cmd {
+  background: #0c0c0c; color: #d4d4d4;
+  padding: 8px 10px 10px;
+  font: 12.5px/1.5 Consolas, "Cascadia Mono", monospace;
+}
+.cmd-out { flex: 1; min-height: 0; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+.cmd-line { display: flex; gap: 6px; padding-top: 4px; }
+.cmd-line input {
+  flex: 1; min-width: 0;
+  border: none; outline: none;
+  background: transparent; color: inherit; font: inherit;
+}
+
+.tm { background: var(--win-bg); color: var(--win-text); }
+.tm-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--win-border);
+  font-size: 11.5px; color: var(--win-sub);
+}
+.tm-list { flex: 1; min-height: 0; overflow: auto; padding: 4px 6px 10px; }
+.tm-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; }
+.tm-item:hover { background: var(--tb-hover); }
+.tm-ico {
+  width: 26px; height: 26px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 6px;
+  background: var(--field-bg);
+}
+.tm-ico img, .tm-ico .pk-ico { width: 17px; height: 17px; object-fit: contain; }
+.tm-main { flex: 1; min-width: 0; }
+.tm-name { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tm-sub { margin-top: 2px; font-size: 10.5px; color: var(--win-sub); }
+.tm-end {
+  height: 26px; padding: 0 10px;
+  border-radius: 5px;
+  border: 1px solid var(--field-border);
+  background: var(--field-bg);
+  color: inherit; font-size: 11px;
+  cursor: pointer;
+}
+.tm-end:hover { border-color: #d9534f; color: #d9534f; }
+.tm-end:disabled { opacity: .4; cursor: default; border-color: var(--field-border); color: inherit; }
+
+/* =========================================================
    移动端降级
    ========================================================= */
 body.mobile #wallpaper::before { filter: blur(40px) saturate(1.15); }
@@ -2846,15 +3054,26 @@ body.mobile .window.resizing { box-shadow: none !important; }
       <!-- WiFi/音量/电池 -->
       <button class="tray-btn" id="quickBtn" title="网络/音量/电池">
         <span class="tray-icons">
-          <!-- WiFi（标准扇形） -->
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-               stroke-linejoin="round">
-            <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
-            <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
-            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
-            <line x1="12" y1="20" x2="12.01" y2="20"/>
-          </svg>
+          <!-- WiFi（标准扇形，随系统状态切换） -->
+          <span class="tray-icon-wrap" id="trayWifi">
+            <svg id="trayWifiOn" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
+                 stroke-linejoin="round">
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+              <line x1="12" y1="20" x2="12.01" y2="20"/>
+            </svg>
+            <svg id="trayWifiOff" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
+                 stroke-linejoin="round" hidden>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+              <line x1="12" y1="20" x2="12.01" y2="20"/>
+              <line x1="3.8" y1="3.8" x2="20.2" y2="20.2"/>
+            </svg>
+          </span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                stroke-linejoin="round">
@@ -3073,6 +3292,7 @@ const SITES = [
   { type: 'local',   name: 'site2', url: 'site2.html', icon: 'site2.png', color: '#10b981' },
   { type: 'local',   name: '守禄の收藏夹', url: 'site3.html', icon: 'site3.png', color: '#ec4899' },
   { type: 'local',   name: '工具箱', url: 'site4.html', icon: 'site4.png', color: '#ef4444' },
+  { type: 'apps',    name: '经典应用', icon: 'grid', color: '#2f6f8f' },
 ];
 
 /* ================= 图标库 ================= */
@@ -3112,6 +3332,11 @@ const ICONS = {
   leaf:    '<path d="M11 4a8 8 0 0 1 9 9 8 8 0 0 1-9 9l1.5-7.5L3 20l8.5-5L11 4z"/>',
   moon2:   '<path d="M20.5 13.6A8.5 8.5 0 1 1 10.4 3.5a6.8 6.8 0 0 0 10.1 10.1z"/>',
   a11y:    '<circle cx="12" cy="5.5" r="2"/><path d="M4 9h16M12 9v10l-3 4M12 19l3 4"/>',
+  grid:    '<rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/>',
+  calc:    '<rect x="5" y="3" width="14" height="18" rx="2.2"/><rect x="8" y="6.2" width="8" height="3" rx="1"/><path d="M8.6 12.4h.01M12 12.4h.01M15.4 12.4h.01M8.6 15.6h.01M12 15.6h.01M15.4 15.6h.01M8.6 18.8h.01M12 18.8h.01M15.4 18.8h.01"/>',
+  paint:   '<path d="M12 3a9 9 0 1 0 0 18h1.1a1.7 1.7 0 0 0 .4-3.35 1.7 1.7 0 0 1 .4-3.35H16a5 5 0 0 0 5-5C21 5.9 17 3 12 3Z"/><circle cx="7.6" cy="10" r="1"/><circle cx="10" cy="7.2" r="1"/><circle cx="14" cy="7.2" r="1"/><circle cx="16.8" cy="10" r="1"/>',
+  terminal:'<rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/>',
+  tasks:   '<rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M7.5 9h9M7.5 12.5h9M7.5 16h5"/>',
 };
 
 /* ================= Windows 11 图标包（assets/icons，Public Domain） ================= */
@@ -3196,13 +3421,13 @@ const clockD    = document.querySelector('#clock .d');
 const quickPanel= document.getElementById('quickPanel');
 const calendarPanel = document.getElementById('calendarPanel');
 
-const SLOT_COUNT = 6;
+const SLOT_COUNT = 7;
 const sites = SITES.slice(0, SLOT_COUNT);
 while (sites.length < SLOT_COUNT) {
   sites.push({ name: '', url: '', icon: 'globe', color: '#0078d4' });
 }
 const isEmptySlot = s =>
-  s.type !== 'edge' && s.type !== 'thispc' && s.type !== 'local'
+  s.type !== 'edge' && s.type !== 'thispc' && s.type !== 'local' && s.type !== 'apps'
   && (!s.name || !s.url);
 
 /* ================= 从本地 HTML 提取 <title> ================= */
@@ -3340,6 +3565,7 @@ function openSlot(s, i) {
     return;
   }
   // 本地站点：独立应用窗口，不再借道假 Edge
+  if (s.type === 'apps') return openClassicFolder();
   if (s.type === 'local' || s.url) return createSiteWin(s);
 }
 
@@ -5111,7 +5337,7 @@ function renderIcons() {
     if (isEmptySlot(s)) d.title = `空快捷方式 ${i - 1}　·　在代码 SITES[${i}] 中填写`;
     else if (s.type === 'edge')   d.title = 'Microsoft Edge';
     else if (s.type === 'thispc') d.title = '此电脑';
-    else d.title = `${s.name}\n${s.url}`;
+    else d.title = s.url ? `${s.name}\n${s.url}` : s.name;
 
     d.innerHTML = `
       <div class="dicon-glyph${v.cls ? ' ' + v.cls : ''}" style="--c1:${v.color}">${v.html}</div>
@@ -5238,6 +5464,7 @@ function allAppsEntries() {
     list.push({ name, kind: 'site', site: s, index: i });
   });
   list.push({ name: '设置', kind: 'settings' });
+  CLASSIC_APPS.forEach(app => list.push({ name: app.name, kind: 'app', app }));
   return list;
 }
 
@@ -5266,7 +5493,9 @@ function renderAllApps(kw = '') {
     }
     const v = it.kind === 'settings'
       ? { html: pkImg(PK.settings), cls: 'plain', color: '#44618a', label: '设置' }
-      : slotVisual(it.site, it.index);
+      : it.kind === 'app'
+        ? { html: svgIcon(it.app.icon, 18, 1.8), cls: '', color: it.app.color, label: it.app.name }
+        : slotVisual(it.site, it.index);
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'allapp-item';
@@ -5278,6 +5507,7 @@ function renderAllApps(kw = '') {
     btn.addEventListener('click', () => {
       closeStart();
       if (it.kind === 'settings') openSettings();
+      else if (it.kind === 'app') openClassicApp(it.app.id);
       else openSlot(it.site, it.index);
     });
     wrap.appendChild(btn);
@@ -5323,6 +5553,67 @@ startInput.addEventListener('keydown', e => {
 });
 startMenu.addEventListener('pointerdown', e => e.stopPropagation());
 
+/* =========================================================
+   系统状态（快速设置 / 设置 / 任务栏共享）
+   ========================================================= */
+const OS_STATE_KEY = 'sata-os-state-v1';
+const OS_DEFAULT = { wifi: true, bt: true, plane: false, vpn: false, focus: false, a11y: false, brightness: 100, volume: 60 };
+const OS_STATE = Object.assign({}, OS_DEFAULT);
+try { Object.assign(OS_STATE, JSON.parse(localStorage.getItem(OS_STATE_KEY) || '{}') || {}); } catch (e) { /* 忽略 */ }
+const OS_SUBS = new Set();
+
+function normalizeOSState() {
+  if (OS_STATE.plane) { OS_STATE.wifi = false; OS_STATE.bt = false; }
+  OS_STATE.brightness = Math.min(100, Math.max(20, Math.round(Number(OS_STATE.brightness) || 100)));
+  OS_STATE.volume = Math.min(100, Math.max(0, Math.round(Number(OS_STATE.volume) || 0)));
+}
+
+function saveOSState() {
+  try { localStorage.setItem(OS_STATE_KEY, JSON.stringify(OS_STATE)); } catch (e) { /* 忽略 */ }
+}
+
+function onOSState(fn) {
+  OS_SUBS.add(fn);
+  try { fn(OS_STATE); } catch (e) { /* 忽略 */ }
+  return () => OS_SUBS.delete(fn);
+}
+
+function emitOSState() {
+  saveOSState();
+  OS_SUBS.forEach(fn => { try { fn(OS_STATE); } catch (e) { /* 忽略 */ } });
+}
+
+function setOSState(patch) {
+  const prev = Object.assign({}, OS_STATE);
+  Object.assign(OS_STATE, patch);
+
+  // 飞行模式与无线开关互斥，跟 Windows 一致
+  if (patch.plane === true) { OS_STATE.wifi = false; OS_STATE.bt = false; }
+  if ((patch.wifi === true || patch.bt === true) && OS_STATE.plane) OS_STATE.plane = false;
+
+  normalizeOSState();
+
+  const changed = Object.keys(OS_STATE).some(k => OS_STATE[k] !== prev[k]);
+  if (!changed) return;
+  emitOSState();
+}
+
+function applyOSEffects(s) {
+  const wall = document.getElementById('wallpaper');
+  if (wall) wall.style.filter = `brightness(${0.5 + s.brightness / 200})`;
+}
+
+function syncTrayState(s) {
+  const on = document.getElementById('trayWifiOn');
+  const off = document.getElementById('trayWifiOff');
+  if (on) on.hidden = !s.wifi;
+  if (off) off.hidden = !!s.wifi;
+  const btn = document.getElementById('quickBtn');
+  if (btn) btn.title = `网络 ${s.wifi ? '已连接' : '已断开'} / 音量 ${s.volume}% / 电池 100%`;
+}
+
+normalizeOSState();
+
 /* ================= 快速设置 ================= */
 const QP_ICON = {
   wifi: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true">
@@ -5352,17 +5643,18 @@ const QP_ICON = {
 const QP_CHEV = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5.5 6.5 6.5L9 18.5"/></svg>`;
 
 const quickTiles = [
-  { id: 'wifi',  icon: 'wifi',      active: true,  more: true  },
-  { id: 'bt',    icon: 'bluetooth', active: true,  more: false },
-  { id: 'vpn',   icon: 'shield',    active: false, more: true  },
-  { id: 'plane', icon: 'plane',     active: false, more: false },
-  { id: 'focus', icon: 'focus',     active: false, more: false },
-  { id: 'a11y',  icon: 'a11y',      active: false, more: true  },
+  { id: 'wifi',  icon: 'wifi',      more: true  },
+  { id: 'bt',    icon: 'bluetooth', more: false },
+  { id: 'vpn',   icon: 'shield',    more: true  },
+  { id: 'plane', icon: 'plane',     more: false },
+  { id: 'focus', icon: 'focus',     more: false },
+  { id: 'a11y',  icon: 'a11y',      more: true  },
 ];
 
 function quickTileLabel(t) {
-  if (t.id === 'wifi')  return t.active ? '可用' : '未连接';
-  if (t.id === 'bt')    return t.active ? '已连接' : '未连接';
+  const on = !!OS_STATE[t.id];
+  if (t.id === 'wifi')  return on ? '可用' : '未连接';
+  if (t.id === 'bt')    return on ? '已连接' : '未连接';
   if (t.id === 'vpn')   return 'VPN';
   if (t.id === 'plane') return '飞行模式';
   if (t.id === 'focus') return '专注助手';
@@ -5376,7 +5668,7 @@ function renderQuickTiles() {
   quickTiles.forEach(t => {
     const el = document.createElement('button');
     el.type = 'button';
-    el.className = 'qp-tile' + (t.active ? ' active' : '');
+    el.className = 'qp-tile' + (OS_STATE[t.id] ? ' active' : '');
     el.dataset.tile = t.id;
     el.title = quickTileLabel(t);
     el.innerHTML = `
@@ -5386,31 +5678,21 @@ function renderQuickTiles() {
       </span>
       <span class="qp-tile-label">${quickTileLabel(t)}</span>`;
 
-    el.addEventListener('click', () => {
-      t.active = !t.active;
-
-      // 飞行模式和无线开关互斥，跟 Windows 一致
-      if (t.id === 'plane' && t.active) {
-        quickTiles.forEach(x => { if (x.id === 'wifi' || x.id === 'bt') x.active = false; });
-      }
-      if ((t.id === 'wifi' || t.id === 'bt') && t.active) {
-        const plane = quickTiles.find(x => x.id === 'plane');
-        if (plane) plane.active = false;
-      }
-
-      quickTiles.forEach(x => {
-        const node = wrap.querySelector(`.qp-tile[data-tile="${x.id}"]`);
-        if (!node) return;
-        node.classList.toggle('active', x.active);
-        node.title = quickTileLabel(x);
-        node.querySelector('.qp-tile-label').textContent = quickTileLabel(x);
-      });
-    });
-
+    el.addEventListener('click', () => setOSState({ [t.id]: !OS_STATE[t.id] }));
     wrap.appendChild(el);
   });
 }
 renderQuickTiles();
+
+function syncQuickTiles() {
+  document.querySelectorAll('#qpTiles .qp-tile').forEach(node => {
+    const t = quickTiles.find(x => x.id === node.dataset.tile);
+    if (!t) return;
+    node.classList.toggle('active', !!OS_STATE[t.id]);
+    node.title = quickTileLabel(t);
+    node.querySelector('.qp-tile-label').textContent = quickTileLabel(t);
+  });
+}
 
 function openQuickPanel() {
   quickPanel.classList.add('open');
@@ -5434,15 +5716,16 @@ function setSliderFill(el) {
 
 const brightnessSlider = document.getElementById('brightnessSlider');
 const volumeSlider = document.getElementById('volumeSlider');
-[brightnessSlider, volumeSlider].forEach(el => {
-  setSliderFill(el);
-  el.addEventListener('input', () => setSliderFill(el));
-});
 
-brightnessSlider.addEventListener('input', e => {
-  const v = e.target.value;
-  document.getElementById('wallpaper').style.filter = `brightness(${0.5 + v / 200})`;
-});
+function syncQuickSliders(s) {
+  if (String(brightnessSlider.value) !== String(s.brightness)) brightnessSlider.value = s.brightness;
+  if (String(volumeSlider.value) !== String(s.volume)) volumeSlider.value = s.volume;
+  setSliderFill(brightnessSlider);
+  setSliderFill(volumeSlider);
+}
+
+brightnessSlider.addEventListener('input', e => setOSState({ brightness: Number(e.target.value) }));
+volumeSlider.addEventListener('input', e => setOSState({ volume: Number(e.target.value) }));
 
 document.getElementById('qpEditBtn').addEventListener('click', () => {
   showToast('快速设置暂不支持自定义磁贴');
@@ -5450,6 +5733,15 @@ document.getElementById('qpEditBtn').addEventListener('click', () => {
 document.getElementById('qpSettingsBtn').addEventListener('click', () => {
   closeQuickPanel();
   openSettings();
+});
+
+/* 任何地方改了系统状态，快速设置 / 设置 / 任务栏一起刷新 */
+onOSState(s => {
+  syncQuickTiles();
+  syncQuickSliders(s);
+  syncTrayState(s);
+  applyOSEffects(s);
+  syncSettingsState();
 });
 
 /* ================= 日历面板 ================= */
@@ -5968,6 +6260,596 @@ document.getElementById('shutdownScreen').addEventListener('click', e => {
   location.reload();
 });
 
+/* =========================================================
+   经典应用
+   ========================================================= */
+function sizeWin(w, width, height) {
+  const maxW = Math.max(260, window.innerWidth - 24);
+  const maxH = Math.max(200, window.innerHeight - 90);
+  w.pos.w = Math.min(width, maxW);
+  w.pos.h = Math.min(height, maxH);
+  w.pos.x = Math.max(12, Math.round((window.innerWidth - w.pos.w) / 2));
+  w.pos.y = Math.max(10, Math.round((window.innerHeight - 48 - w.pos.h) / 2));
+  applyWinLayout(w);
+}
+
+const CLASSIC_APPS = [
+  { id: 'notepad', name: '记事本', desc: '纯文本编辑，内容自动保存', icon: 'doc',      color: '#3b6ea5', make: createNotepadWin },
+  { id: 'calc',    name: '计算器', desc: '标准计算器，支持键盘输入', icon: 'calc',     color: '#0f6cbd', make: createCalculatorWin },
+  { id: 'paint',   name: '画图',   desc: '随手涂鸦，可保存为 PNG',   icon: 'paint',    color: '#b3541e', make: createPaintWin },
+  { id: 'cmd',     name: '命令提示符', desc: '经典命令行，支持常用命令', icon: 'terminal', color: '#1d1d1d', make: createCmdWin },
+  { id: 'taskmgr', name: '任务管理器', desc: '查看并结束正在运行的窗口', icon: 'tasks',    color: '#2f6f8f', make: createTaskManagerWin },
+];
+
+function openClassicApp(id) {
+  const app = CLASSIC_APPS.find(a => a.id === id);
+  if (!app) return null;
+  for (const w of wins.values()) {
+    if (w.classicId === id) { focusWin(w.id); return w; }
+  }
+  const w = app.make();
+  if (w) w.classicId = id;
+  return w;
+}
+
+function openClassicFolder() {
+  for (const w of wins.values()) {
+    if (w.classicKind === 'apps') { focusWin(w.id); return w; }
+  }
+  const w = buildWindow({
+    site: { type: 'apps', name: '经典应用', icon: 'grid', color: '#2f6f8f' },
+    title: '经典应用',
+    color: '#2f6f8f',
+    bodyHTML: `<div class="cl-apps">${CLASSIC_APPS.map(a => `
+      <button class="cl-app" type="button" data-classic="${a.id}" style="--c:${a.color}">
+        <span class="cl-app-ico">${svgIcon(a.icon, 20, 1.8)}</span>
+        <span><span class="cl-app-name">${a.name}</span><span class="cl-app-desc">${a.desc}</span></span>
+      </button>`).join('')}</div>`,
+  });
+  sizeWin(w, 620, 460);
+  w.classicKind = 'apps';
+  w.el.addEventListener('click', e => {
+    const btn = e.target.closest('[data-classic]');
+    if (btn) openClassicApp(btn.dataset.classic);
+  });
+  return w;
+}
+
+/* ---------------- 记事本 ---------------- */
+const NOTEPAD_KEY = 'sata-notepad-v1';
+
+function createNotepadWin() {
+  const w = buildWindow({
+    site: { type: 'app', name: '记事本', icon: 'doc', color: '#3b6ea5' },
+    title: '记事本',
+    color: '#3b6ea5',
+    bodyHTML: `<div class="np">
+      <div class="np-bar">
+        <button type="button" data-np="new">新建</button>
+        <button type="button" data-np="save">保存</button>
+        <span class="np-size">字号
+          <select data-np="size">
+            <option value="12">12</option>
+            <option value="13" selected>13</option>
+            <option value="15">15</option>
+            <option value="18">18</option>
+          </select>
+        </span>
+      </div>
+      <textarea class="np-text" spellcheck="false" placeholder="在这里输入内容，会自动保存到本机…"></textarea>
+      <div class="np-status"><span data-np="stat">0 字符</span><span>UTF-8 · 自动保存</span></div>
+    </div>`,
+  });
+  sizeWin(w, 720, 520);
+
+  const ta = w.el.querySelector('.np-text');
+  const stat = w.el.querySelector('[data-np="stat"]');
+
+  try { ta.value = localStorage.getItem(NOTEPAD_KEY) || ''; } catch (e) { /* 忽略 */ }
+
+  const updateStat = () => {
+    stat.textContent = `${ta.value.length} 字符 · ${ta.value.split('\n').length} 行`;
+  };
+  updateStat();
+
+  let saveTimer = 0;
+  ta.addEventListener('input', () => {
+    updateStat();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try { localStorage.setItem(NOTEPAD_KEY, ta.value); } catch (e) { /* 忽略 */ }
+    }, 350);
+  });
+
+  w.el.querySelector('[data-np="new"]').addEventListener('click', () => {
+    ta.value = '';
+    updateStat();
+    ta.focus();
+  });
+  w.el.querySelector('[data-np="save"]').addEventListener('click', () => {
+    try {
+      localStorage.setItem(NOTEPAD_KEY, ta.value);
+      showToast('记事本已保存');
+    } catch (e) {
+      showToast('保存失败');
+    }
+  });
+  w.el.querySelector('[data-np="size"]').addEventListener('change', e => {
+    ta.style.fontSize = e.target.value + 'px';
+  });
+  w.el.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      w.el.querySelector('[data-np="save"]').click();
+    }
+  });
+
+  setTimeout(() => ta.focus(), 80);
+  return w;
+}
+
+/* ---------------- 计算器 ---------------- */
+function createCalculatorWin() {
+  const keys = [
+    ['%', 'fn'], ['CE', 'fn'], ['C', 'fn'], ['⌫', 'fn'],
+    ['1/x', 'fn'], ['x²', 'fn'], ['√', 'fn'], ['÷', 'op'],
+    ['7', ''], ['8', ''], ['9', ''], ['×', 'op'],
+    ['4', ''], ['5', ''], ['6', ''], ['−', 'op'],
+    ['1', ''], ['2', ''], ['3', ''], ['+', 'op'],
+    ['+/−', ''], ['0', ''], ['.', ''], ['=', 'eq'],
+  ];
+  const w = buildWindow({
+    site: { type: 'app', name: '计算器', icon: 'calc', color: '#0f6cbd' },
+    title: '计算器',
+    color: '#0f6cbd',
+    bodyHTML: `<div class="calc">
+      <div class="calc-display"><div class="calc-expr"></div><div class="calc-num">0</div></div>
+      <div class="calc-grid">${keys.map(([k, c]) =>
+        `<button type="button" class="${c}" data-key="${k}">${k}</button>`).join('')}</div>
+    </div>`,
+  });
+  sizeWin(w, 340, 520);
+
+  const numEl = w.el.querySelector('.calc-num');
+  const exprEl = w.el.querySelector('.calc-expr');
+  let cur = '0';
+  let acc = null;
+  let op = '';
+  let waiting = false;
+
+  const fmt = n => {
+    if (!isFinite(n)) return '错误';
+    const r = Math.round(n * 1e10) / 1e10;
+    if (Math.abs(r) >= 1e12) return r.toExponential(6);
+    return String(r);
+  };
+  const render = () => { numEl.textContent = cur; };
+  const calc = (a, b, o) => o === '+' ? a + b : o === '-' ? a - b : o === '*' ? a * b : (b === 0 ? NaN : a / b);
+  const opLabel = o => o.replace('*', '×').replace('/', '÷');
+
+  function reset() {
+    cur = '0'; acc = null; op = ''; waiting = false;
+    exprEl.textContent = '';
+    render();
+  }
+
+  function digit(d) {
+    if (waiting) {
+      cur = d === '.' ? '0.' : d;
+      waiting = false;
+    } else if (d === '.') {
+      if (!cur.includes('.')) cur += '.';
+    } else {
+      cur = cur === '0' ? d : (cur.length < 16 ? cur + d : cur);
+    }
+    render();
+  }
+
+  function operator(o) {
+    const v = parseFloat(cur);
+    if (op && !waiting) {
+      const r = calc(acc, v, op);
+      if (!isFinite(r)) { cur = '错误'; exprEl.textContent = ''; acc = null; op = ''; waiting = false; render(); return; }
+      acc = r;
+      cur = fmt(r);
+    } else {
+      acc = v;
+    }
+    op = o;
+    waiting = true;
+    exprEl.textContent = `${fmt(acc)} ${opLabel(o)}`;
+    render();
+  }
+
+  function equals() {
+    if (!op) return;
+    const v = parseFloat(cur);
+    const r = calc(acc, v, op);
+    exprEl.textContent = `${fmt(acc)} ${opLabel(op)} ${fmt(v)} =`;
+    cur = fmt(r);
+    acc = null;
+    op = '';
+    waiting = true;
+    render();
+  }
+
+  function unary(kind) {
+    const v = parseFloat(cur);
+    let r = v;
+    if (kind === 'sqrt') r = Math.sqrt(v);
+    if (kind === 'sqr') r = v * v;
+    if (kind === 'inv') r = v === 0 ? NaN : 1 / v;
+    if (kind === 'pct') r = v / 100;
+    cur = fmt(r);
+    waiting = true;
+    render();
+  }
+
+  function press(k) {
+    if (/^[0-9.]$/.test(k)) return digit(k);
+    if (k === 'C') return reset();
+    if (k === 'CE') { cur = '0'; waiting = false; render(); return; }
+    if (k === '⌫') { cur = cur.length > 1 && cur !== '错误' ? cur.slice(0, -1) : '0'; render(); return; }
+    if (k === '+/−') {
+      if (cur !== '0' && cur !== '错误') cur = cur.charAt(0) === '-' ? cur.slice(1) : '-' + cur;
+      render();
+      return;
+    }
+    if (k === '√') return unary('sqrt');
+    if (k === 'x²') return unary('sqr');
+    if (k === '1/x') return unary('inv');
+    if (k === '%') return unary('pct');
+    if (k === '=') return equals();
+    const map = { '÷': '/', '×': '*', '−': '-' };
+    operator(map[k] || k);
+  }
+
+  w.el.querySelector('.calc-grid').addEventListener('click', e => {
+    const b = e.target.closest('button[data-key]');
+    if (b) press(b.dataset.key);
+  });
+
+  w.el.addEventListener('keydown', e => {
+    const k = e.key;
+    if (/^[0-9.]$/.test(k) || k === '+' || k === '-' || k === '*' || k === '/') {
+      e.preventDefault();
+      press(k);
+    } else if (k === 'Enter' || k === '=') {
+      e.preventDefault();
+      press('=');
+    } else if (k === 'Backspace') {
+      e.preventDefault();
+      press('⌫');
+    } else if (k === 'Escape') {
+      press('C');
+    } else if (k === '%') {
+      press('%');
+    }
+  });
+
+  return w;
+}
+
+/* ---------------- 画图 ---------------- */
+function createPaintWin() {
+  const colors = ['#000000', '#7f7f7f', '#c00000', '#ff0000', '#ff9900', '#ffe600', '#00b050', '#00b0f0', '#0070c0', '#7030a0'];
+  const w = buildWindow({
+    site: { type: 'app', name: '画图', icon: 'paint', color: '#b3541e' },
+    title: '画图',
+    color: '#b3541e',
+    bodyHTML: `<div class="paint">
+      <div class="paint-bar">
+        <div class="paint-swatches">${colors.map((c, i) =>
+          `<button class="paint-swatch${i === 0 ? ' active' : ''}" type="button" data-color="${c}" style="background:${c}" title="${c}"></button>`).join('')}</div>
+        <label>笔刷 <input type="range" min="1" max="26" value="4" data-paint-size></label>
+        <button type="button" data-paint="eraser">橡皮</button>
+        <button type="button" data-paint="clear">清空</button>
+        <button type="button" data-paint="save">保存 PNG</button>
+      </div>
+      <div class="paint-wrap"><canvas></canvas></div>
+    </div>`,
+  });
+  sizeWin(w, 860, 600);
+
+  const canvas = w.el.querySelector('canvas');
+  const ctx = canvas.getContext('2d');
+  const wrap = w.el.querySelector('.paint-wrap');
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  let color = colors[0];
+  let size = 4;
+  let eraser = false;
+  let drawing = false;
+  let last = null;
+
+  function clearBoard() {
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
+  }
+
+  function fit() {
+    const r = wrap.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    canvas.width = Math.round(r.width * dpr);
+    canvas.height = Math.round(r.height * dpr);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    clearBoard();
+  }
+
+  function pointOf(e) {
+    const r = canvas.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * canvas.width / r.width,
+      y: (e.clientY - r.top) * canvas.height / r.height,
+    };
+  }
+
+  canvas.addEventListener('pointerdown', e => {
+    drawing = true;
+    canvas.setPointerCapture(e.pointerId);
+    last = pointOf(e);
+    ctx.beginPath();
+    ctx.arc(last.x, last.y, size * dpr / 2, 0, Math.PI * 2);
+    ctx.fillStyle = eraser ? '#ffffff' : color;
+    ctx.fill();
+  });
+
+  canvas.addEventListener('pointermove', e => {
+    if (!drawing) return;
+    const p = pointOf(e);
+    ctx.strokeStyle = eraser ? '#ffffff' : color;
+    ctx.lineWidth = size * dpr;
+    ctx.beginPath();
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    last = p;
+  });
+
+  const stop = () => { drawing = false; last = null; };
+  canvas.addEventListener('pointerup', stop);
+  canvas.addEventListener('pointercancel', stop);
+
+  w.el.querySelector('.paint-swatches').addEventListener('click', e => {
+    const sw = e.target.closest('[data-color]');
+    if (!sw) return;
+    color = sw.dataset.color;
+    eraser = false;
+    w.el.querySelectorAll('.paint-swatch').forEach(el => el.classList.toggle('active', el === sw));
+  });
+
+  w.el.querySelector('[data-paint-size]').addEventListener('input', e => {
+    size = Number(e.target.value) || 4;
+  });
+
+  w.el.querySelector('[data-paint="eraser"]').addEventListener('click', () => {
+    eraser = !eraser;
+    showToast(eraser ? '橡皮已启用' : '已切回画笔');
+  });
+  w.el.querySelector('[data-paint="clear"]').addEventListener('click', clearBoard);
+  w.el.querySelector('[data-paint="save"]').addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'painting.png';
+    a.click();
+    showToast('已导出 painting.png');
+  });
+
+  setTimeout(fit, 60);
+  return w;
+}
+
+/* ---------------- 命令提示符 ---------------- */
+function createCmdWin() {
+  const w = buildWindow({
+    site: { type: 'app', name: '命令提示符', icon: 'terminal', color: '#1d1d1d' },
+    title: '命令提示符',
+    color: '#1d1d1d',
+    bodyHTML: `<div class="cmd">
+      <div class="cmd-out"></div>
+      <div class="cmd-line"><span class="cmd-prompt"></span><input class="cmd-in" autocomplete="off" spellcheck="false" aria-label="命令输入"></div>
+    </div>`,
+  });
+  sizeWin(w, 760, 460);
+
+  const out = w.el.querySelector('.cmd-out');
+  const input = w.el.querySelector('.cmd-in');
+  const promptEl = w.el.querySelector('.cmd-prompt');
+  let cwd = 'C:\\Users\\Admin';
+
+  const setPrompt = () => { promptEl.textContent = cwd + '>'; };
+  setPrompt();
+
+  function print(text = '') {
+    out.appendChild(document.createTextNode(text + '\n'));
+    out.scrollTop = out.scrollHeight;
+  }
+
+  print('Microsoft Windows [版本 10.0.26100.2314]');
+  print('(c) Microsoft Corporation。保留所有权利。');
+  print('');
+  print('输入 help 查看可用命令。');
+  print('');
+
+  const DIRS = {
+    'C:\\Users\\Admin': [
+      ['<DIR>', 'Desktop'], ['<DIR>', 'Documents'], ['<DIR>', 'Downloads'],
+      ['<DIR>', 'Pictures'], ['0', 'note.txt'], ['0', 'readme.md'],
+    ],
+    'C:\\': [['<DIR>', 'Program Files'], ['<DIR>', 'Users'], ['<DIR>', 'Windows']],
+  };
+
+  const run = raw => {
+    const line = raw.trim();
+    if (!line) return;
+    print(cwd + '>' + line);
+    const [cmdRaw, ...args] = line.split(/\s+/);
+    const cmd = cmdRaw.toLowerCase();
+    const arg = args.join(' ');
+
+    switch (cmd) {
+      case 'help':
+        print('可用命令：');
+        print('  dir       列出当前目录内容');
+        print('  cd        切换目录（cd .. / cd \\）');
+        print('  cls       清屏');
+        print('  echo      输出文本');
+        print('  date      显示当前日期');
+        print('  time      显示当前时间');
+        print('  ver       显示 Windows 版本');
+        print('  whoami    显示当前用户');
+        print('  ipconfig  显示网络配置');
+        print('  notepad / calc / paint / taskmgr  启动经典应用');
+        print('  exit      关闭命令提示符');
+        break;
+      case 'dir': {
+        print(' 驱动器 C 中的卷是 Windows');
+        print(' 卷的序列号是 8A3C-19F2');
+        print('');
+        print(' ' + cwd + ' 的目录');
+        print('');
+        (DIRS[cwd] || []).forEach(([size, name]) => {
+          print(`2026/11/03  20:05    ${String(size).padStart(9)}  ${name}`);
+        });
+        print('');
+        break;
+      }
+      case 'cd': {
+        if (!arg) { cwd = 'C:\\Users\\Admin'; }
+        else if (arg === '..') {
+          const parts = cwd.split('\\');
+          cwd = parts.length > 2 ? parts.slice(0, -1).join('\\') : 'C:\\';
+          if (cwd.length === 2) cwd += '\\';
+        } else if (arg === '\\' || arg === '/') {
+          cwd = 'C:\\';
+        } else if (/^[a-zA-Z]:/.test(arg)) {
+          cwd = arg;
+        } else {
+          cwd = (cwd.endsWith('\\') ? cwd : cwd + '\\') + arg;
+        }
+        setPrompt();
+        break;
+      }
+      case 'cls':
+        out.replaceChildren();
+        break;
+      case 'echo':
+        print(arg);
+        break;
+      case 'date':
+        print(new Date().toLocaleDateString('zh-CN'));
+        break;
+      case 'time':
+        print(new Date().toLocaleTimeString('zh-CN'));
+        break;
+      case 'ver':
+        print('Microsoft Windows [版本 10.0.26100.2314]');
+        break;
+      case 'whoami':
+        print('win11-desktop\\admin');
+        break;
+      case 'ipconfig':
+        print('Windows IP 配置');
+        print('');
+        print('无线局域网适配器 WLAN:');
+        print('   IPv4 地址 . . . . . . . . . . . . : 192.168.1.23');
+        print('   子网掩码  . . . . . . . . . . . . : 255.255.255.0');
+        print('   默认网关. . . . . . . . . . . . . : 192.168.1.1');
+        break;
+      case 'notepad': openClassicApp('notepad'); print('正在启动记事本…'); break;
+      case 'calc': openClassicApp('calc'); print('正在启动计算器…'); break;
+      case 'paint': openClassicApp('paint'); print('正在启动画图…'); break;
+      case 'taskmgr': openClassicApp('taskmgr'); print('正在启动任务管理器…'); break;
+      case 'exit': closeWin(w.id); return;
+      case 'clear': out.replaceChildren(); break;
+      default:
+        print(`'${cmdRaw}' 不是内部或外部命令，也不是可运行的程序`);
+        print('或批处理文件。');
+    }
+    print('');
+  };
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const v = input.value;
+      input.value = '';
+      run(v);
+    }
+  });
+  w.el.addEventListener('click', e => {
+    if (!e.target.closest('a,button')) input.focus();
+  });
+  setTimeout(() => input.focus(), 80);
+  return w;
+}
+
+/* ---------------- 任务管理器 ---------------- */
+function createTaskManagerWin() {
+  const w = buildWindow({
+    site: { type: 'app', name: '任务管理器', icon: 'tasks', color: '#2f6f8f' },
+    title: '任务管理器',
+    color: '#2f6f8f',
+    bodyHTML: `<div class="tm">
+      <div class="tm-head"><span data-tm-count>进程</span><span>CPU 4% · 内存 38%</span></div>
+      <div class="tm-list"></div>
+    </div>`,
+  });
+  sizeWin(w, 660, 520);
+
+  const list = w.el.querySelector('.tm-list');
+  const countEl = w.el.querySelector('[data-tm-count]');
+
+  function render() {
+    list.replaceChildren();
+    const processes = [];
+    wins.forEach(x => {
+      if (x.id === w.id) return;
+      const titleEl = x.el.querySelector('.tb-title');
+      const site = x.site || {};
+      const v = smallGlyphHTML(site, 16, 2);
+      processes.push({
+        id: x.id,
+        name: titleEl ? titleEl.textContent.trim() : '窗口',
+        sub: site.type === 'site' ? '应用' : site.type === 'thispc' ? '文件资源管理器' : '窗口',
+        icon: `<span class="tm-ico ${v.cls || ''}">${v.html}</span>`,
+      });
+    });
+
+    processes.push(
+      { id: null, name: 'Windows 资源管理器', sub: '系统进程', icon: `<span class="tm-ico">${svgIcon('folder', 16, 1.8)}</span>` },
+      { id: null, name: '桌面窗口管理器', sub: '系统进程', icon: `<span class="tm-ico">${svgIcon('monitor', 16, 1.8)}</span>` }
+    );
+
+    countEl.textContent = `进程 (${processes.length})`;
+
+    processes.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'tm-item';
+      row.innerHTML = `${p.icon}
+        <div class="tm-main"><div class="tm-name">${p.name}</div><div class="tm-sub">${p.sub}</div></div>
+        <button class="tm-end" type="button"${p.id ? '' : ' disabled'}>结束任务</button>`;
+      const btn = row.querySelector('.tm-end');
+      if (p.id) {
+        btn.addEventListener('click', () => {
+          closeWin(p.id);
+          setTimeout(render, 260);
+        });
+      }
+      list.appendChild(row);
+    });
+  }
+
+  render();
+  const timer = setInterval(() => {
+    if (!w.el.isConnected) { clearInterval(timer); return; }
+    render();
+  }, 1500);
+
+  return w;
+}
+
 /* ================= 设置（Win11 风格） ================= */
 const SETTINGS_SITE = { type: 'settings', name: '设置', icon: 'settings', color: '#0078d4' };
 const ST_PERSON = '<img src="./favicon.ico" alt="" style="width:100%;height:100%;object-fit:cover;display:block">';
@@ -6011,7 +6893,21 @@ const ST_PAGES = {
   system: () => `
     <div class="st-card">
       ${stRow('monitor', '显示', '监视器、亮度、夜间模式、显示配置文件')}
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('sun', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">亮度</div>
+          <input class="st-slider" type="range" min="20" max="100" step="1" value="${OS_STATE.brightness}" data-os="brightness" aria-label="亮度">
+        </div>
+      </div>
       ${stRow('note', '声音', '音量、输出、输入、声音设备')}
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('note', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">音量</div>
+          <input class="st-slider" type="range" min="0" max="100" step="1" value="${OS_STATE.volume}" data-os="volume" aria-label="音量">
+        </div>
+      </div>
       ${stRow('info', '通知', '来自应用和系统的提醒')}
       ${stRow('power', '电源和电池', '睡眠、电池使用情况、快速启动')}
       ${stRow('layers', '多任务', '贴靠窗口、桌面、任务切换')}
@@ -6087,25 +6983,41 @@ const ST_PAGES = {
         <div class="st-row-icon">${svgIcon('globe', 17, 1.8)}</div>
         <div class="st-row-main">
           <div class="st-row-title">WLAN</div>
-          <div class="st-row-sub">Home-5G · 已连接，安全</div>
+          <div class="st-row-sub">${OS_STATE.wifi ? 'Home-5G · 已连接，安全' : '已关闭'}</div>
         </div>
-        <button class="st-toggle on" data-toggle="wlan" aria-label="WLAN"></button>
+        <button class="st-toggle${OS_STATE.wifi ? ' on' : ''}" data-toggle="wifi" aria-label="WLAN"></button>
       </div>
       <div class="st-row">
         <div class="st-row-icon">${svgIcon('net', 17, 1.8)}</div>
         <div class="st-row-main">
           <div class="st-row-title">飞行模式</div>
-          <div class="st-row-sub">关闭无线通信</div>
+          <div class="st-row-sub">${OS_STATE.plane ? '已开启，无线通信已关闭' : '关闭无线通信'}</div>
         </div>
-        <button class="st-toggle" data-toggle="airplane" aria-label="飞行模式"></button>
+        <button class="st-toggle${OS_STATE.plane ? ' on' : ''}" data-toggle="plane" aria-label="飞行模式"></button>
       </div>
     </div>
     <div class="st-section">网络属性</div>
     <div class="st-card">
-      ${stRow('globe', '名称', 'Home-5G', '')}
-      ${stRow('net', 'IPv4 地址', '192.168.1.23', '')}
-      ${stRow('net', 'DNS 服务器', '192.168.1.1', '')}
-      ${stRow('layers', '网络配置文件', '专用网络', '')}
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('globe', 17, 1.8)}</div>
+        <div class="st-row-main"><div class="st-row-title">名称</div></div>
+        <span class="st-row-val" data-net="name">${OS_STATE.wifi ? 'Home-5G' : '未连接'}</span>
+      </div>
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('net', 17, 1.8)}</div>
+        <div class="st-row-main"><div class="st-row-title">IPv4 地址</div></div>
+        <span class="st-row-val" data-net="ip">${OS_STATE.wifi ? '192.168.1.23' : '—'}</span>
+      </div>
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('net', 17, 1.8)}</div>
+        <div class="st-row-main"><div class="st-row-title">DNS 服务器</div></div>
+        <span class="st-row-val" data-net="dns">${OS_STATE.wifi ? '192.168.1.1' : '—'}</span>
+      </div>
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('layers', 17, 1.8)}</div>
+        <div class="st-row-main"><div class="st-row-title">网络配置文件</div></div>
+        <span class="st-row-val" data-net="profile">${OS_STATE.wifi ? '专用网络' : '—'}</span>
+      </div>
     </div>`,
 
   accounts: () => `
@@ -6138,8 +7050,34 @@ const ST_PAGES = {
       </div>
     </div>`,
 
-  bluetooth: () => stGeneric('蓝牙和其他设备'),
-  apps: () => stGeneric('应用'),
+  bluetooth: () => `
+    <div class="st-card">
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('bluetooth', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">蓝牙</div>
+          <div class="st-row-sub">${OS_STATE.bt ? '已开启 · 未连接设备' : '已关闭'}</div>
+        </div>
+        <button class="st-toggle${OS_STATE.bt ? ' on' : ''}" data-toggle="bt" aria-label="蓝牙"></button>
+      </div>
+    </div>
+    <div class="st-section">设备</div>
+    <div class="st-card">
+      ${stRow('bluetooth', '未发现设备', OS_STATE.bt ? '正在搜索附近的蓝牙设备…' : '打开蓝牙后搜索附近的设备', '')}
+    </div>`,
+  apps: () => `
+    <div class="st-section">经典应用</div>
+    <div class="st-card">
+      ${CLASSIC_APPS.map(a => `
+        <div class="st-row">
+          <div class="st-row-icon">${svgIcon(a.icon, 17, 1.8)}</div>
+          <div class="st-row-main">
+            <div class="st-row-title">${a.name}</div>
+            <div class="st-row-sub">${a.desc}</div>
+          </div>
+          <button class="st-btn" type="button" data-open-app="${a.id}">打开</button>
+        </div>`).join('')}
+    </div>`,
   time: () => stGeneric('时间和语言'),
   gaming: () => stGeneric('游戏'),
   accessibility: () => stGeneric('辅助功能'),
@@ -6155,6 +7093,40 @@ function openSettings(page = 'system') {
     }
   }
   createSettingsWin(undefined, page);
+}
+
+function syncSettingsState() {
+  document.querySelectorAll('.st-toggle[data-toggle]').forEach(el => {
+    const key = el.dataset.toggle;
+    if (!(key in OS_STATE)) return;
+    el.classList.toggle('on', !!OS_STATE[key]);
+    const sub = el.closest('.st-row') && el.closest('.st-row').querySelector('.st-row-sub');
+    if (!sub) return;
+    if (key === 'wifi') sub.textContent = OS_STATE.wifi ? 'Home-5G · 已连接，安全' : '已关闭';
+    if (key === 'plane') sub.textContent = OS_STATE.plane ? '已开启，无线通信已关闭' : '关闭无线通信';
+    if (key === 'bt') sub.textContent = OS_STATE.bt ? '已开启 · 未连接设备' : '已关闭';
+  });
+
+  document.querySelectorAll('.st-slider[data-os]').forEach(el => {
+    const key = el.dataset.os;
+    if (!(key in OS_STATE)) return;
+    if (String(el.value) !== String(OS_STATE[key])) el.value = OS_STATE[key];
+    const min = Number(el.min) || 0;
+    const max = Number(el.max) || 100;
+    const pct = max > min ? ((OS_STATE[key] - min) / (max - min)) * 100 : 0;
+    el.style.setProperty('--val', pct + '%');
+  });
+
+  document.querySelectorAll('[data-net]').forEach(el => {
+    const key = el.dataset.net;
+    const map = {
+      name: OS_STATE.wifi ? 'Home-5G' : '未连接',
+      ip: OS_STATE.wifi ? '192.168.1.23' : '—',
+      dns: OS_STATE.wifi ? '192.168.1.1' : '—',
+      profile: OS_STATE.wifi ? '专用网络' : '—',
+    };
+    if (key in map) el.textContent = map[key];
+  });
 }
 
 function createSettingsWin(site, initialPage = 'system') {
@@ -6211,6 +7183,7 @@ function createSettingsWin(site, initialPage = 'system') {
       el.classList.toggle('active', el.dataset.page === id);
     });
     body.scrollTop = 0;
+    syncSettingsState();
   }
 
   nav.addEventListener('click', e => {
@@ -6232,8 +7205,18 @@ function createSettingsWin(site, initialPage = 'system') {
       applyWallpaper(wallCard.dataset.wall);
       return;
     }
+    const openApp = e.target.closest('[data-open-app]');
+    if (openApp) {
+      openClassicApp(openApp.dataset.openApp);
+      return;
+    }
     const toggle = e.target.closest('.st-toggle');
-    if (toggle) { toggle.classList.toggle('on'); return; }
+    if (toggle) {
+      const key = toggle.dataset.toggle;
+      if (key in OS_STATE) setOSState({ [key]: !OS_STATE[key] });
+      else toggle.classList.toggle('on');
+      return;
+    }
     const upd = e.target.closest('[data-update]');
     if (upd) {
       upd.disabled = true;
@@ -6244,6 +7227,15 @@ function createSettingsWin(site, initialPage = 'system') {
         upd.textContent = old;
         showToast('Windows 已是最新版本');
       }, 1200);
+    }
+  });
+
+  body.addEventListener('input', e => {
+    const slider = e.target.closest('.st-slider[data-os]');
+    if (!slider) return;
+    const key = slider.dataset.os;
+    if (key === 'brightness' || key === 'volume') {
+      setOSState({ [key]: Number(slider.value) });
     }
   });
 
