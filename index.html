@@ -1594,7 +1594,7 @@ html.dark .qp-ibtn:hover { background: rgba(255, 255, 255, .09); }
 
 .cal-header { margin-bottom: 16px; }
 .cal-big-date {
-  font-size: 24px;
+  font-size: clamp(20px, 4.5vw, 24px);
   font-weight: 600;
   margin-bottom: 4px;
 }
@@ -3113,7 +3113,7 @@ body.mobile .window.resizing { box-shadow: none !important; }
   .sm-recommend { grid-template-columns: 1fr; }
   #quickPanel, #calendarPanel { right: 8px; bottom: 74px; max-height: calc(100vh - 98px); }
   #quickPanel { width: min(392px, calc(100vw - 16px)); }
-  #calendarPanel { width: calc(100vw - 16px); }
+  #calendarPanel { width: min(360px, calc(100vw - 16px)); }
   .exp-sidebar { display: none; }
   .edge-tiles { grid-template-columns: repeat(2, 88px); }
   .edge-tab { min-width: 90px; padding: 0 6px 0 10px; }
@@ -3138,6 +3138,7 @@ body.mobile .window.resizing { box-shadow: none !important; }
   #clock .t { font-size: 11px; }
   #clock .d { font-size: 10px; }
   #quickPanel, #calendarPanel { bottom: 66px; max-height: calc(100vh - 88px); }
+  #calendarPanel { width: calc(100vw - 16px); padding: 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3655,6 +3656,11 @@ const ICONS = {
   disk:    '<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.9" fill="currentColor"/>',
   gpu:     '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 10h4M14 14h4"/>',
   pause:   '<circle cx="12" cy="12" r="8.5"/><path d="M10 9v6M14 9v6"/>',
+  shield:  '<path d="M12 2.6 4.8 5.6v5.9c0 4.65 3.05 8.85 7.2 10.05 4.15-1.2 7.2-5.4 7.2-10.05V5.6L12 2.6Z"/><path d="m9 11.9 2.1 2.1 4-4.1"/>',
+  camera:  '<path d="M4 8h3l1.5-2h7L17 8h3a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 20 19H4a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 4 8Z"/><circle cx="12" cy="13" r="3.5"/>',
+  mic:     '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>',
+  location:'<path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
+  bell:    '<path d="M18 16H6l1.5-2.2V9a4.5 4.5 0 0 1 9 0v4.8L18 16Z"/><path d="M10 19a2 2 0 0 0 4 0"/>',
 };
 
 /* ================= Windows 11 图标包（assets/icons，Public Domain） ================= */
@@ -6022,6 +6028,20 @@ function applyMotionPrefs() {
 }
 applyMotionPrefs();
 
+const PREF_KEY = 'sata-prefs-v1';
+const PREFS = (() => {
+  try { return JSON.parse(localStorage.getItem(PREF_KEY) || '{}') || {}; } catch (e) { return {}; }
+})();
+
+function getPref(key, def = true) {
+  return key in PREFS ? !!PREFS[key] : def;
+}
+
+function setPref(key, value) {
+  PREFS[key] = !!value;
+  try { localStorage.setItem(PREF_KEY, JSON.stringify(PREFS)); } catch (e) { /* 忽略 */ }
+}
+
 /* ================= 快速设置 ================= */
 const QP_ICON = {
   wifi: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true">
@@ -7187,7 +7207,7 @@ function createTaskManagerWin() {
     site: { type: 'app', name: '任务管理器', icon: 'tasks', png: './assets/icons/app-taskmgr.png', color: '#2f6f8f' },
     title: '任务管理器',
     color: '#2f6f8f',
-    bodyHTML: `<div class="tm2">
+    bodyHTML: `<div class="tm2 collapsed">
       <nav class="tm2-rail">
         <button class="tm2-rail-btn tm2-burger" type="button" data-tab="menu" title="折叠 / 展开导航">${svgIcon('menu', 16, 2)}</button>
         <div class="tm2-rail-sep"></div>
@@ -7270,6 +7290,7 @@ function createTaskManagerWin() {
   let perfTimer = 0;
   let perfSel = 'cpu';
   const PERF = { cpu: [], mem: [], disk: [], disk2: [], net: [], gpu: [] };
+  const userStats = { cpu: 1.8, mem: 168, disk: 0.1, net: 0.2 };
   const startupOff = new Set((() => {
     try { return JSON.parse(localStorage.getItem('sata-startup-off') || '[]') || []; } catch (e) { return []; }
   })());
@@ -7733,12 +7754,29 @@ function createTaskManagerWin() {
       <div class="tm2-tbl-row" style="grid-template-columns:${cols}">
         <div class="cell-name"><span class="tm2-avatar" style="width:24px;height:24px;font-size:11px">A</span><span class="tm2-name">Admin</span></div>
         <div>正在运行</div>
-        <div>2%</div>
-        <div>156 MB</div>
-        <div>0 MB/秒</div>
-        <div>0 Mbps</div>
+        <div data-user="cpu">${userStats.cpu.toFixed(1)}%</div>
+        <div data-user="mem">${Math.round(userStats.mem)} MB</div>
+        <div data-user="disk">${userStats.disk.toFixed(1)} MB/秒</div>
+        <div data-user="net">${userStats.net.toFixed(1)} Mbps</div>
       </div>
     </div>`;
+    updateUsersValues();
+  }
+
+  function updateUsersValues() {
+    const jitter = (v, range) => Math.max(0, v + (Math.random() - 0.5) * range);
+    userStats.cpu = jitter(userStats.cpu, 1.8);
+    userStats.mem = jitter(userStats.mem, 30);
+    userStats.disk = jitter(userStats.disk, 0.5);
+    userStats.net = jitter(userStats.net, 0.6);
+    const set = (key, text) => {
+      const el = content.querySelector(`[data-user="${key}"]`);
+      if (el) el.textContent = text;
+    };
+    set('cpu', userStats.cpu.toFixed(1) + '%');
+    set('mem', Math.round(userStats.mem) + ' MB');
+    set('disk', userStats.disk.toFixed(1) + ' MB/秒');
+    set('net', userStats.net.toFixed(1) + ' Mbps');
   }
 
   function renderServices() {
@@ -7878,6 +7916,7 @@ function createTaskManagerWin() {
       closeCtx();
       return;
     }
+    if (activeTab === 'users') { updateUsersValues(); return; }
     if (activeTab !== 'processes' || ctxEl) return;
     const sig = [...wins.keys()].join(',');
     if (sig !== lastSig) renderProcesses();
@@ -8163,7 +8202,38 @@ const ST_PAGES = {
       ${stRow('note', 'Windows 显示语言', '中文（简体，中国）', '')}
       ${stRow('clock', '时区', '(UTC+08:00) 北京，重庆，香港特别行政区，乌鲁木齐', '')}
     </div>`,
-  gaming: () => stGeneric('游戏'),
+  gaming: () => `
+    <div class="st-card">
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('film', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">游戏模式</div>
+          <div class="st-row-sub">优化游戏体验，减少后台干扰</div>
+        </div>
+        <button class="st-toggle${getPref('gameMode', true) ? ' on' : ''}" type="button" data-pref="gameMode" aria-label="游戏模式"></button>
+      </div>
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('monitor', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">Xbox Game Bar</div>
+          <div class="st-row-sub">使用 Win + G 打开游戏栏</div>
+        </div>
+        <button class="st-toggle${getPref('gameBar', true) ? ' on' : ''}" type="button" data-pref="gameBar" aria-label="Xbox Game Bar"></button>
+      </div>
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('gallery', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">捕获</div>
+          <div class="st-row-sub">录制游戏片段和截图</div>
+        </div>
+        <button class="st-toggle${getPref('gameCapture', true) ? ' on' : ''}" type="button" data-pref="gameCapture" aria-label="捕获"></button>
+      </div>
+    </div>
+    <div class="st-section">相关设置</div>
+    <div class="st-card">
+      ${stRow('folder', '捕获文件夹', 'C:\\Users\\Admin\\Videos\\Captures', '')}
+      ${stRow('film', '游戏服务', '已安装 · 版本 24.10', '')}
+    </div>`,
   accessibility: () => `
     <div class="st-card">
       <div class="st-row">
@@ -8189,7 +8259,50 @@ const ST_PAGES = {
       ${stRow('monitor', '高对比度', '当前未启用', '')}
       ${stRow('a11y', '讲述人', '当前未启用', '')}
     </div>`,
-  privacy: () => stGeneric('隐私和安全性'),
+  privacy: () => `
+    <div class="st-section">安全性</div>
+    <div class="st-card">
+      ${stRow('shield', 'Windows 安全中心', '病毒和威胁防护、防火墙和网络保护')}
+      ${stRow('lock', '设备加密', '当前设备未启用 BitLocker', '')}
+    </div>
+    <div class="st-section">隐私</div>
+    <div class="st-card">
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('location', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">位置服务</div>
+          <div class="st-row-sub">允许应用访问你的位置</div>
+        </div>
+        <button class="st-toggle${getPref('privacyLocation', true) ? ' on' : ''}" type="button" data-pref="privacyLocation" aria-label="位置服务"></button>
+      </div>
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('camera', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">相机</div>
+          <div class="st-row-sub">允许应用使用相机</div>
+        </div>
+        <button class="st-toggle${getPref('privacyCamera', true) ? ' on' : ''}" type="button" data-pref="privacyCamera" aria-label="相机"></button>
+      </div>
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('mic', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">麦克风</div>
+          <div class="st-row-sub">允许应用使用麦克风</div>
+        </div>
+        <button class="st-toggle${getPref('privacyMic', true) ? ' on' : ''}" type="button" data-pref="privacyMic" aria-label="麦克风"></button>
+      </div>
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('bell', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">通知</div>
+          <div class="st-row-sub">允许应用发送通知</div>
+        </div>
+        <button class="st-toggle${getPref('privacyNotif', true) ? ' on' : ''}" type="button" data-pref="privacyNotif" aria-label="通知"></button>
+      </div>
+    </div>
+    <div class="st-card">
+      ${stRow('info', '隐私仪表板', '查看哪些应用最近使用了你的数据', '')}
+    </div>`,
 };
 
 function openSettings(page = 'system') {
@@ -8364,6 +8477,13 @@ function createSettingsWin(site, initialPage = 'system') {
         try { localStorage.setItem(TRANS_KEY, transparencyOn ? '1' : '0'); } catch (err) { /* 忽略 */ }
         applyMotionPrefs();
         toggle.classList.toggle('on', transparencyOn);
+        return;
+      }
+      const prefKey = toggle.dataset.pref;
+      if (prefKey) {
+        const val = !getPref(prefKey, true);
+        setPref(prefKey, val);
+        toggle.classList.toggle('on', val);
         return;
       }
       if (key in OS_STATE) setOSState({ [key]: !OS_STATE[key] });
