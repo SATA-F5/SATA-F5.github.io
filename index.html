@@ -565,6 +565,20 @@ body.mobile .resize-handle { width: 32px; height: 32px; }
 }
 .edge-frame.active { display: block; }
 
+/* ===== 本地站点的独立窗口（不再塞进假 Edge 的标签页） ===== */
+.site-body {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  background: var(--frame-bg);
+}
+.site-frame {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: none;
+  background: var(--frame-bg);
+}
+
 /* 页面加载中 / 加载失败提示层（外部 CDN 慢或站点不可达时避免白屏） */
 .edge-loading {
   position: absolute; left: 0; top: 0; right: 0; bottom: 0;
@@ -3197,13 +3211,96 @@ function openSlot(s, i) {
     showToast(`空位 ${i - 1}：请在代码 SITES[${i}] 中填写`);
     return;
   }
+  // 本地站点：独立应用窗口，不再借道假 Edge
+  if (s.type === 'local' || s.url) return createSiteWin(s);
+}
+
+/* =========================================================
+   本地站点：独立窗口
+   ========================================================= */
+function siteWinByUrl(url) {
+  for (const w of wins.values()) {
+    if (w.kind === 'site' && w.url === url) return w;
+  }
+  return null;
+}
+
+function openUrlInFakeEdge(url) {
+  if (!url) return;
   const edge = findEdgeWin();
   if (edge) {
     focusWin(edge.id);
-    edge.edgeAPI.openUrlInTab(s.url, true);
-  } else {
-    createEdgeWin(s, s.url);
+    edge.edgeAPI.openUrlInTab(url, true);
+    return;
   }
+  const edgeSite = SITES.find(s => s.type === 'edge')
+    || { type: 'edge', name: 'Microsoft Edge', color: '#0F82D8' };
+  createEdgeWin(edgeSite, url);
+}
+
+/* 应用窗口里点外链 → 交给假 Edge，别把人甩出桌面 */
+function hookSiteFrame(frame) {
+  const attach = () => {
+    try {
+      const doc = frame.contentDocument;
+      if (!doc || doc.__sataLinkHook) return;
+      doc.__sataLinkHook = true;
+      doc.addEventListener('click', e => {
+        const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+        if (!a || a.hasAttribute('download')) return;
+        const href = a.getAttribute('href') || '';
+        if (!href || href.charAt(0) === '#' || /^javascript:/i.test(href)) return;
+        let url;
+        try { url = new URL(a.href, doc.baseURI); } catch (_) { return; }
+        if (url.origin === location.origin) return;  // 站内跳转留在窗口里
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+        e.preventDefault();
+        e.stopPropagation();
+        openUrlInFakeEdge(url.href);
+      }, true);
+    } catch (_) { /* 拿不到文档时忽略 */ }
+  };
+  frame.addEventListener('load', attach);
+  attach();
+}
+
+function createSiteWin(s) {
+  const url = s.url;
+  if (!url) return null;
+
+  const exist = siteWinByUrl(url);
+  if (exist) {
+    focusWin(exist.id);
+    return exist;
+  }
+
+  const w = buildWindow({
+    site: s,
+    title: s.name || '应用',
+    color: s.color || '#0078d4',
+    bodyHTML: `<div class="site-body">
+      <iframe class="site-frame" src="${url}" title="${s.name || ''}"
+        allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>
+    </div>`,
+  });
+
+  w.kind = 'site';
+  w.url = url;
+
+  const frame = w.el.querySelector('.site-frame');
+  hookSiteFrame(frame);
+
+  // 标题栏跟随页面标题（站内二次跳转时也能更新）
+  frame.addEventListener('load', () => {
+    try {
+      const t = (frame.contentDocument && frame.contentDocument.title || '').trim();
+      if (!t) return;
+      const titleEl = w.el.querySelector('.tb-title');
+      if (titleEl) titleEl.textContent = t;
+    } catch (_) { /* 忽略 */ }
+  });
+
+  return w;
 }
 
 function applyWinLayout(w) {
@@ -5532,6 +5629,14 @@ setInterval(tick, 1000);
 
 /* ================= 全局快捷键 ================= */
 document.addEventListener('keydown', e => {
+  if (e.key === 'F5') {
+    const w = activeId ? wins.get(activeId) : null;
+    const frame = w && w.el.querySelector('.site-frame');
+    if (frame) {
+      e.preventDefault();
+      try { frame.contentWindow.location.reload(); } catch (_) { frame.src = frame.src; }
+    }
+  }
   if (e.key === 'Escape') {
     closeStart();
     closeQuickPanel();
