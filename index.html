@@ -5702,7 +5702,7 @@ function renderStart(filter = '') {
     });
 
   const showSettings = !kw || '设置'.includes(kw);
-  const apps = CLASSIC_APPS.filter(a => !kw || a.name.toLowerCase().includes(kw));
+  const apps = kw ? CLASSIC_APPS.filter(a => a.name.toLowerCase().includes(kw)) : [];
 
   startGrid.replaceChildren();
 
