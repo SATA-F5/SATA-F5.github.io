@@ -6713,11 +6713,11 @@ function sizeWin(w, width, height) {
 }
 
 const CLASSIC_APPS = [
-  { id: 'notepad', name: '记事本', desc: '纯文本编辑，内容自动保存', icon: 'doc',      png: './assets/icons/app-notepad.png',    color: '#3b6ea5', make: createNotepadWin },
-  { id: 'calc',    name: '计算器', desc: '标准计算器，支持键盘输入', icon: 'calc',     png: './assets/icons/app-calculator.png', color: '#0f6cbd', make: createCalculatorWin },
-  { id: 'paint',   name: '画图',   desc: '随手涂鸦，可保存为 PNG',   icon: 'paint',    png: './assets/icons/app-paint.png',      color: '#b3541e', make: createPaintWin },
+  { id: 'notepad', name: '记事本', desc: '纯文本编辑，内容自动保存', icon: 'doc',      png: './assets/icons/app-notepad-v2.png',    color: '#3b6ea5', make: createNotepadWin },
+  { id: 'calc',    name: '计算器', desc: '标准计算器，支持键盘输入', icon: 'calc',     png: './assets/icons/app-calculator-v2.png', color: '#0f6cbd', make: createCalculatorWin },
+  { id: 'paint',   name: '画图',   desc: '随手涂鸦，可保存为 PNG',   icon: 'paint',    png: './assets/icons/app-paint-v2.png',      color: '#b3541e', make: createPaintWin },
   { id: 'cmd',     name: '命令提示符', desc: '经典命令行，支持常用命令', icon: 'terminal', png: './assets/icons/app-terminal.png',  color: '#1d1d1d', make: createCmdWin },
-  { id: 'taskmgr', name: '任务管理器', desc: '查看并结束正在运行的窗口', icon: 'tasks',    png: './assets/icons/app-taskmgr.png',    color: '#2f6f8f', make: createTaskManagerWin },
+  { id: 'taskmgr', name: '任务管理器', desc: '查看并结束正在运行的窗口', icon: 'tasks',    png: './assets/icons/app-taskmgr-v2.png',    color: '#2f6f8f', make: createTaskManagerWin },
 ];
 
 function openClassicApp(id) {
@@ -6736,7 +6736,7 @@ const NOTEPAD_KEY = 'sata-notepad-v1';
 
 function createNotepadWin() {
   const w = buildWindow({
-    site: { type: 'app', name: '记事本', icon: 'doc', png: './assets/icons/app-notepad.png', color: '#3b6ea5' },
+    site: { type: 'app', name: '记事本', icon: 'doc', png: './assets/icons/app-notepad-v2.png', color: '#3b6ea5' },
     title: '记事本',
     color: '#3b6ea5',
     bodyHTML: `<div class="np">
@@ -6815,7 +6815,7 @@ function createCalculatorWin() {
     ['+/−', ''], ['0', ''], ['.', ''], ['=', 'eq'],
   ];
   const w = buildWindow({
-    site: { type: 'app', name: '计算器', icon: 'calc', png: './assets/icons/app-calculator.png', color: '#0f6cbd' },
+    site: { type: 'app', name: '计算器', icon: 'calc', png: './assets/icons/app-calculator-v2.png', color: '#0f6cbd' },
     title: '计算器',
     color: '#0f6cbd',
     bodyHTML: `<div class="calc">
@@ -6950,7 +6950,7 @@ function createCalculatorWin() {
 function createPaintWin() {
   const colors = ['#000000', '#7f7f7f', '#c00000', '#ff0000', '#ff9900', '#ffe600', '#00b050', '#00b0f0', '#0070c0', '#7030a0'];
   const w = buildWindow({
-    site: { type: 'app', name: '画图', icon: 'paint', png: './assets/icons/app-paint.png', color: '#b3541e' },
+    site: { type: 'app', name: '画图', icon: 'paint', png: './assets/icons/app-paint-v2.png', color: '#b3541e' },
     title: '画图',
     color: '#b3541e',
     bodyHTML: `<div class="paint">
@@ -7204,7 +7204,7 @@ function createCmdWin() {
 /* ---------------- 任务管理器 ---------------- */
 function createTaskManagerWin() {
   const w = buildWindow({
-    site: { type: 'app', name: '任务管理器', icon: 'tasks', png: './assets/icons/app-taskmgr.png', color: '#2f6f8f' },
+    site: { type: 'app', name: '任务管理器', icon: 'tasks', png: './assets/icons/app-taskmgr-v2.png', color: '#2f6f8f' },
     title: '任务管理器',
     color: '#2f6f8f',
     bodyHTML: `<div class="tm2 collapsed">
