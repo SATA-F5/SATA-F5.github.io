@@ -1324,30 +1324,56 @@ html.dark .sm-footer { background: rgba(255, 255, 255, .02); }
 .sm-actions { display: flex; align-items: center; gap: 4px; }
 
 /* =========================================================
-   快速设置面板
+   快速设置面板（Win11 风格）
    ========================================================= */
 #quickPanel {
+  --qp-accent: #0067c0;
+  --qp-on-bg: #0f6cbd;
+  --qp-on-fg: #ffffff;
+  --qp-off-bg: rgba(255, 255, 255, .72);
+  --qp-off-border: rgba(0, 0, 0, .07);
+  --qp-off-fg: #17222d;
+  --qp-label: #16202a;
+  --qp-track: rgba(12, 30, 46, .22);
+  --qp-line: rgba(0, 0, 0, .08);
+  --qp-glass: rgba(238, 247, 255, .78);
+
   position: absolute;
   right: 12px; bottom: 68px;
-  width: 360px;
+  width: 376px;
   max-width: calc(100vw - 20px);
-  max-height: min(560px, calc(100vh - 100px));
+  max-height: min(600px, calc(100vh - 100px));
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  padding: 20px;
-  border-radius: 8px;
-  background: var(--flyout-bg);
-  color: var(--flyout-text);
-  border: 1px solid var(--flyout-border);
-  box-shadow: var(--flyout-shadow);
-  backdrop-filter: blur(50px) saturate(180%);
-  -webkit-backdrop-filter: blur(50px) saturate(180%);
+  padding: 18px 18px 0;
+  border-radius: 16px;
+  background: var(--qp-glass);
+  color: var(--qp-label);
+  border: 1px solid rgba(255, 255, 255, .7);
+  box-shadow: 0 18px 44px rgba(9, 30, 50, .28), inset 0 1px 0 rgba(255, 255, 255, .55);
+  backdrop-filter: blur(60px) saturate(170%);
+  -webkit-backdrop-filter: blur(60px) saturate(170%);
   z-index: 610;
   opacity: 0; pointer-events: none;
   transform: translateY(16px) scale(.98);
+  transform-origin: bottom right;
   transition: opacity .18s ease, transform .22s cubic-bezier(.2, .9, .3, 1.05),
               background .35s, color .35s;
+}
+html.dark #quickPanel {
+  --qp-accent: #4cc2ff;
+  --qp-on-bg: #0f6cbd;
+  --qp-on-fg: #ffffff;
+  --qp-off-bg: rgba(255, 255, 255, .08);
+  --qp-off-border: rgba(255, 255, 255, .10);
+  --qp-off-fg: #eaf2f9;
+  --qp-label: #e8f0f7;
+  --qp-track: rgba(255, 255, 255, .25);
+  --qp-line: rgba(255, 255, 255, .10);
+  --qp-glass: rgba(30, 36, 44, .80);
+  border-color: rgba(255, 255, 255, .10);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .48);
 }
 #quickPanel.open {
   opacity: 1; pointer-events: auto;
@@ -1357,70 +1383,153 @@ html.dark .sm-footer { background: rgba(255, 255, 255, .02); }
 .qp-tiles {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 20px;
+  column-gap: 9px;
+  row-gap: 13px;
+  margin-bottom: 16px;
 }
 .qp-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 16px 8px;
-  border-radius: 6px;
-  background: var(--field-bg);
-  border: 1px solid var(--field-border);
+  gap: 7px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
   cursor: pointer;
-  transition: background .13s, border-color .13s;
-  font-size: 11.5px;
+  -webkit-tap-highlight-color: transparent;
 }
-.qp-tile:hover { background: var(--flyout-hover); }
-.qp-tile.active {
-  background: var(--accent);
-  color: var(--on-accent);
+.qp-tile-box {
+  position: relative;
+  width: 100%;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--qp-off-bg);
+  border: 1px solid var(--qp-off-border);
+  color: var(--qp-off-fg);
+  transition: background .13s, border-color .13s, color .13s, box-shadow .13s;
+}
+.qp-tile:hover .qp-tile-box { filter: brightness(1.04); }
+.qp-tile:active .qp-tile-box { filter: brightness(.96); }
+.qp-tile.active .qp-tile-box {
+  background: var(--qp-on-bg);
   border-color: transparent;
+  color: var(--qp-on-fg);
+  box-shadow: 0 2px 8px rgba(0, 42, 78, .22);
 }
-.qp-tile.active .qp-tile-icon { color: var(--on-accent); }
-.qp-tile-icon {
-  width: 20px; height: 20px;
+.qp-tile-icon { display: grid; place-items: center; }
+.qp-tile-icon svg { display: block; }
+.qp-tile-chev {
+  position: absolute;
+  right: 7px; top: 50%;
+  transform: translateY(-50%);
   display: grid; place-items: center;
-  color: var(--accent);
-  transition: color .13s;
+  opacity: .85;
 }
-.qp-slider-group { margin-bottom: 16px; }
-.qp-slider-group:last-child { margin-bottom: 0; }
-.qp-slider-label {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 8px;
+.qp-tile-label {
   font-size: 12px;
+  line-height: 1.1;
+  color: var(--qp-label);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
-.qp-slider-label .ico { opacity: .7; }
+
+.qp-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 0 18px;
+}
+.qp-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.qp-slider-ico {
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  color: var(--qp-off-fg);
+  opacity: .92;
+}
+.qp-slider-chev {
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  color: var(--qp-label);
+  opacity: .7;
+}
 .qp-slider {
+  --val: 80%;
   -webkit-appearance: none;
   appearance: none;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 4px;
   border-radius: 2px;
-  background: var(--field-border);
+  background: linear-gradient(to right, var(--qp-accent) 0 var(--val), var(--qp-track) var(--val) 100%);
   outline: none;
+  cursor: pointer;
 }
 .qp-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px; height: 16px;
+  width: 18px; height: 18px;
   border-radius: 50%;
-  background: var(--accent);
-  border: 3px solid var(--flyout-bg);
-  box-shadow: 0 0 0 1px var(--field-border);
+  background: #fff;
+  border: 4.5px solid var(--qp-accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .22);
   cursor: pointer;
 }
 .qp-slider::-moz-range-thumb {
-  width: 16px; height: 16px;
+  width: 9px; height: 9px;
   border-radius: 50%;
-  background: var(--accent);
-  border: 3px solid var(--flyout-bg);
+  background: #fff;
+  border: 4.5px solid var(--qp-accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .22);
   cursor: pointer;
 }
+.qp-slider::-moz-range-track { height: 4px; border-radius: 2px; background: var(--qp-track); }
+.qp-slider::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--qp-accent); }
+
+.qp-footer {
+  margin: 0 -18px;
+  padding: 10px 18px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid var(--qp-line);
+  background: rgba(255, 255, 255, .22);
+  border-radius: 0 0 15px 15px;
+}
+html.dark .qp-footer { background: rgba(255, 255, 255, .03); }
+.qp-battery {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--qp-label);
+}
+.qp-battery svg { color: var(--qp-off-fg); }
+.qp-battery b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.qp-footer-actions { display: flex; align-items: center; gap: 2px; }
+.qp-ibtn {
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--qp-label);
+  cursor: pointer;
+  transition: background .13s;
+}
+.qp-ibtn:hover { background: rgba(0, 0, 0, .06); }
+html.dark .qp-ibtn:hover { background: rgba(255, 255, 255, .09); }
 
 /* =========================================================
    日历面板
@@ -2482,7 +2591,9 @@ body.mobile .window.resizing { box-shadow: none !important; }
   .sm-footer { margin: 0 -20px; padding: 0 20px; }
   #startGrid { grid-template-columns: repeat(4, 1fr); }
   .sm-recommend { grid-template-columns: 1fr; }
-  #quickPanel, #calendarPanel { right: 8px; width: calc(100vw - 16px); bottom: 74px; max-height: calc(100vh - 98px); }
+  #quickPanel, #calendarPanel { right: 8px; bottom: 74px; max-height: calc(100vh - 98px); }
+  #quickPanel { width: min(392px, calc(100vw - 16px)); }
+  #calendarPanel { width: calc(100vw - 16px); }
   .exp-sidebar { display: none; }
   .edge-tiles { grid-template-columns: repeat(2, 88px); }
   .edge-tab { min-width: 90px; padding: 0 6px 0 10px; }
@@ -2847,34 +2958,51 @@ body.mobile .window.resizing { box-shadow: none !important; }
   </div>
 
   <!-- 快速设置 -->
-  <div id="quickPanel">
+  <div id="quickPanel" role="dialog" aria-label="快速设置">
     <div class="qp-tiles" id="qpTiles"></div>
-    <div class="qp-slider-group">
-      <div class="qp-slider-label">
-        <span class="ico">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-            <circle cx="12" cy="12" r="4"/>
-            <path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M18.7 5.3l-1.5 1.5M6.8 17.2l-1.5 1.5"/>
+
+    <div class="qp-sliders">
+      <div class="qp-slider-row">
+        <span class="qp-slider-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+            <circle cx="12" cy="12" r="4.1" fill="currentColor" stroke="none"/>
+            <path d="M12 2.4v2.3M12 19.3v2.3M2.4 12h2.3M19.3 12h2.3M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/>
           </svg>
         </span>
-        <span>亮度</span>
+        <input type="range" class="qp-slider" id="brightnessSlider" min="20" max="100" value="100" aria-label="亮度">
       </div>
-      <input type="range" class="qp-slider" id="brightnessSlider" min="20" max="100" value="100">
+      <div class="qp-slider-row">
+        <span class="qp-slider-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 9.2h3.6L12.4 5v14L7.6 14.8H4z" fill="currentColor" stroke="none"/>
+            <path d="M16.2 9.2a4 4 0 0 1 0 5.6"/>
+            <path d="M18.8 6.6a7.6 7.6 0 0 1 0 10.8"/>
+          </svg>
+        </span>
+        <input type="range" class="qp-slider" id="volumeSlider" min="0" max="100" value="60" aria-label="音量">
+        <span class="qp-slider-chev" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5.5 6.5 6.5L9 18.5"/></svg>
+        </span>
+      </div>
     </div>
-    <div class="qp-slider-group">
-      <div class="qp-slider-label">
-        <span class="ico">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-               stroke-linejoin="round">
-            <path d="M4 9v6h4l5 4V5L8 9H4z"/>
-            <path d="M16.5 8.5a5 5 0 0 1 0 7"/>
-          </svg>
-        </span>
-        <span>音量</span>
+
+    <div class="qp-footer">
+      <span class="qp-battery">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+          <rect x="2" y="7.5" width="17.2" height="9" rx="2.4" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="20.6" y="10.3" width="1.8" height="3.4" rx="0.9" fill="currentColor"/>
+          <rect x="4" y="9.5" width="13.2" height="5" rx="1.2" fill="currentColor"/>
+        </svg>
+        <b>100%</b>
+      </span>
+      <div class="qp-footer-actions">
+        <button class="qp-ibtn" id="qpEditBtn" type="button" title="编辑快速设置" aria-label="编辑快速设置">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M20.7 7.05c.39-.39.39-1.03 0-1.42L18.37 3.3a1 1 0 0 0-1.41 0L15.1 5.15l3.75 3.75 1.85-1.85ZM3 17.25V21h3.75L17.8 9.94 14.06 6.2 3 17.25Z"/></svg>
+        </button>
+        <button class="qp-ibtn" id="qpSettingsBtn" type="button" title="所有设置" aria-label="所有设置">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5A3.5 3.5 0 0 1 12 15.5m7.43-2.53c.04-.32.07-.64.07-.97s-.03-.65-.07-.97l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.4-1.06-.73-1.69-.98l-.37-2.65A.49.49 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.32-.07.65-.07.97s.03.65.07.97l-2.11 1.66c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.06.73 1.69.98l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.25 1.17-.59 1.69-.98l2.49 1c.22.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z"/></svg>
+        </button>
       </div>
-      <input type="range" class="qp-slider" id="volumeSlider" min="0" max="100" value="60">
     </div>
   </div>
 
@@ -5196,29 +5324,89 @@ startInput.addEventListener('keydown', e => {
 startMenu.addEventListener('pointerdown', e => e.stopPropagation());
 
 /* ================= 快速设置 ================= */
+const QP_ICON = {
+  wifi: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true">
+    <path d="M2.6 8.8a13.2 13.2 0 0 1 18.8 0"/>
+    <path d="M6 12.5a8.4 8.4 0 0 1 12 0"/>
+    <path d="M9.4 16.2a4 4 0 0 1 5.2 0"/>
+    <circle cx="12" cy="19.5" r="1.45" fill="currentColor" stroke="none"/>
+  </svg>`,
+  bluetooth: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M8 7.4 16 16.6 12 20.2V3.8l4 3.6-8 9.2"/>
+  </svg>`,
+  shield: `<svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 2.6 4.8 5.6v5.9c0 4.65 3.05 8.85 7.2 10.05 4.15-1.2 7.2-5.4 7.2-10.05V5.6L12 2.6Z"/>
+    <path d="m8.9 11.9 2.15 2.15 4.1-4.2" stroke-width="1.8"/>
+  </svg>`,
+  plane: `<svg viewBox="0 0 24 24" width="23" height="23" fill="currentColor" aria-hidden="true">
+    <path d="M12 2.2c.9 0 1.62.75 1.62 1.66v4.2l7.55 4.3c.3.16.5.5.5.86v1.5l-8.05-2.1v4.3l2.3 1.7v1.5L12 19.1l-3.92 1.02v-1.5l2.3-1.7v-4.3L2.33 14.72v-1.5c0-.36.2-.7.5-.86l7.55-4.3v-4.2c0-.9.72-1.66 1.62-1.66Z"/>
+  </svg>`,
+  focus: `<svg viewBox="0 0 24 24" width="23" height="23" fill="currentColor" aria-hidden="true">
+    <path d="M20.72 14.6A9.05 9.05 0 1 1 9.4 3.28a7.25 7.25 0 0 0 11.32 11.32Z"/>
+  </svg>`,
+  a11y: `<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
+    <circle cx="12" cy="4.4" r="2.3"/>
+    <path d="M12 7.6c-1 0-1.9.1-2.8.3l-4.9 1.1a1.2 1.2 0 0 0 .5 2.35l4.4-1v3l-1.7 6.1a1.2 1.2 0 0 0 2.3.65L12 15.9l2.2 4.2a1.2 1.2 0 0 0 2.3-.65l-1.7-6.1v-3l4.4 1a1.2 1.2 0 0 0 .5-2.35l-4.9-1.1c-.9-.2-1.8-.3-2.8-.3Z"/>
+  </svg>`,
+};
+const QP_CHEV = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5.5 6.5 6.5L9 18.5"/></svg>`;
+
 const quickTiles = [
-  { id: 'wifi',    label: 'WLAN',    icon: 'wifi',    active: true  },
-  { id: 'bt',      label: '蓝牙',    icon: 'bluetooth', active: false },
-  { id: 'plane',   label: '飞行模式', icon: 'plane',   active: false },
-  { id: 'saver',   label: '节电模式', icon: 'leaf',    active: false },
-  { id: 'night',   label: '夜灯',    icon: 'moon2',   active: false },
-  { id: 'a11y',    label: '辅助功能', icon: 'a11y',    active: false },
+  { id: 'wifi',  icon: 'wifi',      active: true,  more: true  },
+  { id: 'bt',    icon: 'bluetooth', active: true,  more: false },
+  { id: 'vpn',   icon: 'shield',    active: false, more: true  },
+  { id: 'plane', icon: 'plane',     active: false, more: false },
+  { id: 'focus', icon: 'focus',     active: false, more: false },
+  { id: 'a11y',  icon: 'a11y',      active: false, more: true  },
 ];
+
+function quickTileLabel(t) {
+  if (t.id === 'wifi')  return t.active ? '可用' : '未连接';
+  if (t.id === 'bt')    return t.active ? '已连接' : '未连接';
+  if (t.id === 'vpn')   return 'VPN';
+  if (t.id === 'plane') return '飞行模式';
+  if (t.id === 'focus') return '专注助手';
+  return '辅助功能';
+}
 
 function renderQuickTiles() {
   const wrap = document.getElementById('qpTiles');
   wrap.replaceChildren();
+
   quickTiles.forEach(t => {
-    const el = document.createElement('div');
+    const el = document.createElement('button');
+    el.type = 'button';
     el.className = 'qp-tile' + (t.active ? ' active' : '');
+    el.dataset.tile = t.id;
+    el.title = quickTileLabel(t);
     el.innerHTML = `
-      <span class="qp-tile-icon">${svgIcon(t.icon, 20, 1.8)}</span>
-      <span>${t.label}</span>
-    `;
+      <span class="qp-tile-box">
+        <span class="qp-tile-icon">${QP_ICON[t.icon] || ''}</span>
+        ${t.more ? `<span class="qp-tile-chev">${QP_CHEV}</span>` : ''}
+      </span>
+      <span class="qp-tile-label">${quickTileLabel(t)}</span>`;
+
     el.addEventListener('click', () => {
       t.active = !t.active;
-      el.classList.toggle('active', t.active);
+
+      // 飞行模式和无线开关互斥，跟 Windows 一致
+      if (t.id === 'plane' && t.active) {
+        quickTiles.forEach(x => { if (x.id === 'wifi' || x.id === 'bt') x.active = false; });
+      }
+      if ((t.id === 'wifi' || t.id === 'bt') && t.active) {
+        const plane = quickTiles.find(x => x.id === 'plane');
+        if (plane) plane.active = false;
+      }
+
+      quickTiles.forEach(x => {
+        const node = wrap.querySelector(`.qp-tile[data-tile="${x.id}"]`);
+        if (!node) return;
+        node.classList.toggle('active', x.active);
+        node.title = quickTileLabel(x);
+        node.querySelector('.qp-tile-label').textContent = quickTileLabel(x);
+      });
     });
+
     wrap.appendChild(el);
   });
 }
@@ -5237,11 +5425,32 @@ document.getElementById('quickBtn').addEventListener('click', e => {
 });
 quickPanel.addEventListener('pointerdown', e => e.stopPropagation());
 
-document.getElementById('brightnessSlider').addEventListener('input', e => {
+function setSliderFill(el) {
+  const min = Number(el.min) || 0;
+  const max = Number(el.max) || 100;
+  const pct = max > min ? ((Number(el.value) - min) / (max - min)) * 100 : 0;
+  el.style.setProperty('--val', pct + '%');
+}
+
+const brightnessSlider = document.getElementById('brightnessSlider');
+const volumeSlider = document.getElementById('volumeSlider');
+[brightnessSlider, volumeSlider].forEach(el => {
+  setSliderFill(el);
+  el.addEventListener('input', () => setSliderFill(el));
+});
+
+brightnessSlider.addEventListener('input', e => {
   const v = e.target.value;
   document.getElementById('wallpaper').style.filter = `brightness(${0.5 + v / 200})`;
 });
-document.getElementById('volumeSlider').addEventListener('input', () => {});
+
+document.getElementById('qpEditBtn').addEventListener('click', () => {
+  showToast('快速设置暂不支持自定义磁贴');
+});
+document.getElementById('qpSettingsBtn').addEventListener('click', () => {
+  closeQuickPanel();
+  openSettings();
+});
 
 /* ================= 日历面板 ================= */
 let calYear, calMonth;
