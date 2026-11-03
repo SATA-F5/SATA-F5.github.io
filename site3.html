@@ -705,7 +705,7 @@
   }
   .m-info p{margin:7px 0 0;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
   .m-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-  .m-actions a,.m-actions button{
+  .m-actions button{
     height:34px;
     display:inline-flex;align-items:center;justify-content:center;gap:6px;
     padding:0 12px;
@@ -717,9 +717,7 @@
     cursor:pointer;
     transition:background .16s ease,border-color .16s ease;
   }
-  .m-actions a:hover,.m-actions button:hover{background:var(--panel-2);border-color:var(--border-strong)}
-  .m-actions a{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--accent),var(--accent2))}
-  .m-actions a:hover{filter:brightness(1.06)}
+  .m-actions button:hover{background:var(--panel-2);border-color:var(--border-strong)}
   .m-actions svg{width:13px;height:13px}
 
   /* ---------- 提示 ---------- */
@@ -946,7 +944,7 @@
   <div class="modal-back" data-close></div>
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mTitle">
     <button class="m-close" data-close type="button" aria-label="关闭">×</button>
-    <div class="m-video"><video id="mVideo" controls playsinline preload="metadata"></video></div>
+    <div class="m-video"><video id="mVideo" controls controlslist="nodownload" draggable="false" playsinline preload="metadata"></video></div>
     <div class="m-info">
       <div class="m-text">
         <span class="m-kicker" id="mKicker">VIDEO</span>
@@ -954,10 +952,6 @@
         <p id="mMeta">—</p>
       </div>
       <div class="m-actions">
-        <a id="mDownload" download>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7.8 11 4.2 4.2L16.2 11"/><path d="M4.5 20h15"/></svg>
-          下载
-        </a>
         <button id="mPrev" type="button">上一个</button>
         <button id="mNext" type="button">下一个</button>
       </div>
@@ -1815,7 +1809,6 @@
   const mTitle = $('#mTitle');
   const mKicker = $('#mKicker');
   const mMeta = $('#mMeta');
-  const mDownload = $('#mDownload');
   const mPrev = $('#mPrev');
   const mNext = $('#mNext');
 
@@ -1849,8 +1842,6 @@
     mTitle.textContent = item.title;
     mKicker.textContent = labelOf(item).toUpperCase();
     mMeta.textContent = `${item.ext || ''} · ${fmtSize(item.size)} · ${item.date || ''}`;
-    mDownload.href = fileUrl(item.file);
-    mDownload.setAttribute('download', item.file.split('/').pop() || 'download');
 
     const only = videoPool.length <= 1;
     mPrev.disabled = only;
@@ -1885,6 +1876,8 @@
   mVideo.addEventListener('error', () => {
     if (mVideo.src) toast('视频加载失败，请确认 File 目录完整');
   });
+  // 播放器内不提供下载：屏蔽右键“视频另存为”
+  mVideo.addEventListener('contextmenu', e => e.preventDefault());
 
   /* =========================================================
      随机 / 主题 / 快捷键
