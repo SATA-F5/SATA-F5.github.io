@@ -1892,6 +1892,40 @@ html.dark .qp-ibtn:hover { background: rgba(255, 255, 255, .09); }
 .st-slider::-moz-range-track { height: 4px; border-radius: 2px; background: var(--field-border); }
 .st-slider::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--accent); }
 
+.st-accents { display: flex; flex-wrap: wrap; gap: 10px; padding: 2px 12px 14px 46px; }
+.st-accent {
+  width: 24px; height: 24px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: var(--c);
+  cursor: pointer;
+  transition: transform .12s;
+}
+.st-accent:hover { transform: scale(1.1); }
+.st-accent.active { box-shadow: 0 0 0 2px var(--win-bg), 0 0 0 4px var(--c); }
+.st-row-icon img { width: 20px; height: 20px; object-fit: contain; display: block; }
+
+/* 无障碍偏好 */
+html.no-anim *,
+html.no-anim *::before,
+html.no-anim *::after {
+  animation-duration: .001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .001ms !important;
+  scroll-behavior: auto !important;
+}
+html.no-transparency .window,
+html.no-transparency #taskbar,
+html.no-transparency #startMenu,
+html.no-transparency #quickPanel,
+html.no-transparency #calendarPanel,
+html.no-transparency #ctxMenu,
+html.no-transparency .tm-ctx {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 .st-storage { display: flex; flex-direction: column; gap: 12px; padding: 8px 0 4px; }
 .st-storage-item .st-storage-top { display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 5px; }
 .st-storage-bar { height: 5px; border-radius: 3px; background: var(--field-border); overflow: hidden; }
@@ -2880,6 +2914,60 @@ html.dark .tm2-row .c-metric.heat-3 { background: color-mix(in srgb, var(--accen
 }
 .tm2-empty svg { opacity: .6; }
 
+/* 性能 / 启动 / 服务 / 用户 / 详细信息 */
+.tm2-perf {
+  flex: 1; min-height: 0;
+  overflow: auto;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-content: start;
+}
+.tm2-perf-card {
+  min-height: 158px;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  border: 1px solid var(--win-border);
+  border-radius: 8px;
+  background: var(--field-bg);
+}
+.tm2-perf-head { display: flex; align-items: baseline; justify-content: space-between; font-size: 12px; }
+.tm2-perf-head b { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tm2-perf-card canvas { flex: 1; width: 100%; min-height: 74px; display: block; margin: 6px 0 4px; }
+.tm2-perf-foot { font-size: 10.5px; color: var(--win-sub); }
+
+.tm2-list { flex: 1; min-height: 0; overflow: auto; padding: 8px 10px 12px; }
+.tm2-list-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px;
+  border-radius: 6px;
+}
+.tm2-list-row:hover { background: var(--tb-hover); }
+.tm2-list-main { flex: 1; min-width: 0; }
+.tm2-list-name { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tm2-list-sub { margin-top: 2px; font-size: 10.5px; color: var(--win-sub); }
+.tm2-list-row .st-toggle { flex-shrink: 0; }
+.tm2-dot { width: 8px; height: 8px; flex-shrink: 0; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 16%, transparent); }
+.tm2-dot.off { background: var(--win-sub); box-shadow: none; }
+
+.tm2-user { display: flex; align-items: center; gap: 16px; padding: 18px; }
+.tm2-avatar {
+  width: 58px; height: 58px;
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0f6cbd, #4cc2ff);
+  color: #fff;
+  font-size: 22px; font-weight: 600;
+}
+.tm2-user-name { font-size: 14px; font-weight: 600; }
+.tm2-user-sub { margin-top: 3px; font-size: 11px; color: var(--win-sub); }
+.tm2-user-stats { margin-left: auto; text-align: right; font-size: 11px; color: var(--win-sub); line-height: 1.7; }
+
+.tm2-table.det .tm2-grid { grid-template-columns: minmax(170px, 1fr) 72px 84px 62px 92px; }
+
 /* 进程右键菜单 */
 .tm-ctx {
   position: fixed;
@@ -3488,6 +3576,7 @@ const ICONS = {
   terminal:'<rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/>',
   tasks:   '<rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M7.5 9h9M7.5 12.5h9M7.5 16h5"/>',
   menu:    '<path d="M4 6.5h16M4 12h16M4 17.5h16"/>',
+  clock:   '<circle cx="12" cy="12" r="8.6"/><path d="M12 7.4V12l3.1 2"/>',
 };
 
 /* ================= Windows 11 图标包（assets/icons，Public Domain） ================= */
@@ -5780,6 +5869,81 @@ function syncTrayState(s) {
 
 normalizeOSState();
 
+/* =========================================================
+   外观 / 时钟 / 无障碍偏好
+   ========================================================= */
+const ACCENT_KEY = 'sata-accent-v1';
+const ACCENTS = [
+  { id: 'blue', name: '蓝色', color: '#0067c0' },
+  { id: 'purple', name: '紫色', color: '#7c4dff' },
+  { id: 'green', name: '绿色', color: '#107c10' },
+  { id: 'orange', name: '橙色', color: '#ca5010' },
+  { id: 'pink', name: '粉色', color: '#c239b3' },
+  { id: 'teal', name: '青色', color: '#038387' },
+];
+let currentAccent = (() => {
+  try { return localStorage.getItem(ACCENT_KEY) || 'blue'; } catch (e) { return 'blue'; }
+})();
+
+function accentTextColor(hex) {
+  const c = String(hex).replace('#', '');
+  const r = parseInt(c.slice(0, 2), 16) || 0;
+  const g = parseInt(c.slice(2, 4), 16) || 0;
+  const b = parseInt(c.slice(4, 6), 16) || 0;
+  return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? '#08131f' : '#ffffff';
+}
+
+function lightenHex(hex, ratio) {
+  const c = String(hex).replace('#', '');
+  const mix = i => {
+    const v = parseInt(c.slice(i, i + 2), 16) || 0;
+    return Math.round(v + (255 - v) * ratio).toString(16).padStart(2, '0');
+  };
+  return '#' + mix(0) + mix(2) + mix(4);
+}
+
+function applyAccent(id) {
+  const item = ACCENTS.find(a => a.id === id) || ACCENTS[0];
+  currentAccent = item.id;
+  const dark = document.documentElement.classList.contains('dark');
+  const color = dark ? lightenHex(item.color, 0.45) : item.color;
+  const on = dark ? '#08131f' : accentTextColor(item.color);
+  document.documentElement.style.setProperty('--accent', color);
+  document.documentElement.style.setProperty('--on-accent', on);
+  const qp = document.getElementById('quickPanel');
+  if (qp) {
+    qp.style.setProperty('--qp-accent', color);
+    qp.style.setProperty('--qp-on-bg', color);
+    qp.style.setProperty('--qp-on-fg', on);
+  }
+  try { localStorage.setItem(ACCENT_KEY, item.id); } catch (e) { /* 忽略 */ }
+}
+applyAccent(currentAccent);
+
+const CLOCK24_KEY = 'sata-clock-24h';
+let clock24h = (() => {
+  try { return localStorage.getItem(CLOCK24_KEY) !== '0'; } catch (e) { return true; }
+})();
+
+function clockText(d) {
+  return d.toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: !clock24h,
+  });
+}
+
+const ANIM_KEY = 'sata-anim-v1';
+const TRANS_KEY = 'sata-transparency-v1';
+let animationsOn = (() => { try { return localStorage.getItem(ANIM_KEY) !== '0'; } catch (e) { return true; } })();
+let transparencyOn = (() => { try { return localStorage.getItem(TRANS_KEY) !== '0'; } catch (e) { return true; } })();
+
+function applyMotionPrefs() {
+  document.documentElement.classList.toggle('no-anim', !animationsOn);
+  document.documentElement.classList.toggle('no-transparency', !transparencyOn);
+}
+applyMotionPrefs();
+
 /* ================= 快速设置 ================= */
 const QP_ICON = {
   wifi: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true">
@@ -6231,6 +6395,14 @@ function applyTheme(isDark) {
       if (doc) doc.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
     } catch (_) { /* 跨域页面无法访问，忽略 */ }
   });
+
+  // 强调色跟随明暗主题调整深浅
+  if (typeof applyAccent === 'function') applyAccent(currentAccent);
+
+  // 设置里的主题卡片跟随外部切换
+  document.querySelectorAll('.st-theme-card').forEach(el => {
+    el.classList.toggle('active', el.dataset.theme === (isDark ? 'dark' : 'light'));
+  });
 }
 
 function toggleTheme() {
@@ -6310,8 +6482,11 @@ document.getElementById('themeBtn').addEventListener('click', e => {
 /* ================= 时钟 ================= */
 function tick() {
   const d = new Date();
-  clockT.textContent = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+  clockT.textContent = clockText(d);
   clockD.textContent = d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  document.querySelectorAll('[data-clock-now]').forEach(el => {
+    el.textContent = d.toLocaleString('zh-CN', { hour12: !clock24h });
+  });
 }
 tick();
 setInterval(tick, 1000);
@@ -7011,6 +7186,36 @@ function createTaskManagerWin() {
   let selectedKey = null;
   let ctxEl = null;
   let lastSig = '';
+  let sortDir = 0;
+  let perfTimer = 0;
+  const PERF = { cpu: [], mem: [], disk: [], net: [] };
+  const startupOff = new Set((() => {
+    try { return JSON.parse(localStorage.getItem('sata-startup-off') || '[]') || []; } catch (e) { return []; }
+  })());
+  const STARTUP = [
+    { id: 'edge', name: 'Microsoft Edge', impact: '中', desc: '浏览器启动加速' },
+    { id: 'onedrive', name: 'Microsoft OneDrive', impact: '低', desc: '云同步' },
+    { id: 'steam', name: 'Steam', impact: '高', desc: '游戏平台' },
+    { id: 'security', name: 'Windows 安全中心', impact: '低', desc: '系统防护' },
+    { id: 'easytier', name: 'EasyTier Go', impact: '中', desc: '联机模组' },
+  ];
+  const SERVICES = [
+    { id: 'appinfo', name: 'Application Information', desc: '帮助应用程序运行', on: true },
+    { id: 'avctp', name: 'AVCTP 服务', desc: '蓝牙音频控制', on: true },
+    { id: 'certprop', name: 'Certificate Propagation', desc: '证书传播', on: true },
+    { id: 'com', name: 'COM+ Event System', desc: '事件系统', on: true },
+    { id: 'dcom', name: 'DCOM 服务器进程启动器', desc: 'DCOM 支持', on: true },
+    { id: 'dhcp', name: 'DHCP Client', desc: '自动获取 IP 地址', on: true },
+    { id: 'diag', name: 'Diagnostic Policy Service', desc: '问题诊断', on: true },
+    { id: 'geo', name: 'Geolocation Service', desc: '位置服务', on: false },
+  ];
+
+  for (let i = 0; i < 60; i++) {
+    PERF.cpu.push(3 + Math.random() * 4);
+    PERF.mem.push(50 + Math.random() * 2);
+    PERF.disk.push(Math.random() * 1.5);
+    PERF.net.push(Math.random() * 1.2);
+  }
 
   const fmtMB = v => v >= 1024 ? (v / 1024).toFixed(1) + ' GB' : (Math.round(v * 10) / 10).toFixed(1) + ' MB';
   const heatClass = (v, max) => {
@@ -7126,9 +7331,9 @@ function createTaskManagerWin() {
       (g.children || []).forEach(c => flat.push(c));
     });
     const maxMem = Math.max(49.3, ...apps.map(p => p.mem), ...flat.map(p => p.mem || 0));
-    const cpuPct = 0;
-    const memPct = 51;
-    const diskPct = 1;
+    const cpuPct = Math.min(28, 2 + apps.length * 2);
+    const memPct = Math.min(88, 48 + apps.length * 2);
+    const diskPct = apps.length ? 1 : 0;
     const netPct = 0;
 
     pMap.clear();
@@ -7140,12 +7345,19 @@ function createTaskManagerWin() {
     const head = document.createElement('div');
     head.className = 'tm2-grid tm2-head';
     head.innerHTML = `
-      <div class="h-name"><span class="sort">▲</span>名称</div>
+      <div class="h-name"><span class="sort">${sortDir === -1 ? '▼' : '▲'}</span>名称</div>
       <div class="h-status">状态</div>
       <div class="h-metric"><b>${cpuPct}%</b><span>CPU</span></div>
       <div class="h-metric"><b>${memPct}%</b><span>内存</span></div>
       <div class="h-metric"><b>${diskPct}%</b><span>磁盘</span></div>
       <div class="h-metric"><b>${netPct}%</b><span>网络</span></div>`;
+    const nameHead = head.querySelector('.h-name');
+    nameHead.style.cursor = 'pointer';
+    nameHead.title = '按名称排序';
+    nameHead.addEventListener('click', () => {
+      sortDir = sortDir === 1 ? -1 : 1;
+      renderProcesses();
+    });
     table.appendChild(head);
 
     function addRow(p, opts = {}) {
@@ -7209,20 +7421,178 @@ function createTaskManagerWin() {
       }
     }
 
-    apps.forEach(p => addRow(p));
-    SYSTEM.forEach(g => {
-      const mem = g.mem != null
-        ? g.mem
-        : (g.children || []).reduce((a, c) => a + (c.mem || 0), 0);
-      addRow(Object.assign({}, g, {
-        mem,
-        iconHtml: `<span class="tm2-row-ico">${svgIcon(g.icon || 'layers', 15, 1.8)}</span>`,
-      }));
-    });
+    const topRows = apps.concat(SYSTEM.map(g => Object.assign({}, g, {
+      mem: g.mem != null ? g.mem : (g.children || []).reduce((a, c) => a + (c.mem || 0), 0),
+      iconHtml: `<span class="tm2-row-ico">${svgIcon(g.icon || 'layers', 15, 1.8)}</span>`,
+    })));
+    if (sortDir) {
+      topRows.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN') * sortDir);
+    }
+    topRows.forEach(p => addRow(p));
 
     content.appendChild(table);
     if (selectedKey && !pMap.has(selectedKey)) selectedKey = null;
     lastSig = [...wins.keys()].join(',');
+  }
+
+  function renderPerformance() {
+    const val = key => Math.round(PERF[key][PERF[key].length - 1] * 10) / 10;
+    const cards = [
+      { key: 'cpu', label: 'CPU', sub: 'Intel(R) Xeon(R) CPU E3-1245 v3 @ 3.40GHz' },
+      { key: 'mem', label: '内存', sub: '16.0 GB (DDR3-1600)' },
+      { key: 'disk', label: '磁盘', sub: 'C: 120 GB SSD · D: 500 GB HDD' },
+      { key: 'net', label: '网络', sub: 'WLAN · Home-5G' },
+    ];
+    content.innerHTML = `<div class="tm2-perf">${cards.map(c => `
+      <div class="tm2-perf-card" data-perf="${c.key}">
+        <div class="tm2-perf-head"><span>${c.label}</span><b>${val(c.key)}%</b></div>
+        <canvas data-graph="${c.key}"></canvas>
+        <div class="tm2-perf-foot">${c.sub}</div>
+      </div>`).join('')}</div>`;
+    requestAnimationFrame(drawPerf);
+  }
+
+  function drawPerf() {
+    if (activeTab !== 'performance') return;
+    content.querySelectorAll('canvas[data-graph]').forEach(canvas => {
+      const key = canvas.dataset.graph;
+      const data = PERF[key] || [];
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = Math.max(80, Math.round(rect.width));
+      const h = Math.max(50, Math.round(rect.height));
+      if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+      }
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+
+      const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0067c0';
+      const grid = getComputedStyle(document.documentElement).getPropertyValue('--win-border').trim() || 'rgba(0,0,0,.1)';
+      ctx.strokeStyle = grid;
+      ctx.lineWidth = 1;
+      for (let i = 1; i < 4; i++) {
+        const y = h * i / 4;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      const max = key === 'mem' ? 100 : (key === 'cpu' ? 30 : 10);
+      const step = data.length > 1 ? w / (data.length - 1) : w;
+      ctx.beginPath();
+      data.forEach((v, i) => {
+        const x = i * step;
+        const y = h - Math.min(1, v / max) * h * 0.9 - 2;
+        if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+      });
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.closePath();
+      ctx.fillStyle = accent + '22';
+      ctx.fill();
+    });
+  }
+
+  function startPerf() {
+    stopPerf();
+    perfTimer = setInterval(() => {
+      if (!w.el.isConnected || activeTab !== 'performance') { stopPerf(); return; }
+      const add = (key, v) => {
+        PERF[key].push(v);
+        if (PERF[key].length > 60) PERF[key].shift();
+      };
+      add('cpu', 3 + Math.random() * 5);
+      add('mem', 50 + Math.random() * 2.2);
+      add('disk', Math.random() * 1.6);
+      add('net', Math.random() * 1.1);
+      content.querySelectorAll('[data-perf]').forEach(card => {
+        const key = card.dataset.perf;
+        const b = card.querySelector('.tm2-perf-head b');
+        if (b) b.textContent = (Math.round(PERF[key][PERF[key].length - 1] * 10) / 10) + '%';
+      });
+      drawPerf();
+    }, 1000);
+  }
+
+  function stopPerf() {
+    if (perfTimer) { clearInterval(perfTimer); perfTimer = 0; }
+  }
+
+  function renderStartup() {
+    content.innerHTML = `<div class="tm2-list">${STARTUP.map(app => {
+      const on = !startupOff.has(app.id);
+      return `<div class="tm2-list-row">
+        <span class="tm2-row-ico">${svgIcon('power', 15, 1.8)}</span>
+        <div class="tm2-list-main">
+          <div class="tm2-list-name">${app.name}</div>
+          <div class="tm2-list-sub">启动影响：${app.impact} · ${app.desc}</div>
+        </div>
+        <button class="st-toggle${on ? ' on' : ''}" type="button" data-start-toggle="${app.id}" aria-label="${app.name}"></button>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  function renderUsers() {
+    content.innerHTML = `<div class="tm2-user">
+      <div class="tm2-avatar">A</div>
+      <div>
+        <div class="tm2-user-name">Admin</div>
+        <div class="tm2-user-sub">本地账户 · 管理员</div>
+      </div>
+      <div class="tm2-user-stats">
+        <div>CPU 2%</div>
+        <div>内存 156 MB</div>
+        <div>应用 3 个</div>
+      </div>
+    </div>`;
+  }
+
+  function renderServices() {
+    content.innerHTML = `<div class="tm2-list">${SERVICES.map(s => `
+      <div class="tm2-list-row">
+        <span class="tm2-dot${s.on ? '' : ' off'}"></span>
+        <div class="tm2-list-main">
+          <div class="tm2-list-name">${s.name}</div>
+          <div class="tm2-list-sub">${s.on ? '正在运行' : '已停止'} · ${s.desc}</div>
+        </div>
+        <button class="st-btn" type="button" data-service="${s.id}">${s.on ? '停止' : '启动'}</button>
+      </div>`).join('')}</div>`;
+  }
+
+  function renderDetails() {
+    const apps = collectWindows();
+    const flat = [];
+    SYSTEM.forEach(g => {
+      (g.children || []).forEach(c => flat.push(Object.assign({}, c, { icon: c.icon || 'settings' })));
+    });
+    const rows = apps.concat(flat);
+    content.innerHTML = `<div class="tm2-table det">
+      <div class="tm2-grid tm2-head">
+        <div class="h-name">名称</div>
+        <div class="h-status">PID</div>
+        <div class="h-status">状态</div>
+        <div class="h-status">CPU</div>
+        <div class="h-status">内存</div>
+      </div>
+      ${rows.map((p, i) => `
+        <div class="tm2-grid tm2-row">
+          <div class="c-name">
+            ${p.iconHtml || `<span class="tm2-row-ico">${svgIcon(p.icon || 'settings', 15, 1.8)}</span>`}
+            <span class="tm2-name">${p.name}</span>
+          </div>
+          <div class="c-status">${1000 + i * 4}</div>
+          <div class="c-status">正在运行</div>
+          <div class="c-metric">${p.cpu || 0}%</div>
+          <div class="c-metric">${fmtMB(p.mem || 0)}</div>
+        </div>`).join('')}
+    </div>`;
   }
 
   function renderPlaceholder(name) {
@@ -7230,10 +7600,16 @@ function createTaskManagerWin() {
   }
 
   function switchTab(tab) {
+    stopPerf();
     activeTab = tab;
     railButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     titleEl.textContent = TAB_TITLES[tab] || '进程';
     if (tab === 'processes') renderProcesses();
+    else if (tab === 'performance') { renderPerformance(); startPerf(); }
+    else if (tab === 'startup') renderStartup();
+    else if (tab === 'users') renderUsers();
+    else if (tab === 'services') renderServices();
+    else if (tab === 'details') renderDetails();
     else renderPlaceholder(TAB_TITLES[tab] || tab);
   }
 
@@ -7263,17 +7639,41 @@ function createTaskManagerWin() {
     }
   });
 
+  content.addEventListener('click', e => {
+    const startToggle = e.target.closest('[data-start-toggle]');
+    if (startToggle) {
+      const id = startToggle.dataset.startToggle;
+      if (startupOff.has(id)) startupOff.delete(id);
+      else startupOff.add(id);
+      startToggle.classList.toggle('on', !startupOff.has(id));
+      try { localStorage.setItem('sata-startup-off', JSON.stringify([...startupOff])); } catch (err) { /* 忽略 */ }
+      return;
+    }
+    const svcBtn = e.target.closest('[data-service]');
+    if (svcBtn) {
+      const svc = SERVICES.find(x => x.id === svcBtn.dataset.service);
+      if (svc) { svc.on = !svc.on; renderServices(); }
+    }
+  });
+
   const onDocDown = e => {
     if (ctxEl && !ctxEl.contains(e.target)) closeCtx();
   };
   document.addEventListener('pointerdown', onDocDown, true);
+
+  const onResize = () => {
+    if (activeTab === 'performance') drawPerf();
+  };
+  window.addEventListener('resize', onResize);
 
   renderProcesses();
 
   const timer = setInterval(() => {
     if (!w.el.isConnected) {
       clearInterval(timer);
+      stopPerf();
       document.removeEventListener('pointerdown', onDocDown, true);
+      window.removeEventListener('resize', onResize);
       closeCtx();
       return;
     }
@@ -7408,7 +7808,16 @@ const ST_PAGES = {
               <span class="st-wall-name">${w.name}</span>
             </button>`).join('')}
         </div>
-        ${stRow('sun', '颜色', '强调色：蓝色')}
+        <div class="st-row" style="border:0">
+          <div class="st-row-icon">${svgIcon('sun', 17, 1.8)}</div>
+          <div class="st-row-main">
+            <div class="st-row-title">强调色</div>
+            <div class="st-row-sub" data-accent-label>当前：${(ACCENTS.find(a => a.id === currentAccent) || ACCENTS[0]).name}</div>
+          </div>
+        </div>
+        <div class="st-accents">
+          ${ACCENTS.map(a => `<button class="st-accent${currentAccent === a.id ? ' active' : ''}" type="button" data-accent="${a.id}" style="--c:${a.color}" title="${a.name}" aria-label="${a.name}"></button>`).join('')}
+        </div>
       </div>`;
   },
 
@@ -7512,10 +7921,73 @@ const ST_PAGES = {
           </div>
           <button class="st-btn" type="button" data-open-app="${a.id}">打开</button>
         </div>`).join('')}
+    </div>
+    <div class="st-section">本地应用</div>
+    <div class="st-card">
+      ${sites.map((s, i) => {
+        if (isEmptySlot(s)) return '';
+        const v = smallGlyphHTML(s, 16, 2);
+        const name = s.type === 'edge' ? 'Microsoft Edge' : s.type === 'thispc' ? '此电脑' : s.name;
+        return `<div class="st-row">
+          <div class="st-row-icon ${v.cls || ''}">${v.html}</div>
+          <div class="st-row-main">
+            <div class="st-row-title">${name}</div>
+            <div class="st-row-sub">${s.url || '系统工具'}</div>
+          </div>
+          <button class="st-btn" type="button" data-open-site="${i}">打开</button>
+        </div>`;
+      }).join('')}
     </div>`,
-  time: () => stGeneric('时间和语言'),
+  time: () => `
+    <div class="st-card">
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('clock', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">当前时间</div>
+          <div class="st-row-sub" data-clock-now>${new Date().toLocaleString('zh-CN', { hour12: !clock24h })}</div>
+        </div>
+      </div>
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('refresh', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">24 小时制</div>
+          <div class="st-row-sub">任务栏和锁屏使用 ${clock24h ? '24 小时' : '12 小时'}格式</div>
+        </div>
+        <button class="st-toggle${clock24h ? ' on' : ''}" type="button" data-toggle="clock24" aria-label="24 小时制"></button>
+      </div>
+    </div>
+    <div class="st-section">区域与语言</div>
+    <div class="st-card">
+      ${stRow('globe', '国家或地区', '中国', '')}
+      ${stRow('note', 'Windows 显示语言', '中文（简体，中国）', '')}
+      ${stRow('clock', '时区', '(UTC+08:00) 北京，重庆，香港特别行政区，乌鲁木齐', '')}
+    </div>`,
   gaming: () => stGeneric('游戏'),
-  accessibility: () => stGeneric('辅助功能'),
+  accessibility: () => `
+    <div class="st-card">
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('layers', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">动画效果</div>
+          <div class="st-row-sub">关闭后减少界面过渡动画</div>
+        </div>
+        <button class="st-toggle${animationsOn ? ' on' : ''}" type="button" data-toggle="animations" aria-label="动画效果"></button>
+      </div>
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('gallery', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">透明效果</div>
+          <div class="st-row-sub">关闭毛玻璃模糊，低配设备更流畅</div>
+        </div>
+        <button class="st-toggle${transparencyOn ? ' on' : ''}" type="button" data-toggle="transparency" aria-label="透明效果"></button>
+      </div>
+    </div>
+    <div class="st-section">视觉</div>
+    <div class="st-card">
+      ${stRow('user', '放大镜', '按 Win 和加号打开放大镜', '')}
+      ${stRow('monitor', '高对比度', '当前未启用', '')}
+      ${stRow('a11y', '讲述人', '当前未启用', '')}
+    </div>`,
   privacy: () => stGeneric('隐私和安全性'),
 };
 
@@ -7638,6 +8110,21 @@ function createSettingsWin(site, initialPage = 'system') {
     const wallCard = e.target.closest('.st-wall');
     if (wallCard) {
       applyWallpaper(wallCard.dataset.wall);
+      body.querySelectorAll('.st-wall').forEach(c => {
+        c.classList.toggle('active', c === wallCard);
+      });
+      return;
+    }
+    const accentBtn = e.target.closest('[data-accent]');
+    if (accentBtn) {
+      applyAccent(accentBtn.dataset.accent);
+      body.querySelectorAll('.st-accent').forEach(b => {
+        b.classList.toggle('active', b === accentBtn);
+      });
+      const acc = ACCENTS.find(a => a.id === accentBtn.dataset.accent);
+      const sub = body.querySelector('[data-accent-label]');
+      if (acc && sub) sub.textContent = '当前：' + acc.name;
+      showToast('强调色已切换为' + (acc ? acc.name : ''));
       return;
     }
     const openApp = e.target.closest('[data-open-app]');
@@ -7645,9 +8132,39 @@ function createSettingsWin(site, initialPage = 'system') {
       openClassicApp(openApp.dataset.openApp);
       return;
     }
+    const openSite = e.target.closest('[data-open-site]');
+    if (openSite) {
+      const idx = Number(openSite.dataset.openSite);
+      const s = sites[idx];
+      if (s) openSlot(s, idx);
+      return;
+    }
     const toggle = e.target.closest('.st-toggle');
     if (toggle) {
       const key = toggle.dataset.toggle;
+      if (key === 'clock24') {
+        clock24h = !clock24h;
+        try { localStorage.setItem(CLOCK24_KEY, clock24h ? '1' : '0'); } catch (err) { /* 忽略 */ }
+        toggle.classList.toggle('on', clock24h);
+        const sub = toggle.closest('.st-row').querySelector('.st-row-sub');
+        if (sub) sub.textContent = `任务栏和锁屏使用 ${clock24h ? '24 小时' : '12 小时'}格式`;
+        tick();
+        return;
+      }
+      if (key === 'animations') {
+        animationsOn = !animationsOn;
+        try { localStorage.setItem(ANIM_KEY, animationsOn ? '1' : '0'); } catch (err) { /* 忽略 */ }
+        applyMotionPrefs();
+        toggle.classList.toggle('on', animationsOn);
+        return;
+      }
+      if (key === 'transparency') {
+        transparencyOn = !transparencyOn;
+        try { localStorage.setItem(TRANS_KEY, transparencyOn ? '1' : '0'); } catch (err) { /* 忽略 */ }
+        applyMotionPrefs();
+        toggle.classList.toggle('on', transparencyOn);
+        return;
+      }
       if (key in OS_STATE) setOSState({ [key]: !OS_STATE[key] });
       else toggle.classList.toggle('on');
       return;
@@ -7688,7 +8205,7 @@ let lockMsgTimer = 0;
 function updateLockClock() {
   const d = new Date();
   if (lockTimeEl) {
-    lockTimeEl.textContent = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+    lockTimeEl.textContent = clockText(d);
   }
   if (lockDateEl) {
     const datePart = d.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
