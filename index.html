@@ -3238,24 +3238,46 @@ function openUrlInFakeEdge(url) {
   createEdgeWin(edgeSite, url);
 }
 
-/* 应用窗口里点外链 → 交给假 Edge，别把人甩出桌面 */
+/* 应用窗口里的链接（含 ./ 相对路径）一律交给假 Edge，别让应用窗口自己跳走 */
 function hookSiteFrame(frame) {
   const attach = () => {
     try {
       const doc = frame.contentDocument;
-      if (!doc || doc.__sataLinkHook) return;
+      const win = frame.contentWindow;
+      if (!doc || !win || doc.__sataLinkHook) return;
       doc.__sataLinkHook = true;
+
+      // window.open('./xxx.html') 也走假 Edge
+      if (!win.__sataOpenPatched) {
+        win.__sataOpenPatched = true;
+        const origOpen = win.open;
+        win.open = function (url, target, features) {
+          try {
+            const abs = url ? new URL(url, doc.baseURI) : null;
+            if (abs && (abs.protocol === 'http:' || abs.protocol === 'https:')) {
+              openUrlInFakeEdge(abs.href);
+              return null;
+            }
+          } catch (_) { /* 忽略 */ }
+          return origOpen.call(this, url, target, features);
+        };
+      }
+
       doc.addEventListener('click', e => {
         const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
-        if (!a || a.hasAttribute('download')) return;
+        if (!a) return;
+        if (a.hasAttribute('download')) return;  // 下载留在原地
         const href = a.getAttribute('href') || '';
-        if (!href || href.charAt(0) === '#' || /^javascript:/i.test(href)) return;
+        if (!href || href.charAt(0) === '#' || /^(javascript|mailto|tel):/i.test(href)) return;
+
         let url;
         try { url = new URL(a.href, doc.baseURI); } catch (_) { return; }
-        if (url.origin === location.origin) return;  // 站内跳转留在窗口里
         if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+        if (url.href === doc.location.href) return;
+
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         openUrlInFakeEdge(url.href);
       }, true);
     } catch (_) { /* 拿不到文档时忽略 */ }
