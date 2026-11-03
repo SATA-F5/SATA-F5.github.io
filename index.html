@@ -3176,8 +3176,8 @@ let seq = 0;
 let activeId = null;
 
 function slotVisual(s, i) {
-  if (s.type === 'edge')   return { label: 'Microsoft Edge', ...glyphHTML(s), color: '#0F82D8', cls: 'edge' };
-  if (s.type === 'thispc') return { label: '此电脑',          ...glyphHTML(s), color: '#1E6FB8', cls: 'thispc' };
+  if (s.type === 'edge')   return { label: 'Microsoft Edge', ...glyphHTML(s), color: '#0F82D8' };
+  if (s.type === 'thispc') return { label: '此电脑',          ...glyphHTML(s), color: '#1E6FB8' };
   if (s.type === 'local')  return { label: s.name,            ...glyphHTML(s), color: s.color || '#0078d4' };
   if (isEmptySlot(s))      return { label: '添加快捷方式',     ...glyphHTML(s), color: s.color || '#0078d4' };
   return { label: s.name, ...glyphHTML(s), color: s.color || '#0078d4' };
@@ -5347,6 +5347,12 @@ function closeTaskView() {
 
 taskViewEl.addEventListener('click', e => {
   if (e.target === taskViewEl) closeTaskView();
+});
+
+/* 双击任务栏空白处打开任务视图 */
+document.getElementById('taskbar').addEventListener('dblclick', e => {
+  if (e.target.closest('button')) return;
+  openTaskView();
 });
 
 /* 通知清除 */
