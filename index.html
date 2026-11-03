@@ -4,6 +4,37 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>守禄的win11</title>
+<script>
+/* GitHub Pages 的 HTML 有 10 分钟缓存：发现线上版本变化时自动刷新一次 */
+(function () {
+  try {
+    if (location.protocol === 'file:' || !window.fetch) return;
+    var KEY = 'sata-html-version';
+    var RELOAD_KEY = 'sata-html-reloaded-at';
+    fetch('./?ping=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) return '';
+        return r.headers.get('last-modified') || r.headers.get('etag') || '';
+      })
+      .then(function (v) {
+        if (!v) return;
+        var old = localStorage.getItem(KEY);
+        if (old && old !== v) {
+          var last = Number(sessionStorage.getItem(RELOAD_KEY) || 0);
+          localStorage.setItem(KEY, v);
+          if (Date.now() - last < 30000) return;
+          sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+          var u = new URL(location.href);
+          u.searchParams.set('v', Date.now().toString(36));
+          location.replace(u.href);
+          return;
+        }
+        localStorage.setItem(KEY, v);
+      })
+      .catch(function () {});
+  } catch (e) { /* 忽略 */ }
+})();
+</script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -2592,7 +2623,7 @@ html.locked #toast {
 /* =========================================================
    经典应用（记事本 / 计算器 / 画图 / 命令提示符 / 任务管理器）
    ========================================================= */
-.np, .calc, .paint, .cmd, .tm2 { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.np, .calc, .paint, .cmd { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .np, .calc { background: var(--win-bg); color: var(--win-text); }
 
 .np-bar {
