@@ -169,6 +169,9 @@
   }
   .icon-btn{width:42px;padding:0}
   .icon-btn svg{width:18px;height:18px}
+  .icon-btn.spin svg{animation:spin .9s linear infinite}
+  .icon-btn[data-state="live"]{border-color:color-mix(in srgb,var(--good) 42%,var(--border));color:var(--good)}
+  @keyframes spin{to{transform:rotate(360deg)}}
   html[data-theme="dark"] .i-sun{display:block}
   html[data-theme="dark"] .i-moon{display:none}
   html[data-theme="light"] .i-sun{display:none}
@@ -188,6 +191,22 @@
   .stat b{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums}
   .stat-dim{opacity:.78}
   .stat .dot{width:5px;height:5px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 18%,transparent)}
+  .index-state{
+    font-style:normal;
+    margin-left:7px;
+    padding:2px 7px;
+    border-radius:999px;
+    font-size:9.5px;
+    letter-spacing:.03em;
+    border:1px solid var(--border);
+    color:var(--muted);
+    white-space:nowrap;
+  }
+  .index-state[data-live="1"]{
+    color:var(--good);
+    border-color:color-mix(in srgb,var(--good) 38%,var(--border));
+    background:color-mix(in srgb,var(--good) 10%,transparent);
+  }
 
   /* ---------- 工具栏 ---------- */
   .toolbar{
@@ -407,6 +426,14 @@
     border:1px solid rgba(255,255,255,.18);
   }
   .badge-type svg{width:13px;height:13px}
+  .badge-new{
+    left:auto;right:10px;top:auto;bottom:10px;
+    padding:3px 7px;
+    font-size:9.5px;letter-spacing:.12em;
+    background:linear-gradient(135deg,rgba(56,189,248,.95),rgba(139,92,246,.95));
+    border:1px solid rgba(255,255,255,.24);
+    box-shadow:0 6px 16px rgba(0,0,0,.24);
+  }
 
   .playbtn{
     position:absolute;z-index:4;
@@ -812,6 +839,12 @@
           </svg>
           随机一件
         </button>
+        <button class="btn icon-btn" id="syncBtn" type="button" data-state="snap" title="重新扫描 File 目录" aria-label="重新扫描 File 目录">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.4 12a8.4 8.4 0 1 1-2.6-6.1"/>
+            <path d="M20.6 4.4v5.2h-5.2"/>
+          </svg>
+        </button>
         <button class="btn icon-btn" id="themeBtn" title="切换浅色 / 深色" aria-label="切换浅色或深色主题">
           <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
             <circle cx="12" cy="12" r="4.1"/>
@@ -829,7 +862,7 @@
       <span class="stat"><b id="stSize">—</b> 已收录</span>
       <span class="stat"><b id="stVideo">—</b> 视频</span>
       <span class="stat"><b id="stMusic">—</b> 音乐</span>
-      <span class="stat stat-dim">更新于 <b id="stDate">—</b></span>
+      <span class="stat stat-dim">更新于 <b id="stDate">—</b><i class="index-state" id="indexState" data-live="0">本地快照</i></span>
     </div>
   </header>
 
@@ -864,13 +897,13 @@
         </svg>
       </div>
       <b>没有找到匹配的收藏</b>
-      <span id="emptyHint">换个关键词，或者把文件放进 <code>File</code> 文件夹后再运行导入脚本。</span>
+      <span id="emptyHint">换个关键词，或者把文件放进 <code>File</code> 文件夹，推送后自动收录。</span>
     </div>
   </main>
 
   <footer>
-    <span>资源位于 <code>./File</code> · 由 <code>tools/import-favorites.ps1</code> 生成清单<br>
-      视频仅收录 50 MB 以内的去重文件，以控制 GitHub Pages 站点体积。</span>
+    <span>资源位于 <code>./File</code> · 索引实时读取 GitHub 文件树，新增文件无需改网页<br>
+      视频封面自动取首帧；新视频还没有封面时，会在浏览时即时截帧补上。</span>
     <span>按 <kbd>/</kbd> 搜索 · <kbd>Esc</kbd> 清空 / 关闭 · 点击音乐卡片开始播放</span>
   </footer>
 </div>
@@ -940,11 +973,228 @@
   'use strict';
 
   /* =========================================================
-     数据
+     数据层
+     - 优先读取 GitHub 文件树：往 File 里丢新文件，网页自动收录
+     - 失败时回退到 File/manifest.js 快照，离线也能看
      ========================================================= */
-  const DATA = window.FAVORITES || { items: [], counts: {}, generated: '', totalSize: 0 };
-  const ITEMS = (DATA.items || []).filter(Boolean);
-  const BY_ID = new Map(ITEMS.map(i => [i.id, i]));
+  const SNAPSHOT = window.FAVORITES || { items: [], counts: {}, generated: '', totalSize: 0 };
+  const REPO = window.SHOULU_REPO || { owner: 'SATA-F5', name: 'SATA-F5.github.io', branch: 'main' };
+  const MEDIA_DIR = /^File\/(bilibili|music|videos)\//i;
+  const VIDEO_EXT = /^(MP4|MKV|MOV|WEBM|AVI|M4V)$/;
+  const AUDIO_EXT = /^(MP3|WAV|FLAC|M4A|OGG|AAC|OPUS)$/;
+  const COVER_EXT = ['.jpg', '.jpeg', '.png', '.webp'];
+  const CACHE_KEY = 'shoulu-fav-index-v2';
+  const SEEN_KEY = 'shoulu-fav-seen-v2';
+  const CACHE_TTL = 20 * 60 * 1000;
+
+  let ITEMS = [];
+  let BY_ID = new Map();
+  let META = { generated: '', totalSize: 0, counts: {} };
+  let isLive = false;
+  let snapshotByPath = new Map();
+  let syncing = false;
+
+  const seen = (() => {
+    try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}') || {}; } catch (e) { return {}; }
+  })();
+
+  function saveSeen() {
+    try { localStorage.setItem(SEEN_KEY, JSON.stringify(seen)); } catch (e) { /* 忽略 */ }
+  }
+
+  const posix = p => String(p || '').replace(/\\/g, '/');
+
+  function extOf(path) {
+    const m = /\.([a-z0-9]+)$/i.exec(path);
+    return m ? m[1].toUpperCase() : '';
+  }
+
+  function kindOf(ext) {
+    if (VIDEO_EXT.test(ext)) return 'video';
+    if (AUDIO_EXT.test(ext)) return 'music';
+    return '';
+  }
+
+  function sourceOf(path) {
+    if (/^File\/bilibili\//i.test(path)) return 'bilibili';
+    if (/^File\/videos\//i.test(path)) return 'video';
+    return 'music';
+  }
+
+  /* 旧导入脚本留下的 “xxx(1).mp3” 一律视为重复副本，不收录 */
+  function isDuplicate(path) {
+    return /\(\d+\)\.[a-z0-9]+$/i.test(path);
+  }
+
+  function hashId(path) {
+    let h = 5381;
+    for (let i = 0; i < path.length; i++) h = ((h << 5) + h + path.charCodeAt(i)) >>> 0;
+    return 'auto-' + h.toString(16);
+  }
+
+  function isoDay(ts) {
+    const d = new Date(ts);
+    const p = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+
+  function indexSnapshot() {
+    const map = new Map();
+    (SNAPSHOT.items || []).forEach(it => {
+      if (it && it.file) map.set(posix(it.file), it);
+    });
+    return map;
+  }
+
+  function computeMeta(items) {
+    let totalSize = 0;
+    let latest = 0;
+    items.forEach(i => {
+      totalSize += Number(i.size) || 0;
+      if (Number(i.ts) > latest) latest = Number(i.ts);
+    });
+    return {
+      totalSize,
+      generated: latest ? isoDay(latest) : (SNAPSHOT.generated || '').slice(0, 10),
+      counts: {
+        all: items.length,
+        music: items.filter(i => i.type === 'music').length,
+        video: items.filter(i => i.type === 'video').length,
+        bilibili: items.filter(i => i.source === 'bilibili').length,
+        musicLocal: items.filter(i => i.source === 'music').length,
+        videoLocal: items.filter(i => i.source === 'video').length
+      }
+    };
+  }
+
+  function applyItems(items, opts) {
+    ITEMS = (items || []).filter(Boolean);
+    BY_ID = new Map(ITEMS.map(i => [i.id, i]));
+    META = computeMeta(ITEMS);
+    isLive = !!(opts && opts.live);
+    updateStats();
+    renderChips();
+    render();
+  }
+
+  /* 把 GitHub 文件树转成条目：目录即数据，新增文件无需改网页 */
+  function buildFromTree(tree) {
+    const paths = new Set();
+    tree.forEach(n => { if (n && n.type === 'blob') paths.add(posix(n.path)); });
+
+    const out = [];
+    tree.forEach(n => {
+      if (!n || n.type !== 'blob') return;
+      const path = posix(n.path);
+      if (!MEDIA_DIR.test(path)) return;
+      if (/_cover\.(jpe?g|png|webp|gif)$/i.test(path)) return;
+      if (isDuplicate(path)) return;
+      const ext = extOf(path);
+      const type = kindOf(ext);
+      if (!type) return;
+
+      const meta = snapshotByPath.get(path) || {};
+      const dir = path.slice(0, path.lastIndexOf('/'));
+      const base = path.slice(path.lastIndexOf('/') + 1).replace(/\.[^.]+$/, '');
+
+      let cover = '';
+      for (let i = 0; i < COVER_EXT.length; i++) {
+        const candidate = dir + '/' + base + '_cover' + COVER_EXT[i];
+        if (paths.has(candidate)) { cover = candidate; break; }
+      }
+      if (!cover && meta.cover && paths.has(posix(meta.cover))) cover = posix(meta.cover);
+
+      const source = sourceOf(path);
+      let ts = Number(meta.ts) || 0;
+      const isNew = !meta.id;
+      if (!ts) {
+        if (!seen[path]) seen[path] = Date.now();
+        ts = Number(seen[path]) || Date.now();
+      }
+
+      out.push({
+        id: meta.id || hashId(path),
+        title: meta.title || base,
+        type,
+        source,
+        file: path,
+        audio: type === 'music' ? path : null,
+        video: type === 'video' ? path : null,
+        cover,
+        size: Number(n.size || meta.size) || 0,
+        date: meta.date || (ts ? isoDay(ts) : ''),
+        ts,
+        ext,
+        fresh: isNew && Date.now() - ts < 14 * 864e5
+      });
+    });
+
+    saveSeen();
+    return out;
+  }
+
+  function readCache() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+      if (!raw || !Array.isArray(raw.items) || !raw.at) return null;
+      return raw;
+    } catch (e) { return null; }
+  }
+
+  function writeCache(items) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), items })); } catch (e) { /* 忽略 */ }
+  }
+
+  async function fetchTree() {
+    const url = 'https://api.github.com/repos/' + REPO.owner + '/' + REPO.name +
+      '/git/trees/' + encodeURIComponent(REPO.branch) + '?recursive=1';
+    const res = await fetch(url, {
+      cache: 'no-store',
+      headers: { Accept: 'application/vnd.github+json' }
+    });
+    if (!res.ok) throw new Error('GitHub API ' + res.status);
+    const json = await res.json();
+    if (!json || !Array.isArray(json.tree)) throw new Error('invalid tree');
+    return json.tree;
+  }
+
+  function setSyncState(mode) {
+    const btn = $('#syncBtn');
+    if (!btn) return;
+    btn.classList.toggle('spin', mode === 'busy');
+    btn.dataset.state = mode;
+    btn.title = mode === 'busy' ? '正在扫描 File 目录…'
+      : mode === 'live' ? '实时索引：已连接 GitHub，最新 ' + ITEMS.length + ' 件'
+      : '当前为本地快照，点击重新扫描';
+  }
+
+  async function syncIndex(opts) {
+    if (syncing) return false;
+    syncing = true;
+    setSyncState('busy');
+    try {
+      const tree = await fetchTree();
+      const items = buildFromTree(tree);
+      if (!items.length) throw new Error('empty');
+      writeCache(items);
+      applyItems(items, { live: true });
+      setSyncState('live');
+      if (opts && opts.toast) toast('已同步 ' + items.length + ' 件，含最新加入的文件');
+      return true;
+    } catch (e) {
+      setSyncState('snap');
+      if (opts && opts.toast) toast('实时同步失败，继续使用本地快照');
+      return false;
+    } finally {
+      syncing = false;
+    }
+  }
+
+  function snapshotItems() {
+    return (SNAPSHOT.items || [])
+      .filter(it => it && it.file && !isDuplicate(posix(it.file)))
+      .map(it => ({ ...it, fresh: false }));
+  }
 
   const SOURCE_LABEL = {
     bilibili: 'B 站收藏',
@@ -1015,17 +1265,22 @@
   /* =========================================================
      顶部统计
      ========================================================= */
-  const counts = DATA.counts || {};
-  const total = ITEMS.length;
-  const totalSize = DATA.totalSize || ITEMS.reduce((a, b) => a + (Number(b.size) || 0), 0);
-  const musicCount = counts.music != null ? counts.music : ITEMS.filter(isMusic).length;
-  const videoCount = counts.video != null ? counts.video : ITEMS.filter(i => i.type === 'video').length;
-
-  $('#stTotal').textContent = total;
-  $('#stSize').textContent = fmtSize(totalSize);
-  $('#stMusic').textContent = musicCount;
-  $('#stVideo').textContent = videoCount;
-  $('#stDate').textContent = (DATA.generated || '').slice(0, 10) || '—';
+  function updateStats() {
+    const counts = META.counts || {};
+    $('#stTotal').textContent = ITEMS.length;
+    $('#stSize').textContent = fmtSize(META.totalSize);
+    $('#stMusic').textContent = counts.music != null ? counts.music : ITEMS.filter(isMusic).length;
+    $('#stVideo').textContent = counts.video != null ? counts.video : ITEMS.filter(i => i.type === 'video').length;
+    $('#stDate').textContent = (META.generated || '').slice(0, 10) || '—';
+    const hint = $('#indexState');
+    if (hint) {
+      hint.textContent = isLive ? '实时索引' : '本地快照';
+      hint.dataset.live = isLive ? '1' : '0';
+      hint.title = isLive
+        ? '列表来自 GitHub 文件树，往 File 里新增文件后自动出现'
+        : '当前使用 File/manifest.js 快照，点击右上角刷新按钮可重新扫描';
+    }
+  }
 
   /* =========================================================
      筛选 / 排序
@@ -1057,7 +1312,7 @@
     let list = ITEMS.filter(item => {
       if (!matchesFilter(item)) return false;
       if (!q) return true;
-      const hay = (item.title + ' ' + labelOf(item) + ' ' + (item.ext || '')).toLowerCase();
+      const hay = (item.title + ' ' + labelOf(item) + ' ' + (item.ext || '') + ' ' + (item.file || '')).toLowerCase();
       return hay.includes(q);
     });
 
@@ -1146,6 +1401,7 @@
         ${cover ? `<img src="${cover}" alt="" loading="lazy" decoding="async">` : thumbPlaceholder(item)}
         <span class="badge badge-src" data-src="${esc(item.source)}" aria-hidden="true">${src}</span>
         <span class="badge badge-type" title="${isMusic(item) ? '音乐' : '视频'}" aria-hidden="true">${typeIcon}</span>
+        ${item.fresh ? '<span class="badge badge-new" title="新收录">新</span>' : ''}
         <span class="playbtn" aria-hidden="true">${I.play}</span>
       </div>
       <div class="info">
@@ -1160,11 +1416,116 @@
     </article>`;
   }
 
+  /* ---------------------------------------------------------
+     视频封面兜底：新增视频还没有 _cover.jpg 时，
+     浏览器端加载视频并截取一帧作为封面（无需手工处理）
+     --------------------------------------------------------- */
+  const FRAME_CACHE = new Map();
+  const FRAME_TRIED = new Set();
+
+  function captureFrame(path) {
+    if (!path) return Promise.resolve('');
+    if (FRAME_CACHE.has(path)) return Promise.resolve(FRAME_CACHE.get(path));
+    if (FRAME_TRIED.has(path)) return Promise.resolve('');
+    FRAME_TRIED.add(path);
+
+    return new Promise(resolve => {
+      const video = document.createElement('video');
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = 'metadata';
+      let settled = false;
+
+      const finish = dataUrl => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        video.removeAttribute('src');
+        try { video.load(); } catch (e) { /* 忽略 */ }
+        if (dataUrl) FRAME_CACHE.set(path, dataUrl);
+        resolve(dataUrl || '');
+      };
+
+      const timer = setTimeout(() => finish(''), 9000);
+
+      video.addEventListener('loadedmetadata', () => {
+        const dur = isFinite(video.duration) && video.duration > 0 ? video.duration : 1;
+        try {
+          video.currentTime = Math.min(Math.max(dur * 0.04, 0.2), 8);
+        } catch (e) { finish(''); }
+      });
+
+      video.addEventListener('seeked', () => {
+        const w = 480;
+        const ratio = video.videoWidth && video.videoHeight ? video.videoHeight / video.videoWidth : 10 / 16;
+        const h = Math.max(2, Math.round(w * ratio));
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        try {
+          canvas.getContext('2d').drawImage(video, 0, 0, w, h);
+          finish(canvas.toDataURL('image/jpeg', 0.72));
+        } catch (e) { finish(''); }
+      });
+
+      video.addEventListener('error', () => finish(''));
+      video.src = fileUrl(path);
+    });
+  }
+
+  function paintFrame(card) {
+    if (!card) return;
+    const item = BY_ID.get(card.dataset.id);
+    if (!item || item.type !== 'video') return;
+    const thumb = card.querySelector('.thumb');
+    if (!thumb || thumb.querySelector('img') || thumb.dataset.frameBusy) return;
+    thumb.dataset.frameBusy = '1';
+    captureFrame(item.file).then(url => {
+      delete thumb.dataset.frameBusy;
+      if (!url || !thumb.isConnected || thumb.querySelector('img')) return;
+      const img = document.createElement('img');
+      img.alt = '';
+      img.decoding = 'async';
+      img.src = url;
+      const ph = thumb.querySelector('.ph');
+      if (ph) ph.remove();
+      thumb.classList.remove('no-cover');
+      thumb.insertBefore(img, thumb.firstChild);
+    });
+  }
+
+  const frameObserver = 'IntersectionObserver' in window
+    ? new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          frameObserver.unobserve(entry.target);
+          paintFrame(entry.target);
+        });
+      }, { rootMargin: '320px 0px' })
+    : null;
+
   function bindImageFallbacks() {
     grid.querySelectorAll('.thumb img').forEach(img => {
       img.addEventListener('error', () => {
-        img.closest('.thumb').classList.add('img-broken');
+        const thumb = img.closest('.thumb');
+        const card = img.closest('.card');
+        const item = card ? BY_ID.get(card.dataset.id) : null;
+        img.remove();
+        if (!thumb) return;
+        thumb.classList.add('no-cover');
+        if (item && !thumb.querySelector('.ph')) {
+          thumb.insertAdjacentHTML('afterbegin', thumbPlaceholder(item));
+        }
+        if (item && item.type === 'video') paintFrame(card);
       }, { once: true });
+    });
+  }
+
+  function observeFrames() {
+    if (!frameObserver) return;
+    grid.querySelectorAll('.card').forEach(card => {
+      const item = BY_ID.get(card.dataset.id);
+      if (item && item.type === 'video' && !item.cover) frameObserver.observe(card);
     });
   }
 
@@ -1179,10 +1540,11 @@
 
     grid.innerHTML = list.map(cardHTML).join('');
     bindImageFallbacks();
+    observeFrames();
 
     empty.classList.toggle('show', list.length === 0);
     if (!ITEMS.length) {
-      $('#emptyHint').innerHTML = '还没有资源。把文件放进 <code>File</code> 文件夹，然后运行 <code>tools/import-favorites.ps1</code>。';
+      $('#emptyHint').innerHTML = '还没有资源。把文件放进 <code>File</code> 文件夹（bilibili / music / videos），推送后会自动收录。';
     }
   }
 
@@ -1589,15 +1951,32 @@
   }
 
   /* =========================================================
-     启动
+     启动：先用快照秒开，再实时同步 GitHub 文件树
      ========================================================= */
-  renderChips();
-  render();
+  function boot() {
+    snapshotByPath = indexSnapshot();
+    applyItems(snapshotItems(), { live: false });
 
-  if (!ITEMS.length) {
-    // 清单缺失时也给出一条明确提示
-    toast('未找到 File/manifest.js，请先运行导入脚本');
+    const cached = readCache();
+    if (cached) {
+      applyItems(cached.items, { live: true });
+      if (Date.now() - cached.at < CACHE_TTL) {
+        setSyncState('live');
+        return;
+      }
+    }
+
+    syncIndex().then(ok => {
+      if (!ok && !ITEMS.length) toast('未找到收藏内容，请确认 File 目录与网络状态');
+    });
   }
+
+  $('#syncBtn').addEventListener('click', () => {
+    try { localStorage.removeItem(CACHE_KEY); } catch (e) { /* 忽略 */ }
+    syncIndex({ toast: true });
+  });
+
+  boot();
 })();
 </script>
 </body>
