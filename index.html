@@ -3721,7 +3721,7 @@ function svgIcon(name, size = 24, sw = 1.8) {
     stroke-linejoin="round">${path}</svg>`;
 }
 
-const EDGE_LOGO = `<img class="edge-brand-img" src="./assets/icons/edge.png" alt="Microsoft Edge">`;
+const EDGE_LOGO = `<img class="edge-brand-img" src="./assets/icons/edge-v2.png" alt="Microsoft Edge">`;
 
 const EXPLORER_SMALL = `<svg viewBox="0 0 48 48" width="28" height="28" fill="none">
   <rect x="6" y="10" width="36" height="24" rx="2.2" fill="#ffffff" opacity="0.95"/>
@@ -3829,7 +3829,7 @@ function showToast(msg) {
 
 /* ================= 图标渲染工具 ================= */
 function glyphHTML(s, size = 24, sw = 1.8) {
-  if (s.type === 'edge')   return { html: '<img src="./assets/icons/edge.png" alt="Microsoft Edge">', cls: 'plain' };
+  if (s.type === 'edge')   return { html: '<img src="./assets/icons/edge-v2.png" alt="Microsoft Edge">', cls: 'plain' };
   if (s.type === 'thispc') return { html: pkImg(PK.computer), cls: 'plain' };
   if (s.png)               return { html: `<img src="${s.png}" alt="${s.name || ''}">`, cls: 'plain' };
   if (s.type === 'local')  return {
@@ -3842,7 +3842,7 @@ function glyphHTML(s, size = 24, sw = 1.8) {
 }
 
 function smallGlyphHTML(s, size = 12, sw = 2.4) {
-  if (s.type === 'edge')   return { html: '<img src="./assets/icons/edge.png" alt="">', cls: 'plain' };
+  if (s.type === 'edge')   return { html: '<img src="./assets/icons/edge-v2.png" alt="">', cls: 'plain' };
   if (s.type === 'thispc') return { html: pkImg(PK.computer), cls: 'plain' };
   if (s.png)               return { html: `<img src="${s.png}" alt="">`, cls: 'plain' };
   if (s.type === 'local')  return {
