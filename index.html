@@ -922,6 +922,43 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
 .fv-close:hover { background: var(--tb-hover); }
 .fv-body { flex: 1; overflow: auto; padding: 20px 24px; font-size: 12.5px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
 
+/* ZIP 文件预览 */
+.zip-prev { max-width: 560px; margin: 0 auto; white-space: normal; }
+.zip-hero { display: flex; align-items: center; gap: 14px; }
+.zip-ico { width: 64px; height: 64px; object-fit: contain; flex-shrink: 0; }
+.zip-name { font-size: 18px; font-weight: 600; }
+.zip-sub { margin-top: 4px; font-size: 11.5px; color: var(--win-sub); }
+.zip-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 22px; margin: 20px 0 16px; }
+.zip-grid > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.zip-grid span { font-size: 10.5px; color: var(--win-sub); }
+.zip-grid b { font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.zip-desc { font-size: 12px; line-height: 1.65; color: var(--win-sub); }
+.zip-cats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.zip-cats span {
+  padding: 4px 8px; border-radius: 6px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  font-size: 10.5px; color: var(--win-sub);
+}
+.zip-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.zip-btn {
+  height: 36px;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 0 16px;
+  border: 1px solid var(--field-border);
+  border-radius: 8px;
+  background: var(--field-bg);
+  color: inherit;
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.zip-btn:hover { background: var(--tb-hover); }
+.zip-btn.primary { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+.zip-btn.primary:hover { filter: brightness(1.06); }
+.zip-btn:disabled { opacity: .45; cursor: default; }
+.zip-note { margin-top: 12px; font-size: 10.5px; color: var(--win-sub); }
+
 /* 此电脑 > 文档 > 工作：关于守禄 彩蛋卡片 */
 .egg-wrap { max-width: 520px; margin: 0 auto; white-space: normal; }
 .egg-hero { display: flex; align-items: center; gap: 14px; }
@@ -4883,6 +4920,17 @@ function createThisPCWin(site) {
     '下载': { type: 'folder', children: [
       { name: 'ChromeSetup.exe', type: 'file', size: '110 MB' },
       { name: '驱动包.zip', type: 'file', size: '2.4 GB' },
+      { name: 'WindowsIcons.zip', type: 'file', size: '37.0 MB', kind: 'zip',
+        url: './downloads/WindowsIcons.zip',
+        meta: {
+          source: 'HaydenReeve/WindowsIcons',
+          repo: 'https://github.com/HaydenReeve/WindowsIcons',
+          commit: '9442e3e',
+          packaged: '2026-11-04',
+          icons: 521,
+          desc: 'Windows 11 图标集合，包含应用、设备、徽标、文件、文件夹、对象六类图标，全部为 .ico 格式，解压即可使用。',
+          categories: ['应用 181', '设备 84', '徽标 66', '文件 111', '文件夹 39', '对象 40'],
+        } },
     ]},
     '图片': { type: 'folder', children: [
       { name: '壁纸', type: 'folder', children: [] },
@@ -5000,6 +5048,7 @@ function createThisPCWin(site) {
 
   function openFile(f, fullPath) {
     if (f.kind === 'egg') { openAboutEgg(f, fullPath); return; }
+    if (f.kind === 'zip' || /\.zip$/i.test(f.name)) { openZipPreview(f, fullPath); return; }
     const isText = f.kind === 'text' || /\.(txt|md|log|ini|cfg|json|m3u|html)$/i.test(f.name);
     if (!isText) { showToast(`无法打开文件 ${f.name}`); return; }
     const viewer = document.createElement('div');
@@ -5014,6 +5063,52 @@ function createThisPCWin(site) {
       </div>
       <div class="fv-body"></div>`;
     viewer.querySelector('.fv-body').textContent = fileContent(f);
+    viewer.querySelector('.fv-close').addEventListener('click', () => viewer.remove());
+    w.el.appendChild(viewer);
+  }
+
+  function openZipPreview(f, fullPath) {
+    const viewer = document.createElement('div');
+    viewer.className = 'file-viewer';
+    const url = f.url || '';
+    const meta = f.meta || {};
+    const cats = meta.categories || [];
+    viewer.innerHTML = `
+      <div class="fv-head">
+        <div>
+          <div class="fv-title">${svgIcon('file', 16, 1.8)} ${f.name}</div>
+          <div class="fv-path">${fullPath.join(' › ')} · ${f.size}</div>
+        </div>
+        <button class="fv-close" title="关闭">${svgIcon('close', 14, 2)}</button>
+      </div>
+      <div class="fv-body">
+        <div class="zip-prev">
+          <div class="zip-hero">
+            <img class="zip-ico" src="./assets/icons/file-zip.png" alt="">
+            <div>
+              <div class="zip-name">${f.name}</div>
+              <div class="zip-sub">${f.size} · ZIP 压缩包${meta.icons ? ' · ' + meta.icons + ' 个 ICO' : ''}</div>
+            </div>
+          </div>
+          <div class="zip-grid">
+            <div><span>文件类型</span><b>ZIP 压缩文件</b></div>
+            <div><span>文件大小</span><b>${f.size}</b></div>
+            ${meta.source ? `<div><span>来源</span><b>${meta.source}</b></div>` : ''}
+            ${meta.commit ? `<div><span>版本</span><b>${meta.commit}</b></div>` : ''}
+            ${meta.packaged ? `<div><span>打包日期</span><b>${meta.packaged}</b></div>` : ''}
+            ${meta.icons ? `<div><span>图标数量</span><b>${meta.icons} 个</b></div>` : ''}
+          </div>
+          ${meta.desc ? `<div class="zip-desc">${meta.desc}</div>` : ''}
+          ${cats.length ? `<div class="zip-cats">${cats.map(c => `<span>${c}</span>`).join('')}</div>` : ''}
+          <div class="zip-actions">
+            ${url
+              ? `<a class="zip-btn primary" href="${url}" download="${f.name}">${svgIcon('down', 15, 2)} 下载 ZIP</a>`
+              : `<button class="zip-btn" type="button" disabled>暂无下载文件</button>`}
+            ${meta.repo ? `<a class="zip-btn" href="${meta.repo}" target="_blank" rel="noopener">在 GitHub 查看</a>` : ''}
+          </div>
+          <div class="zip-note">${url ? '下载后解压即可使用其中的 .ico 文件。' : '该压缩包为界面演示文件，暂未提供实际下载。'}</div>
+        </div>
+      </div>`;
     viewer.querySelector('.fv-close').addEventListener('click', () => viewer.remove());
     w.el.appendChild(viewer);
   }
