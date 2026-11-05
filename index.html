@@ -1063,7 +1063,7 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
 }
 .tb-app-btn:hover { background: var(--tb-hover); }
 .tb-app-btn:active { background: var(--tb-active); }
-.tb-app-btn.active { background: var(--tb-hover); }
+.tb-app-btn.active { background: transparent; }
 .tb-app-btn.minimized { opacity: .62; }
 .tb-app-btn.minimized:hover { opacity: .85; }
 .tb-app-glyph {
@@ -2453,6 +2453,91 @@ body.booting { overflow: hidden; }
 }
 .sd-power:hover { background: #111; border-color: #444; color: #fff; opacity: 1; }
 .sd-power:active { transform: scale(.94); }
+
+/* ---- 未响应弹窗（蓝屏前奏） ---- */
+#nrBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 19000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, .28);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+#nrBackdrop.on { display: flex; animation: nrIn .16s ease both; }
+#nrBackdrop.out { animation: nrOut .18s ease both; }
+@keyframes nrIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes nrOut { from { opacity: 1; } to { opacity: 0; } }
+.nr-dialog {
+  width: min(430px, calc(100vw - 40px));
+  padding: 22px 22px 18px;
+  border-radius: 12px;
+  background: var(--win-bg);
+  color: var(--win-text);
+  border: 1px solid var(--win-border);
+  box-shadow: var(--win-shadow);
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+.nr-head { display: flex; align-items: center; gap: 14px; }
+.nr-icon {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background: transparent;
+}
+.nr-title { font-size: 16px; font-weight: 600; letter-spacing: .01em; }
+.nr-state { margin-top: 2px; font-size: 12px; color: var(--win-sub); }
+.nr-body {
+  margin-top: 16px;
+  color: var(--win-sub);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+.nr-dots { display: flex; gap: 4px; margin-top: 12px; }
+.nr-dots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: .28;
+  animation: nrDot 1.2s ease-in-out infinite;
+}
+.nr-dots i:nth-child(2) { animation-delay: .15s; }
+.nr-dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes nrDot {
+  0%, 100% { opacity: .24; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+.nr-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+.nr-btn {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 5px;
+  border: 1px solid var(--field-border);
+  background: var(--field-bg);
+  color: var(--win-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.nr-btn:hover { background: var(--tb-hover); }
+.nr-btn.primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.nr-btn.primary:hover { filter: brightness(1.06); }
 
 /* ---- 假蓝屏彩蛋 ---- */
 #bsodScreen {
@@ -3926,7 +4011,7 @@ let toastTimer = null;
 function showToast(msg) {
   // 彩蛋 2：点到未实现的功能时，不弹普通提示，直接蓝屏
   if (/演示|暂不支持|未实现|暂未|未提供|开发中/.test(String(msg))) {
-    triggerBSOD();
+    triggerCrash();
     return;
   }
   toastEl.textContent = msg;
@@ -6847,6 +6932,48 @@ function restartPC() {
   location.reload();
 }
 
+/* ================= 彩蛋 2：崩溃前奏 ================= */
+function triggerCrash() {
+  if (document.getElementById('bsodScreen') || document.getElementById('nrBackdrop')) return;
+
+  const el = document.createElement('div');
+  el.id = 'nrBackdrop';
+  el.innerHTML = `
+    <div class="nr-dialog" role="alertdialog" aria-modal="true" aria-labelledby="nrTitle" aria-describedby="nrBody">
+      <div class="nr-head">
+        <span class="nr-icon">${svgIcon('monitor', 34, 1.5)}</span>
+        <div>
+          <div class="nr-title" id="nrTitle">System.exe</div>
+          <div class="nr-state">未响应</div>
+        </div>
+      </div>
+      <div class="nr-body" id="nrBody">程序没有响应。如果你等待，程序可能会做出响应。</div>
+      <div class="nr-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="nr-actions">
+        <button type="button" class="nr-btn" data-nr="close">关闭程序</button>
+        <button type="button" class="nr-btn primary" data-nr="wait">等待程序响应</button>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('on'));
+
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    clearTimeout(timer);
+    el.classList.add('out');
+    setTimeout(() => {
+      el.remove();
+      triggerBSOD();
+    }, 180);
+  };
+  const timer = setTimeout(finish, 2000);
+  el.querySelector('[data-nr="close"]')?.addEventListener('click', finish);
+  el.querySelector('[data-nr="wait"]')?.addEventListener('click', finish);
+}
+window.triggerCrash = triggerCrash;
+
 /* ================= 彩蛋 2：假蓝屏 ================= */
 function triggerBSOD(reason) {
   if (document.getElementById('bsodScreen')) return;
@@ -6890,7 +7017,7 @@ document.addEventListener('click', e => {
   if (e.target.closest('.exp-search') || e.target.closest('.sm-more-btn:not(#smAllAppsBtn)')) {
     e.preventDefault();
     e.stopPropagation();
-    triggerBSOD();
+    triggerCrash();
   }
 }, true);
 
@@ -7597,14 +7724,14 @@ function createTaskManagerWin() {
         if (p.restart) p.restart();
         else showToast(`已重新启动 ${p.name}`);
         break;
-      case 'resources': triggerBSOD(); break;
-      case 'feedback': triggerBSOD(); break;
-      case 'efficiency': triggerBSOD(); break;
-      case 'dump': triggerBSOD(); break;
-      case 'details': triggerBSOD(); break;
-      case 'location': triggerBSOD(); break;
-      case 'search': triggerBSOD(); break;
-      case 'props': triggerBSOD(); break;
+      case 'resources': triggerCrash(); break;
+      case 'feedback': triggerCrash(); break;
+      case 'efficiency': triggerCrash(); break;
+      case 'dump': triggerCrash(); break;
+      case 'details': triggerCrash(); break;
+      case 'location': triggerCrash(); break;
+      case 'search': triggerCrash(); break;
+      case 'props': triggerCrash(); break;
       default: break;
     }
   }
@@ -8055,7 +8182,7 @@ function createTaskManagerWin() {
     else if (tab === 'users') renderUsers();
     else if (tab === 'services') renderServices();
     else if (tab === 'details') renderDetails();
-    else if (tab === 'settings') triggerBSOD();
+    else if (tab === 'settings') triggerCrash();
     else renderPlaceholder(TAB_TITLES[tab] || tab);
   }
 
@@ -8631,12 +8758,12 @@ function createSettingsWin(site, initialPage = 'system') {
 
   body.addEventListener('click', e => {
     // 彩蛋 2：点击没有实现的设置项 / 搜索框，触发假蓝屏
-    if (e.target.closest('.st-search')) { triggerBSOD(); return; }
+    if (e.target.closest('.st-search')) { triggerCrash(); return; }
     const deadRow = e.target.closest('.st-row');
     if (deadRow && !e.target.closest('button, input, select, .st-toggle, .st-slider, .st-theme-card, .st-wall, .st-accent')) {
       const subText = (deadRow.querySelector('.st-row-sub') || {}).textContent || '';
       if (deadRow.querySelector('.st-chev') || /未实现|演示|暂未/.test(subText)) {
-        triggerBSOD();
+        triggerCrash();
         return;
       }
     }
