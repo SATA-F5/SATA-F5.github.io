@@ -2545,10 +2545,10 @@ body.booting { overflow: hidden; }
   inset: 0;
   z-index: 20000;
   display: none;
-  padding: clamp(28px, 9vh, 116px) clamp(28px, 9vw, 140px);
+  padding: clamp(64px, 12vh, 150px) clamp(28px, 9vw, 122px) clamp(28px, 5vh, 56px);
   background:
-    radial-gradient(1200px 800px at 72% 8%, rgba(255, 255, 255, .07), transparent 62%),
-    #0067b8;
+    radial-gradient(1400px 900px at 72% 0%, rgba(255, 255, 255, .055), transparent 60%),
+    #0078d7;
   color: #fff;
   font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
   overflow: auto;
@@ -2556,54 +2556,62 @@ body.booting { overflow: hidden; }
 #bsodScreen.on {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  animation: bsodIn .2s ease both;
+  justify-content: flex-start;
+  animation: bsodIn .18s ease both;
 }
 @keyframes bsodIn { from { opacity: 0; } to { opacity: 1; } }
+.bsod-inner { width: min(1040px, 100%); }
 .bsod-face {
-  margin-bottom: clamp(22px, 3.4vh, 38px);
-  font-size: clamp(72px, 10.5vw, 124px);
+  margin-bottom: clamp(18px, 3vh, 32px);
+  font-size: clamp(84px, 11vw, 132px);
   font-weight: 200;
-  line-height: 1;
+  line-height: .95;
   letter-spacing: -2px;
 }
 .bsod-lead {
-  max-width: 1020px;
-  font-size: clamp(20px, 2.1vw, 30px);
+  max-width: 1010px;
+  font-size: clamp(21px, 2vw, 29px);
   font-weight: 300;
-  line-height: 1.42;
+  line-height: 1.4;
 }
 .bsod-percent {
-  margin-top: clamp(16px, 2.8vh, 30px);
-  font-size: clamp(15px, 1.35vw, 19px);
+  margin-top: clamp(18px, 2.6vh, 28px);
+  font-size: clamp(17px, 1.4vw, 21px);
   font-weight: 300;
 }
-.bsod-bar {
-  width: min(460px, 72vw);
-  height: 3px;
-  margin-top: 10px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, .25);
-  overflow: hidden;
-}
-.bsod-bar i { display: block; width: 0; height: 100%; background: #fff; }
 .bsod-info {
-  max-width: 980px;
-  margin-top: clamp(22px, 4vh, 48px);
-  font-size: clamp(12.5px, 1.1vw, 15px);
-  line-height: 1.75;
-  color: rgba(255, 255, 255, .94);
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(14px, 1.6vw, 24px);
+  max-width: 1040px;
+  margin-top: clamp(28px, 4.5vh, 48px);
 }
-.bsod-info p { margin: 0 0 8px; }
-.bsod-code {
-  display: inline-block;
-  margin-top: 6px;
-  padding: 8px 11px;
-  border: 1px solid rgba(255, 255, 255, .34);
-  border-radius: 3px;
+.bsod-qr {
+  width: clamp(84px, 9vw, 116px);
+  height: auto;
+  flex: none;
+  display: block;
+  padding: 5px;
+  border-radius: 2px;
+  background: #fff;
+  shape-rendering: crispEdges;
+}
+.bsod-info-text {
+  color: rgba(255, 255, 255, .96);
+  font-size: clamp(12.5px, 1.05vw, 14.5px);
+  line-height: 1.65;
+}
+.bsod-info-text p { margin: 0 0 5px; }
+.bsod-stop {
+  margin-top: 10px;
   font-family: ui-monospace, SFMono-Regular, Consolas, "Courier New", monospace;
-  font-size: .95em;
-  letter-spacing: .02em;
+  font-size: .98em;
+  line-height: 1.7;
+}
+.bsod-stop b { font-weight: 600; }
+@media (max-width: 640px) {
+  .bsod-info { flex-direction: column; gap: 14px; }
+  .bsod-qr { width: 76px; }
 }
 
 /* 锁屏 / 登录（Win11 风格） */
@@ -5533,13 +5541,26 @@ function createThisPCWin(site) {
     });
   }
 
+  function isCriticalFolder(fullPath) {
+    const p = fullPath.join('\\').toLowerCase();
+    return p === 'c:\\windows' || p.startsWith('c:\\windows\\')
+      || p === 'c:\\program files' || p.startsWith('c:\\program files\\')
+      || p === 'c:\\users' || p.startsWith('c:\\users\\');
+  }
+
   function deleteChild(k) {
     const n = folderNode();
     if (!n) return;
     const i = n.children.indexOf(k);
     if (i < 0) return;
+    const fullPath = [...state.path, k.name];
     n.children.splice(i, 1);
     render();
+    // 删除 Windows / Program Files / Users 等系统目录 → 系统崩溃，重启后自动恢复
+    if (k.type === 'folder' && isCriticalFolder(fullPath)) {
+      setTimeout(triggerCrash, 160);
+      return;
+    }
     showToast(`已删除「${k.name}」`);
   }
 
@@ -6975,6 +6996,23 @@ function triggerCrash() {
 window.triggerCrash = triggerCrash;
 
 /* ================= 彩蛋 2：假蓝屏 ================= */
+function bsodQrSvg() {
+  const n = 29;
+  let seed = 0x5a17;
+  const rand = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  const inFinder = (x, y) => [[0, 0], [n - 7, 0], [0, n - 7]]
+    .some(([fx, fy]) => x >= fx && x < fx + 8 && y >= fy && y < fy + 8);
+  let cells = '';
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      if (inFinder(x, y)) continue;
+      if (rand() > .53) cells += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
+    }
+  }
+  const finder = (x, y) => `<rect x="${x}" y="${y}" width="7" height="7"/><rect x="${x + 1}" y="${y + 1}" width="5" height="5" fill="#fff"/><rect x="${x + 2}" y="${y + 2}" width="3" height="3"/>`;
+  return `<svg class="bsod-qr" viewBox="0 0 ${n} ${n}" aria-hidden="true"><rect width="${n}" height="${n}" fill="#fff"/><g fill="#000">${cells}${finder(0, 0)}${finder(n - 7, 0)}${finder(0, n - 7)}</g></svg>`;
+}
+
 function triggerBSOD(reason) {
   if (document.getElementById('bsodScreen')) return;
 
@@ -6982,28 +7020,44 @@ function triggerBSOD(reason) {
   el.id = 'bsodScreen';
   el.setAttribute('role', 'alert');
   el.innerHTML = `
-    <div class="bsod-face">:(</div>
-    <div class="bsod-lead">你的电脑遇到问题，需要重新启动。我们只收集某些错误信息，然后为你重新启动。</div>
-    <div class="bsod-percent" id="bsodPercent">0% 完成</div>
-    <div class="bsod-bar"><i id="bsodBar"></i></div>
-    <div class="bsod-info">
-      <p>如果你需要了解更多信息，可稍后在网上搜索此错误：</p>
-      <div class="bsod-code">未知错误 · UNKNOWN_ERROR</div>
-      <p style="margin-top:12px">停止代码：0x00000000 (0x0000000000000000)</p>
+    <div class="bsod-inner">
+      <div class="bsod-face">:(</div>
+      <div class="bsod-lead">你的设备遇到问题，需要重启。我们只收集某些错误信息，然后为你重启。</div>
+      <div class="bsod-percent" id="bsodPercent">0% 完成</div>
+      <div class="bsod-info">
+        ${bsodQrSvg()}
+        <div class="bsod-info-text">
+          <p>有关此问题的详细信息和可能的解决方法，请访问 https://www.windows.com/stopcode</p>
+          <p>如果致电支持人员，请向他们提供以下信息：</p>
+          <div class="bsod-stop">停止代码: <b>UNKNOWN_ERROR</b><br>失败的操作: System.exe<br>错误代码: 0x00000000</div>
+        </div>
+      </div>
     </div>`;
   document.body.appendChild(el);
   requestAnimationFrame(() => el.classList.add('on'));
 
   const percentEl = el.querySelector('#bsodPercent');
-  const barEl = el.querySelector('#bsodBar');
   const started = performance.now();
   const DURATION = 10000;
+  // 每次随机生成 5 段跳跃，100% 后卡住到 10 秒再重启
+  const jumps = [];
+  let nextAt = 420 + Math.random() * 480;
+  const bands = [[6, 15], [22, 35], [46, 59], [69, 83], [100, 100]];
+  for (let i = 0; i < bands.length; i++) {
+    const pct = i === bands.length - 1
+      ? 100
+      : Math.floor(bands[i][0] + Math.random() * (bands[i][1] - bands[i][0] + 1));
+    jumps.push([Math.round(nextAt), pct]);
+    nextAt += 1000 + Math.random() * 800;
+  }
+  let ji = 0;
 
   function frame(now) {
     const elapsed = Math.min(DURATION, now - started);
-    const pct = Math.floor((elapsed / DURATION) * 100);
-    if (percentEl) percentEl.textContent = pct + '% 完成';
-    if (barEl) barEl.style.width = pct + '%';
+    while (ji < jumps.length && elapsed >= jumps[ji][0]) {
+      if (percentEl) percentEl.textContent = jumps[ji][1] + '% 完成';
+      ji++;
+    }
     if (elapsed < DURATION) requestAnimationFrame(frame);
     else restartPC();
   }
