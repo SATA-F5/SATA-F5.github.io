@@ -2454,6 +2454,80 @@ body.booting { overflow: hidden; }
 .sd-power:hover { background: #111; border-color: #444; color: #fff; opacity: 1; }
 .sd-power:active { transform: scale(.94); }
 
+/* ---- 假蓝屏彩蛋 ---- */
+#bsodScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  display: none;
+  padding: clamp(28px, 9vh, 116px) clamp(28px, 9vw, 140px);
+  background:
+    radial-gradient(1200px 800px at 72% 8%, rgba(255, 255, 255, .07), transparent 62%),
+    #0067b8;
+  color: #fff;
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+  overflow: auto;
+}
+#bsodScreen.on {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  animation: bsodIn .2s ease both;
+}
+@keyframes bsodIn { from { opacity: 0; } to { opacity: 1; } }
+.bsod-face {
+  margin-bottom: clamp(22px, 3.4vh, 38px);
+  font-size: clamp(72px, 10.5vw, 124px);
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+.bsod-lead {
+  max-width: 1020px;
+  font-size: clamp(20px, 2.1vw, 30px);
+  font-weight: 300;
+  line-height: 1.42;
+}
+.bsod-percent {
+  margin-top: clamp(16px, 2.8vh, 30px);
+  font-size: clamp(15px, 1.35vw, 19px);
+  font-weight: 300;
+}
+.bsod-bar {
+  width: min(460px, 72vw);
+  height: 3px;
+  margin-top: 10px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, .25);
+  overflow: hidden;
+}
+.bsod-bar i { display: block; width: 0; height: 100%; background: #fff; }
+.bsod-info {
+  max-width: 980px;
+  margin-top: clamp(22px, 4vh, 48px);
+  font-size: clamp(12.5px, 1.1vw, 15px);
+  line-height: 1.75;
+  color: rgba(255, 255, 255, .94);
+}
+.bsod-info p { margin: 0 0 8px; }
+.bsod-code {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 8px 11px;
+  border: 1px solid rgba(255, 255, 255, .34);
+  border-radius: 3px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Courier New", monospace;
+  font-size: .95em;
+  letter-spacing: .02em;
+}
+.bsod-count {
+  margin-top: clamp(24px, 4.5vh, 56px);
+  color: rgba(255, 255, 255, .8);
+  font-size: 12.5px;
+  letter-spacing: .02em;
+}
+.bsod-count b { color: #fff; font-weight: 600; }
+
 /* 锁屏 / 登录（Win11 风格） */
 html.locked #icon-layer,
 html.locked #taskbar,
@@ -3857,6 +3931,11 @@ function pushNotif(msg) {
 /* ================= 提示条 ================= */
 let toastTimer = null;
 function showToast(msg) {
+  // 彩蛋 2：点到未实现的功能时，不弹普通提示，直接蓝屏
+  if (/演示|暂不支持|未实现|暂未|未提供|开发中/.test(String(msg))) {
+    triggerBSOD();
+    return;
+  }
   toastEl.textContent = msg;
   toastEl.classList.add('show');
   clearTimeout(toastTimer);
@@ -6775,6 +6854,46 @@ function restartPC() {
   location.reload();
 }
 
+/* ================= 彩蛋 2：假蓝屏 ================= */
+function triggerBSOD(reason) {
+  if (document.getElementById('bsodScreen')) return;
+
+  const el = document.createElement('div');
+  el.id = 'bsodScreen';
+  el.setAttribute('role', 'alert');
+  el.innerHTML = `
+    <div class="bsod-face">:(</div>
+    <div class="bsod-lead">你的电脑遇到问题，需要重新启动。我们只收集某些错误信息，然后为你重新启动。</div>
+    <div class="bsod-percent" id="bsodPercent">0% 完成</div>
+    <div class="bsod-bar"><i id="bsodBar"></i></div>
+    <div class="bsod-info">
+      <p>如果你需要了解更多信息，可稍后在网上搜索此错误：</p>
+      <div class="bsod-code">未知错误 · UNKNOWN_ERROR</div>
+      <p style="margin-top:12px">停止代码：0x00000000 (0x0000000000000000)</p>
+    </div>
+    <div class="bsod-count"><b id="bsodCount">10</b> 秒后自动重启…</div>`;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('on'));
+
+  const percentEl = el.querySelector('#bsodPercent');
+  const barEl = el.querySelector('#bsodBar');
+  const countEl = el.querySelector('#bsodCount');
+  const started = performance.now();
+  const DURATION = 10000;
+
+  function frame(now) {
+    const elapsed = Math.min(DURATION, now - started);
+    const pct = Math.floor((elapsed / DURATION) * 100);
+    if (percentEl) percentEl.textContent = pct + '% 完成';
+    if (barEl) barEl.style.width = pct + '%';
+    if (countEl) countEl.textContent = String(Math.max(0, Math.ceil((DURATION - elapsed) / 1000)));
+    if (elapsed < DURATION) requestAnimationFrame(frame);
+    else restartPC();
+  }
+  requestAnimationFrame(frame);
+}
+window.triggerBSOD = triggerBSOD;
+
 document.getElementById('powerBtn').addEventListener('click', e => {
   e.stopPropagation();
   closeStart();
@@ -7936,6 +8055,7 @@ function createTaskManagerWin() {
     else if (tab === 'users') renderUsers();
     else if (tab === 'services') renderServices();
     else if (tab === 'details') renderDetails();
+    else if (tab === 'settings') triggerBSOD();
     else renderPlaceholder(TAB_TITLES[tab] || tab);
   }
 
@@ -8510,6 +8630,17 @@ function createSettingsWin(site, initialPage = 'system') {
   });
 
   body.addEventListener('click', e => {
+    // 彩蛋 2：点击没有实现的设置项 / 搜索框，触发假蓝屏
+    if (e.target.closest('.st-search')) { triggerBSOD(); return; }
+    const deadRow = e.target.closest('.st-row');
+    if (deadRow && !e.target.closest('button, input, select, .st-toggle, .st-slider, .st-theme-card, .st-wall, .st-accent')) {
+      const subText = (deadRow.querySelector('.st-row-sub') || {}).textContent || '';
+      if (deadRow.querySelector('.st-chev') || /未实现|演示|暂未/.test(subText)) {
+        triggerBSOD();
+        return;
+      }
+    }
+
     const themeCard = e.target.closest('.st-theme-card');
     if (themeCard) {
       applyTheme(themeCard.dataset.theme === 'dark');
