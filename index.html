@@ -772,6 +772,17 @@ html.dark .edge-start {
   border: 1px solid var(--field-border);
   font-size: 12px; color: var(--win-sub);
 }
+.exp-search-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--win-text);
+  font: inherit;
+}
+.exp-search-input::placeholder { color: var(--win-sub); }
+.exp-search-empty { margin-top: 16px; }
 
 .exp-body { flex: 1; display: flex; min-height: 0; }
 .exp-sidebar {
@@ -1514,6 +1525,72 @@ html.dark #quickPanel {
   max-width: 100%;
 }
 
+.qp-edit-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--qp-glass);
+  backdrop-filter: blur(60px) saturate(170%);
+  -webkit-backdrop-filter: blur(60px) saturate(170%);
+}
+#quickPanel.editing .qp-edit-panel { display: flex; }
+.qp-edit-title {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--qp-label);
+}
+.qp-edit-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.qp-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.qp-edit-row:hover { background: rgba(255, 255, 255, .32); }
+.qp-edit-ico {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  color: var(--qp-label);
+}
+.qp-edit-ico svg { width: 18px; height: 18px; }
+.qp-edit-name { flex: 1; font-size: 12px; color: var(--qp-label); }
+.qp-edit-done {
+  height: 34px;
+  border: 1px solid var(--qp-off-border);
+  border-radius: 6px;
+  background: var(--qp-off-bg);
+  color: var(--qp-off-fg);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.qp-edit-done:hover { filter: brightness(.97); }
+.qp-empty {
+  grid-column: 1 / -1;
+  padding: 14px;
+  color: var(--qp-label);
+  font-size: 12px;
+  text-align: center;
+  opacity: .65;
+}
+
 .qp-sliders {
   display: flex;
   flex-direction: column;
@@ -1798,6 +1875,16 @@ html.dark .qp-ibtn:hover { background: rgba(255, 255, 255, .09); }
   color: var(--win-sub);
   font-size: 11.5px;
 }
+.st-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--win-text);
+  font: inherit;
+}
+.st-search input::placeholder { color: var(--win-sub); }
 .st-nav-item {
   display: flex;
   align-items: center;
@@ -3098,6 +3185,18 @@ html.locked #toast {
 .tm2-burger { width: 34px; flex-shrink: 0; justify-content: center; padding: 0; }
 .tm2-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .tm2-content { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.tm2-set { flex: 1; overflow: auto; padding: 16px 20px 24px; }
+.tm2-select {
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--field-border);
+  border-radius: 4px;
+  background: var(--field-bg);
+  color: var(--win-text);
+  font-family: inherit;
+  font-size: 11.5px;
+  outline: none;
+}
 .tm2-toolbar {
   flex-shrink: 0;
   display: flex;
@@ -3725,8 +3824,8 @@ body.mobile .window.resizing { box-shadow: none !important; }
     <div class="sm-recommend-wrap">
       <div class="sm-section-head" style="margin-top: 12px;">
         <span class="sm-section-title">推荐的项目</span>
-        <button class="sm-more-btn">
-          更多
+        <button class="sm-more-btn" id="smMoreBtn">
+          <span class="sm-more-label">更多</span>
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
                stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
                stroke-linejoin="round">
@@ -3775,6 +3874,11 @@ body.mobile .window.resizing { box-shadow: none !important; }
   <!-- 快速设置 -->
   <div id="quickPanel" role="dialog" aria-label="快速设置">
     <div class="qp-tiles" id="qpTiles"></div>
+    <div class="qp-edit-panel" id="qpEditPanel">
+      <div class="qp-edit-title">自定义快速设置</div>
+      <div class="qp-edit-list" id="qpEditList"></div>
+      <button class="qp-edit-done" id="qpEditDone" type="button">完成</button>
+    </div>
 
     <div class="qp-sliders">
       <div class="qp-slider-row">
@@ -5267,7 +5371,7 @@ function createThisPCWin(site) {
     bodyHTML: `<div class="explorer"></div>`,
   });
   const explorer = w.el.querySelector('.explorer');
-  const state = { path: [], back: [], fwd: [] };
+  const state = { path: [], back: [], fwd: [], search: '' };
 
   function setPath(newPath, record = true) {
     if (record) {
@@ -5275,10 +5379,11 @@ function createThisPCWin(site) {
       state.fwd.length = 0;
     }
     state.path = newPath.slice();
+    state.search = '';
     render();
   }
-  function goBack() { if (state.back.length) { state.fwd.push(state.path.slice()); state.path = state.back.pop(); render(); } }
-  function goForward() { if (state.fwd.length) { state.back.push(state.path.slice()); state.path = state.fwd.pop(); render(); } }
+  function goBack() { if (state.back.length) { state.fwd.push(state.path.slice()); state.path = state.back.pop(); state.search = ''; render(); } }
+  function goForward() { if (state.fwd.length) { state.back.push(state.path.slice()); state.path = state.fwd.pop(); state.search = ''; render(); } }
   function goTo(name) {
     const idx = state.path.indexOf(name);
     setPath(idx >= 0 ? state.path.slice(0, idx + 1) : (name === '' ? [] : [name]), true);
@@ -5669,7 +5774,7 @@ function createThisPCWin(site) {
       </div>
       <div class="exp-search">
         <span style="display:grid;place-items:center;opacity:.6">${svgIcon('search', 13, 2)}</span>
-        <span>搜索“${node.type === 'drive' ? node.name : (state.path.length ? state.path[state.path.length - 1] : '此电脑')}”</span>
+        <input class="exp-search-input" type="search" value="${state.search.replace(/"/g, '&quot;')}" placeholder="搜索“${node.type === 'drive' ? node.name : (state.path.length ? state.path[state.path.length - 1] : '此电脑')}”" autocomplete="off" spellcheck="false">
       </div>`;
 
     // 侧栏
@@ -5773,6 +5878,46 @@ function createThisPCWin(site) {
         ]);
       });
     });
+
+    // 搜索当前文件夹
+    const searchBox = explorer.querySelector('.exp-search-input');
+    if (searchBox) {
+      const applySearch = () => {
+        const q = state.search.trim().toLowerCase();
+        let visible = 0;
+        main.querySelectorAll('.file, .folder, .drive').forEach(el => {
+          const name = el.dataset.file || el.dataset.node || el.dataset.quick || el.dataset.drive || el.textContent;
+          const show = !q || String(name).toLowerCase().includes(q);
+          el.style.display = show ? '' : 'none';
+          if (show) visible++;
+        });
+        main.querySelectorAll('.exp-group').forEach(group => {
+          const any = [...group.querySelectorAll('.file, .folder, .drive')].some(el => el.style.display !== 'none');
+          group.style.display = any ? '' : 'none';
+        });
+        let empty = main.querySelector('.exp-search-empty');
+        if (q && visible === 0) {
+          if (!empty) {
+            empty = document.createElement('div');
+            empty.className = 'exp-empty exp-search-empty';
+            empty.textContent = '未找到匹配项。';
+            main.appendChild(empty);
+          }
+        } else if (empty) {
+          empty.remove();
+        }
+      };
+      searchBox.addEventListener('input', () => { state.search = searchBox.value; applySearch(); });
+      searchBox.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          state.search = '';
+          searchBox.value = '';
+          applySearch();
+          searchBox.blur();
+        }
+      });
+      applySearch();
+    }
 
     // 右键：空白区域
     if (!main.dataset.ctxBound) {
@@ -6113,27 +6258,60 @@ function renderStart(filter = '') {
 function renderRecommend() {
   smRecommend.replaceChildren();
   const locals = sites.filter(s => s.type === 'local' && !isEmptySlot(s));
-  locals.forEach((s) => {
+  const items = locals.map(s => {
     const v = slotVisual(s, 0);
+    return {
+      label: v.label, sub: '最近添加', html: v.html, cls: v.cls, color: v.color,
+      open: () => { openSlot(s, sites.indexOf(s)); closeStart(); },
+    };
+  });
+
+  if (startMenu.classList.contains('more-recs')) {
+    CLASSIC_APPS.forEach(app => {
+      items.push({
+        label: app.name, sub: '经典应用', html: `<img src="${app.png}" alt="">`, cls: 'plain', color: app.color,
+        open: () => { openClassicApp(app.id); closeStart(); },
+      });
+    });
+    items.push({
+      label: '设置', sub: '系统设置', html: pkImg(PK.settings), cls: 'plain', color: '#0078d4',
+      open: () => { openSettings('system'); closeStart(); },
+    });
+  }
+
+  items.forEach((data) => {
     const item = document.createElement('div');
     item.className = 'rec-item';
     item.innerHTML = `
-      <div class="rec-icon${v.cls ? ' ' + v.cls : ''}" style="--c:${v.color}">${v.html}</div>
+      <div class="rec-icon${data.cls ? ' ' + data.cls : ''}" style="--c:${data.color}">${data.html}</div>
       <div class="rec-info">
-        <div class="rec-name">${v.label}</div>
-        <div class="rec-sub">最近添加</div>
+        <div class="rec-name">${data.label}</div>
+        <div class="rec-sub">${data.sub}</div>
       </div>
     `;
     attachImgFallback(item.querySelector('.rec-icon'), 'globe', 18, 2.1);
-    item.addEventListener('click', () => { openSlot(s, sites.indexOf(s)); closeStart(); });
+    item.addEventListener('click', data.open);
     smRecommend.appendChild(item);
   });
-  if (locals.length === 0) {
+
+  if (items.length === 0) {
     const tip = document.createElement('div');
     tip.style.cssText = 'grid-column:1/-1;padding:20px;text-align:center;font-size:12px;opacity:.6;';
     tip.textContent = '暂无推荐项';
     smRecommend.appendChild(tip);
   }
+}
+
+const smMoreBtn = document.getElementById('smMoreBtn');
+if (smMoreBtn) {
+  smMoreBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    startMenu.classList.toggle('more-recs');
+    const expanded = startMenu.classList.contains('more-recs');
+    const label = smMoreBtn.querySelector('.sm-more-label');
+    if (label) label.textContent = expanded ? '收起' : '更多';
+    renderRecommend();
+  });
 }
 
 function openStart() {
@@ -6510,8 +6688,9 @@ function quickTileLabel(t) {
 function renderQuickTiles() {
   const wrap = document.getElementById('qpTiles');
   wrap.replaceChildren();
+  const visible = quickTiles.filter(t => getPref('qpTile-' + t.id, true));
 
-  quickTiles.forEach(t => {
+  visible.forEach(t => {
     const el = document.createElement('button');
     el.type = 'button';
     el.className = 'qp-tile' + (OS_STATE[t.id] ? ' active' : '');
@@ -6527,8 +6706,26 @@ function renderQuickTiles() {
     el.addEventListener('click', () => setOSState({ [t.id]: !OS_STATE[t.id] }));
     wrap.appendChild(el);
   });
+
+  if (!visible.length) {
+    const empty = document.createElement('div');
+    empty.className = 'qp-empty';
+    empty.textContent = '没有显示任何快速设置磁贴';
+    wrap.appendChild(empty);
+  }
 }
 renderQuickTiles();
+
+function renderQuickEdit() {
+  const list = document.getElementById('qpEditList');
+  if (!list) return;
+  list.innerHTML = quickTiles.map(t => `
+    <div class="qp-edit-row">
+      <span class="qp-edit-ico">${QP_ICON[t.icon] || ''}</span>
+      <span class="qp-edit-name">${quickTileLabel(t)}</span>
+      <button class="st-toggle${getPref('qpTile-' + t.id, true) ? ' on' : ''}" type="button" data-qp-show="${t.id}" aria-label="${quickTileLabel(t)}"></button>
+    </div>`).join('');
+}
 
 function syncQuickTiles() {
   document.querySelectorAll('#qpTiles .qp-tile').forEach(node => {
@@ -6541,11 +6738,12 @@ function syncQuickTiles() {
 }
 
 function openQuickPanel() {
+  quickPanel.classList.remove('editing');
   quickPanel.classList.add('open');
   closeStart();
   closeCalendar();
 }
-function closeQuickPanel() { quickPanel.classList.remove('open'); }
+function closeQuickPanel() { quickPanel.classList.remove('open', 'editing'); }
 
 document.getElementById('quickBtn').addEventListener('click', e => {
   e.stopPropagation();
@@ -6574,7 +6772,20 @@ brightnessSlider.addEventListener('input', e => setOSState({ brightness: Number(
 volumeSlider.addEventListener('input', e => setOSState({ volume: Number(e.target.value) }));
 
 document.getElementById('qpEditBtn').addEventListener('click', () => {
-  showToast('快速设置暂不支持自定义磁贴');
+  renderQuickEdit();
+  quickPanel.classList.toggle('editing');
+});
+document.getElementById('qpEditDone').addEventListener('click', () => {
+  quickPanel.classList.remove('editing');
+});
+document.getElementById('qpEditPanel').addEventListener('click', e => {
+  const toggle = e.target.closest('[data-qp-show]');
+  if (!toggle) return;
+  const id = toggle.dataset.qpShow;
+  const val = !getPref('qpTile-' + id, true);
+  setPref('qpTile-' + id, val);
+  toggle.classList.toggle('on', val);
+  renderQuickTiles();
 });
 document.getElementById('qpSettingsBtn').addEventListener('click', () => {
   closeQuickPanel();
@@ -6702,7 +6913,7 @@ function hideCtx() { ctxMenu.classList.remove('open'); }
 function openWinXMenu() {
   showCtx(8, 0, [
     { icon: 'layers',  label: '已安装的应用', action: openSettings },
-    { icon: 'file',    label: '终端', action: () => showToast('终端：演示环境未提供命令行') },
+    { icon: 'file',    label: '终端', action: () => openClassicApp('cmd') },
     { icon: 'settings', label: '设置', action: openSettings },
     { icon: 'folder',  label: '文件资源管理器', action: () => openSlot(SITES[0], 0) },
     { icon: 'search',  label: '搜索', action: () => { closeStart(); openStart(); } },
@@ -7191,16 +7402,6 @@ function triggerBSOD(reason) {
   requestAnimationFrame(frame);
 }
 window.triggerBSOD = triggerBSOD;
-
-/* 其他未开发按钮：点击直接报错 */
-document.addEventListener('click', e => {
-  if (!e.target.closest) return;
-  if (e.target.closest('.exp-search') || e.target.closest('.sm-more-btn:not(#smAllAppsBtn)')) {
-    e.preventDefault();
-    e.stopPropagation();
-    triggerCrash();
-  }
-}, true);
 
 document.getElementById('powerBtn').addEventListener('click', e => {
   e.stopPropagation();
@@ -7813,6 +8014,9 @@ function createTaskManagerWin() {
   let sortDir = 0;
   let perfTimer = 0;
   let perfSel = 'cpu';
+  let tmRefreshMs = 1200;
+  let tmLive = true;
+  let tmTimer = 0;
   const PERF = { cpu: [], mem: [], disk: [], disk2: [], net: [], gpu: [] };
   const userStats = { cpu: 1.8, mem: 168, disk: 0.1, net: 0.2 };
   const startupOff = new Set((() => {
@@ -7905,14 +8109,31 @@ function createTaskManagerWin() {
         if (p.restart) p.restart();
         else showToast(`已重新启动 ${p.name}`);
         break;
-      case 'resources': triggerCrash(); break;
-      case 'feedback': triggerCrash(); break;
-      case 'efficiency': triggerCrash(); break;
-      case 'dump': triggerCrash(); break;
-      case 'details': triggerCrash(); break;
-      case 'location': triggerCrash(); break;
-      case 'search': triggerCrash(); break;
-      case 'props': triggerCrash(); break;
+      case 'resources':
+        switchTab('performance');
+        break;
+      case 'feedback':
+        showToast('已记录你的反馈，感谢提交');
+        break;
+      case 'efficiency':
+        p.efficiency = !p.efficiency;
+        showToast(`${p.name} 已${p.efficiency ? '开启' : '关闭'}效能模式`);
+        break;
+      case 'dump':
+        showToast(`已为 ${p.name} 创建转储文件`);
+        break;
+      case 'details':
+        switchTab('details');
+        break;
+      case 'location':
+        showToast(`已打开 ${p.name} 所在位置`);
+        break;
+      case 'search':
+        showToast(`正在 Edge 中搜索「${p.name}」`);
+        break;
+      case 'props':
+        showToast(`属性：${p.name} · PID ${1000 + [...pMap.keys()].indexOf(selectedKey) * 4}`);
+        break;
       default: break;
     }
   }
@@ -8348,7 +8569,56 @@ function createTaskManagerWin() {
   }
 
   function renderPlaceholder(name) {
-    content.innerHTML = `<div class="tm2-empty">${svgIcon('info', 30, 1.5)}<b>${name}</b><span>该页面为界面演示，进程页可正常使用。</span></div>`;
+    content.innerHTML = `<div class="tm2-empty">${svgIcon('info', 30, 1.5)}<b>${name}</b><span>该页面暂无可显示的内容。</span></div>`;
+  }
+
+  function renderSettings() {
+    const speed = tmRefreshMs <= 600 ? '高' : tmRefreshMs >= 2000 ? '低' : '正常';
+    content.innerHTML = `<div class="tm2-set">
+      <div class="st-card">
+        <div class="st-row">
+          <div class="st-row-icon">${svgIcon('refresh', 17, 1.8)}</div>
+          <div class="st-row-main">
+            <div class="st-row-title">实时刷新</div>
+            <div class="st-row-sub">自动更新进程、性能和用户数据</div>
+          </div>
+          <button class="st-toggle${tmLive ? ' on' : ''}" type="button" data-tm-live aria-label="实时刷新"></button>
+        </div>
+        <div class="st-row">
+          <div class="st-row-icon">${svgIcon('clock', 17, 1.8)}</div>
+          <div class="st-row-main">
+            <div class="st-row-title">刷新速度</div>
+            <div class="st-row-sub">当前：${speed}（${tmRefreshMs} 毫秒）</div>
+          </div>
+          <select class="tm2-select" data-tm-refresh>
+            <option value="500"${tmRefreshMs === 500 ? ' selected' : ''}>高</option>
+            <option value="1200"${tmRefreshMs === 1200 ? ' selected' : ''}>正常</option>
+            <option value="2500"${tmRefreshMs === 2500 ? ' selected' : ''}>低</option>
+          </select>
+        </div>
+        <div class="st-row">
+          <div class="st-row-icon">${svgIcon('layers', 17, 1.8)}</div>
+          <div class="st-row-main">
+            <div class="st-row-title">始终置顶</div>
+            <div class="st-row-sub">让任务管理器保持在其他窗口上方</div>
+          </div>
+          <button class="st-toggle${getPref('tmAlwaysTop', false) ? ' on' : ''}" type="button" data-tm-top aria-label="始终置顶"></button>
+        </div>
+        <div class="st-row">
+          <div class="st-row-icon">${svgIcon('monitor', 17, 1.8)}</div>
+          <div class="st-row-main">
+            <div class="st-row-title">默认打开性能页</div>
+            <div class="st-row-sub">下次打开任务管理器时显示性能标签</div>
+          </div>
+          <button class="st-toggle${getPref('tmStartPerf', false) ? ' on' : ''}" type="button" data-tm-start aria-label="默认打开性能页"></button>
+        </div>
+      </div>
+      <div class="st-section">关于</div>
+      <div class="st-card">
+        ${stRow('info', '任务管理器', 'Windows 11 风格界面 · 模拟数据', '')}
+        ${stRow('monitor', '版本', '1.0.0 · 2026/11', '')}
+      </div>
+    </div>`;
   }
 
   function switchTab(tab) {
@@ -8363,7 +8633,7 @@ function createTaskManagerWin() {
     else if (tab === 'users') renderUsers();
     else if (tab === 'services') renderServices();
     else if (tab === 'details') renderDetails();
-    else if (tab === 'settings') triggerCrash();
+    else if (tab === 'settings') renderSettings();
     else renderPlaceholder(TAB_TITLES[tab] || tab);
   }
 
@@ -8382,7 +8652,7 @@ function createTaskManagerWin() {
     const btn = e.target.closest('[data-cmd]');
     if (!btn) return;
     const cmd = btn.dataset.cmd;
-    if (cmd === 'run') showToast('运行新任务：请从开始菜单或桌面打开应用');
+    if (cmd === 'run') openClassicApp('cmd');
     else if (cmd === 'end') {
       const p = pMap.get(selectedKey);
       if (!p || !p.winId) showToast('请先选择一个正在运行的应用');
@@ -8397,13 +8667,39 @@ function createTaskManagerWin() {
       else showToast(`已重新启动 ${p.name}`);
     } else if (cmd === 'efficiency') {
       const p = pMap.get(selectedKey);
-      showToast(p ? `已为「${p.name}」启用效能模式（演示）` : '请先选择一个进程');
+      if (!p) { showToast('请先选择一个进程'); return; }
+      p.efficiency = !p.efficiency;
+      showToast(`${p.name} 已${p.efficiency ? '开启' : '关闭'}效能模式`);
     } else if (cmd === 'view') {
-      showToast('视图：按名称排序（演示）');
+      sortDir = sortDir === 1 ? -1 : 1;
+      renderProcesses();
+      showToast(sortDir === 1 ? '已按名称升序排列' : '已按名称降序排列');
     }
   });
 
   content.addEventListener('click', e => {
+    const liveToggle = e.target.closest('[data-tm-live]');
+    if (liveToggle) {
+      tmLive = !tmLive;
+      liveToggle.classList.toggle('on', tmLive);
+      startTmTimer();
+      return;
+    }
+    const topToggle = e.target.closest('[data-tm-top]');
+    if (topToggle) {
+      const val = !getPref('tmAlwaysTop', false);
+      setPref('tmAlwaysTop', val);
+      topToggle.classList.toggle('on', val);
+      showToast(val ? '任务管理器已置顶' : '已取消置顶');
+      return;
+    }
+    const defaultPerf = e.target.closest('[data-tm-start]');
+    if (defaultPerf) {
+      const val = !getPref('tmStartPerf', false);
+      setPref('tmStartPerf', val);
+      defaultPerf.classList.toggle('on', val);
+      return;
+    }
     const startToggle = e.target.closest('[data-start-toggle]');
     if (startToggle) {
       const id = startToggle.dataset.startToggle;
@@ -8420,6 +8716,14 @@ function createTaskManagerWin() {
     }
   });
 
+  content.addEventListener('change', e => {
+    const refresh = e.target.closest('[data-tm-refresh]');
+    if (!refresh) return;
+    tmRefreshMs = Number(refresh.value) || 1200;
+    startTmTimer();
+    renderSettings();
+  });
+
   const onDocDown = e => {
     if (ctxEl && !ctxEl.contains(e.target)) closeCtx();
   };
@@ -8430,11 +8734,9 @@ function createTaskManagerWin() {
   };
   window.addEventListener('resize', onResize);
 
-  renderProcesses();
-
-  const timer = setInterval(() => {
+  function tmTick() {
     if (!w.el.isConnected) {
-      clearInterval(timer);
+      clearInterval(tmTimer);
       stopPerf();
       document.removeEventListener('pointerdown', onDocDown, true);
       window.removeEventListener('resize', onResize);
@@ -8445,7 +8747,17 @@ function createTaskManagerWin() {
     if (activeTab !== 'processes' || ctxEl) return;
     const sig = [...wins.keys()].join(',');
     if (sig !== lastSig) renderProcesses();
-  }, 1200);
+  }
+
+  function startTmTimer() {
+    clearInterval(tmTimer);
+    if (!tmLive) return;
+    tmTimer = setInterval(tmTick, tmRefreshMs);
+  }
+
+  if (getPref('tmStartPerf', false)) switchTab('performance');
+  else renderProcesses();
+  startTmTimer();
 
   return w;
 }
@@ -8482,6 +8794,38 @@ const ST_SUBPARENT = {
   power: 'system', multitask: 'system',
   security: 'privacy', privacyDashboard: 'privacy',
 };
+
+const ST_SEARCH_INDEX = [
+  { title: '显示', sub: '亮度、夜间模式、分辨率、缩放、颜色配置文件', page: 'display', icon: 'monitor' },
+  { title: '亮度', sub: '调整屏幕亮度', page: 'display', icon: 'sun' },
+  { title: '夜间模式', sub: '减少蓝光，让屏幕色温更暖', page: 'display', icon: 'moon' },
+  { title: '声音', sub: '音量、静音、输出设备、输入设备、测试音', page: 'sound', icon: 'note' },
+  { title: '音量', sub: '调整扬声器音量', page: 'sound', icon: 'note' },
+  { title: '静音', sub: '关闭所有声音输出', page: 'sound', icon: 'note' },
+  { title: '通知', sub: '全局通知、通知来源、测试通知', page: 'notifications', icon: 'bell' },
+  { title: '电源和电池', sub: '电源模式、节电模式、快速启动', page: 'power', icon: 'power' },
+  { title: '节电模式', sub: '降低亮度和后台活动', page: 'power', icon: 'leaf' },
+  { title: '多任务', sub: '贴靠窗口、任务视图、摇动最小化', page: 'multitask', icon: 'layers' },
+  { title: '蓝牙和其他设备', sub: '蓝牙、已配对设备、添加设备', page: 'bluetooth', icon: 'layers' },
+  { title: '已配对设备', sub: '连接或断开蓝牙设备', page: 'bluetooth', icon: 'bluetooth' },
+  { title: '网络和 Internet', sub: 'WLAN、飞行模式、IPv4、DNS', page: 'network', icon: 'net' },
+  { title: 'WLAN', sub: '无线网络连接', page: 'network', icon: 'wifi' },
+  { title: '个性化', sub: '主题、背景、强调色', page: 'personalization', icon: 'gallery' },
+  { title: '主题', sub: '浅色或深色外观', page: 'personalization', icon: 'sun' },
+  { title: '背景', sub: '桌面壁纸', page: 'personalization', icon: 'gallery' },
+  { title: '强调色', sub: '系统强调色', page: 'personalization', icon: 'sun' },
+  { title: '应用', sub: '经典应用、本地应用', page: 'apps', icon: 'file' },
+  { title: '账户', sub: '账户信息、登录选项', page: 'accounts', icon: 'user' },
+  { title: '时间和语言', sub: '24 小时制、时间同步、时区', page: 'time', icon: 'clock' },
+  { title: '游戏', sub: '游戏模式、Xbox Game Bar、捕获', page: 'gaming', icon: 'film' },
+  { title: '辅助功能', sub: '动画效果、透明效果', page: 'accessibility', icon: 'a11y' },
+  { title: '隐私和安全性', sub: '位置、相机、麦克风、通知', page: 'privacy', icon: 'lock' },
+  { title: 'Windows 安全中心', sub: '实时保护、防火墙、快速扫描', page: 'security', icon: 'shield' },
+  { title: '隐私仪表板', sub: '权限使用记录、清除活动历史', page: 'privacyDashboard', icon: 'info' },
+  { title: 'Windows 更新', sub: '检查更新', page: 'update', icon: 'refresh' },
+  { title: '存储', sub: '本地磁盘 C: 和 D: 使用情况', page: 'system', icon: 'hdd' },
+  { title: '设备规格', sub: '处理器、内存、系统类型', page: 'system', icon: 'monitor' },
+];
 
 const stRow = (icon, title, sub, right = '<span class="st-chev">›</span>', attrs = '') => `
   <div class="st-row"${attrs ? ' ' + attrs : ''}>
@@ -9112,7 +9456,7 @@ function createSettingsWin(site, initialPage = 'system') {
           <div class="st-avatar">${ST_PERSON}</div>
           <div><b>Admin</b><span>本地账户</span></div>
         </div>
-        <div class="st-search">${svgIcon('search', 13, 2)}<span>查找设置</span></div>
+        <div class="st-search">${svgIcon('search', 13, 2)}<input id="stSearch" type="search" placeholder="查找设置" autocomplete="off" spellcheck="false"></div>
         <nav id="stNav">
           ${Object.keys(ST_TITLES).map((id, i) => {
             const icons = {
@@ -9146,10 +9490,14 @@ function createSettingsWin(site, initialPage = 'system') {
   const nav = w.el.querySelector('#stNav');
   const body = w.el.querySelector('#stBody');
   const title = w.el.querySelector('#stTitle');
+  const searchInput = w.el.querySelector('#stSearch');
+  let lastPage = initialPage;
 
   function goto(id) {
     if (!ST_PAGES[id]) return;
+    lastPage = id;
     w.settingsPage = id;
+    if (searchInput) searchInput.value = '';
     title.textContent = ST_SUBTITLES[id] || ST_TITLES[id] || '设置';
     body.innerHTML = ST_PAGES[id]();
     const parent = ST_SUBPARENT[id] || id;
@@ -9158,6 +9506,50 @@ function createSettingsWin(site, initialPage = 'system') {
     });
     body.scrollTop = 0;
     syncSettingsState();
+  }
+
+  function showSearchResults(query) {
+    const q = query.trim().toLowerCase();
+    const results = ST_SEARCH_INDEX.filter(item =>
+      (item.title + ' ' + item.sub).toLowerCase().includes(q)
+    );
+    w.settingsPage = 'search';
+    title.textContent = '搜索';
+    nav.querySelectorAll('.st-nav-item').forEach(el => el.classList.remove('active'));
+    body.innerHTML = results.length
+      ? `<div class="st-section">搜索结果 · ${results.length} 项</div>
+         <div class="st-card">
+           ${results.map(item => stRow(
+             item.icon, item.title, item.sub,
+             '<span class="st-chev">›</span>',
+             `data-goto="${item.page}" data-search-result="1"`
+           )).join('')}
+         </div>`
+      : `<div class="st-section">搜索结果</div>
+         <div class="st-card">
+           <div class="st-row">
+             <div class="st-row-main">
+               <div class="st-row-title">未找到匹配的设置</div>
+               <div class="st-row-sub">试试搜索“显示”“声音”“通知”或“蓝牙”</div>
+             </div>
+           </div>
+         </div>`;
+    body.scrollTop = 0;
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value;
+      if (q.trim()) showSearchResults(q);
+      else goto(lastPage);
+    });
+    searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        searchInput.value = '';
+        goto(lastPage);
+        searchInput.blur();
+      }
+    });
   }
 
   nav.addEventListener('click', e => {
@@ -9170,8 +9562,7 @@ function createSettingsWin(site, initialPage = 'system') {
     const goEl = e.target.closest('[data-goto]');
     if (goEl) { goto(goEl.dataset.goto); return; }
 
-    // 彩蛋 2：点击没有实现的设置项 / 搜索框，触发假蓝屏
-    if (e.target.closest('.st-search')) { triggerCrash(); return; }
+    // 彩蛋 2：点击没有实现的设置项，触发假蓝屏
     const deadRow = e.target.closest('.st-row');
     if (deadRow && !e.target.closest('button, input, select, .st-toggle, .st-slider, .st-theme-card, .st-wall, .st-accent')) {
       const subText = (deadRow.querySelector('.st-row-sub') || {}).textContent || '';
