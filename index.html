@@ -1877,6 +1877,88 @@ html.dark .qp-ibtn:hover { background: rgba(255, 255, 255, .09); }
 }
 .st-btn.primary:hover { filter: brightness(1.08); }
 
+/* ---- 设置子页面 ---- */
+.st-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 14px;
+  padding: 6px 10px 6px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.st-back:hover { background: var(--flyout-hover); }
+
+.st-power-modes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px 0 4px;
+}
+.st-power-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--field-border);
+  border-radius: 6px;
+  background: var(--field-bg);
+  color: var(--win-text);
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.st-power-mode:hover { background: var(--flyout-hover); }
+.st-power-mode.active {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.st-power-mode b { font-size: 12.5px; font-weight: 600; }
+.st-power-mode span { color: var(--win-sub); font-size: 10.5px; line-height: 1.4; }
+.st-power-mode-ic { display: grid; place-items: center; margin-bottom: 2px; color: var(--accent); }
+
+.st-security-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid var(--field-border);
+  border-radius: 8px;
+  background: var(--field-bg);
+}
+.st-security-icon {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: #107c10;
+}
+.st-security-hero b { display: block; font-size: 14px; font-weight: 600; }
+.st-security-hero span { display: block; margin-top: 3px; font-size: 11px; color: var(--win-sub); }
+
+#nightLightOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 8500;
+  display: none;
+  pointer-events: none;
+  background: rgba(255, 166, 66, .18);
+}
+html.night-light #nightLightOverlay { display: block; }
+
+@media (max-width: 720px) {
+  .st-power-modes { grid-template-columns: 1fr; }
+}
+
 .st-toggle {
   position: relative;
   width: 40px;
@@ -3779,6 +3861,7 @@ body.mobile .window.resizing { box-shadow: none !important; }
 
   <div id="ctxMenu"></div>
   <div id="toast"></div>
+  <div id="nightLightOverlay"></div>
 
   <!-- 任务视图 -->
   <div id="taskView">
@@ -4006,6 +4089,7 @@ function updateNotifBadge() {
 
 function pushNotif(msg) {
   if (!msg) return;
+  if (!getPref('notifications', true)) return;
   notifs.unshift({ msg, time: '刚刚' });
   if (notifs.length > 6) notifs.pop();
   notifUnread = true;
@@ -6306,13 +6390,74 @@ const PREFS = (() => {
   try { return JSON.parse(localStorage.getItem(PREF_KEY) || '{}') || {}; } catch (e) { return {}; }
 })();
 
+const PREF_DEFAULTS = {
+  nightLight: false,
+  mute: false,
+  batterySaver: false,
+  fastStartup: true,
+  spatialAudio: false,
+  snapWindows: true,
+  showTaskView: true,
+  shakeMinimize: false,
+  securityRealtime: true,
+  securityFirewall: true,
+  securityCloud: true,
+  notifications: true,
+  notifSystem: true,
+  notifEdge: true,
+  notifLocal: true,
+};
+
 function getPref(key, def = true) {
-  return key in PREFS ? !!PREFS[key] : def;
+  if (key in PREFS) return !!PREFS[key];
+  return key in PREF_DEFAULTS ? PREF_DEFAULTS[key] : def;
 }
 
 function setPref(key, value) {
   PREFS[key] = !!value;
   try { localStorage.setItem(PREF_KEY, JSON.stringify(PREFS)); } catch (e) { /* 忽略 */ }
+}
+
+function applyNightLight() {
+  document.documentElement.classList.toggle('night-light', getPref('nightLight', false));
+}
+applyNightLight();
+
+const POWER_MODE_KEY = 'sata-power-mode-v1';
+let powerMode = 'balanced';
+try {
+  const savedMode = localStorage.getItem(POWER_MODE_KEY);
+  if (savedMode === 'efficiency' || savedMode === 'balanced' || savedMode === 'performance') powerMode = savedMode;
+} catch (e) { /* 忽略 */ }
+function savePowerMode(mode) {
+  powerMode = mode;
+  try { localStorage.setItem(POWER_MODE_KEY, mode); } catch (e) { /* 忽略 */ }
+}
+
+let audioCtx = null;
+function playTestSound() {
+  if (getPref('mute', false) || OS_STATE.volume <= 0) {
+    showToast('声音已静音');
+    return;
+  }
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) { showToast('当前环境不支持播放声音'); return; }
+    audioCtx = audioCtx || new AC();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 660;
+    gain.gain.value = Math.min(.12, OS_STATE.volume / 100 * .12);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + .18);
+    showToast('已播放测试音');
+  } catch (e) {
+    showToast('无法播放测试音');
+  }
 }
 
 /* ================= 快速设置 ================= */
@@ -8323,8 +8468,23 @@ const ST_TITLES = {
   update: 'Windows 更新',
 };
 
-const stRow = (icon, title, sub, right = '<span class="st-chev">›</span>') => `
-  <div class="st-row">
+const ST_SUBTITLES = {
+  display: '显示',
+  sound: '声音',
+  notifications: '通知',
+  power: '电源和电池',
+  multitask: '多任务',
+  security: 'Windows 安全中心',
+  privacyDashboard: '隐私仪表板',
+};
+const ST_SUBPARENT = {
+  display: 'system', sound: 'system', notifications: 'system',
+  power: 'system', multitask: 'system',
+  security: 'privacy', privacyDashboard: 'privacy',
+};
+
+const stRow = (icon, title, sub, right = '<span class="st-chev">›</span>', attrs = '') => `
+  <div class="st-row"${attrs ? ' ' + attrs : ''}>
     ${icon ? `<div class="st-row-icon">${svgIcon(icon, 17, 1.8)}</div>` : ''}
     <div class="st-row-main">
       <div class="st-row-title">${title}</div>
@@ -8332,6 +8492,35 @@ const stRow = (icon, title, sub, right = '<span class="st-chev">›</span>') => 
     </div>
     ${right || ''}
   </div>`;
+
+const stLink = (icon, title, sub, page) =>
+  stRow(icon, title, sub, '<span class="st-chev">›</span>', `data-goto="${page}"`);
+
+const stBack = (page = 'system') =>
+  `<button class="st-back" type="button" data-goto="${page}">‹ 返回</button>`;
+
+const stToggleRow = (icon, title, sub, pref) => `
+  <div class="st-row">
+    <div class="st-row-icon">${svgIcon(icon, 17, 1.8)}</div>
+    <div class="st-row-main">
+      <div class="st-row-title">${title}</div>
+      <div class="st-row-sub">${sub}</div>
+    </div>
+    <button class="st-toggle${getPref(pref, true) ? ' on' : ''}" type="button" data-pref="${pref}" aria-label="${title}"></button>
+  </div>`;
+
+const stPowerMode = (id, icon, title, sub) => `
+  <button class="st-power-mode${powerMode === id ? ' active' : ''}" type="button" data-power-mode="${id}">
+    <span class="st-power-mode-ic">${svgIcon(icon, 18, 1.8)}</span>
+    <b>${title}</b>
+    <span>${sub}</span>
+  </button>`;
+
+const BT_DEVICES = [
+  { id: 'buds', name: 'GK Buds Pro', type: '音频设备', icon: 'note' },
+  { id: 'mouse', name: 'MX Master 3S', type: '鼠标', icon: 'monitor' },
+  { id: 'phone', name: 'GK-Phone', type: '手机', icon: 'grid' },
+];
 
 const stGeneric = (title) => `
   <div class="st-card">
@@ -8347,7 +8536,7 @@ const stGeneric = (title) => `
 const ST_PAGES = {
   system: () => `
     <div class="st-card">
-      ${stRow('monitor', '显示', '监视器、亮度、夜间模式、显示配置文件')}
+      ${stLink('monitor', '显示', '监视器、亮度、夜间模式、显示配置文件', 'display')}
       <div class="st-row">
         <div class="st-row-icon">${svgIcon('sun', 17, 1.8)}</div>
         <div class="st-row-main">
@@ -8355,7 +8544,7 @@ const ST_PAGES = {
           <input class="st-slider" type="range" min="20" max="100" step="1" value="${OS_STATE.brightness}" data-os="brightness" aria-label="亮度">
         </div>
       </div>
-      ${stRow('note', '声音', '音量、输出、输入、声音设备')}
+      ${stLink('note', '声音', '音量、输出、输入、声音设备', 'sound')}
       <div class="st-row">
         <div class="st-row-icon">${svgIcon('note', 17, 1.8)}</div>
         <div class="st-row-main">
@@ -8363,9 +8552,9 @@ const ST_PAGES = {
           <input class="st-slider" type="range" min="0" max="100" step="1" value="${OS_STATE.volume}" data-os="volume" aria-label="音量">
         </div>
       </div>
-      ${stRow('info', '通知', '来自应用和系统的提醒')}
-      ${stRow('power', '电源和电池', '睡眠、电池使用情况、快速启动')}
-      ${stRow('layers', '多任务', '贴靠窗口、桌面、任务切换')}
+      ${stLink('info', '通知', '来自应用和系统的提醒', 'notifications')}
+      ${stLink('power', '电源和电池', '睡眠、电池使用情况、快速启动', 'power')}
+      ${stLink('layers', '多任务', '贴靠窗口、桌面、任务切换', 'multitask')}
     </div>
     <div class="st-section">存储</div>
     <div class="st-card">
@@ -8390,6 +8579,116 @@ const ST_PAGES = {
     </div>
     <div class="st-card">
       ${stRow('monitor', 'Windows 规格', 'Windows 11 专业版 · 版本 24H2 · 安装于 2026/10/25', '')}
+    </div>`,
+
+  display: () => `
+    ${stBack('system')}
+    <div class="st-card">
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('sun', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">亮度</div>
+          <input class="st-slider" type="range" min="20" max="100" step="1" value="${OS_STATE.brightness}" data-os="brightness" aria-label="亮度">
+        </div>
+      </div>
+      ${stToggleRow('moon', '夜间模式', '减少蓝光，让屏幕色温更暖', 'nightLight')}
+    </div>
+    <div class="st-section">显示信息</div>
+    <div class="st-card">
+      ${stRow('monitor', '分辨率', '1920 × 1080 · 60 Hz', '')}
+      ${stRow('layers', '缩放', '100%（推荐）', '')}
+      ${stRow('gallery', '颜色配置文件', 'sRGB IEC61966-2.1', '')}
+    </div>`,
+
+  sound: () => `
+    ${stBack('system')}
+    <div class="st-card">
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('note', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">音量</div>
+          <input class="st-slider" type="range" min="0" max="100" step="1" value="${OS_STATE.volume}" data-os="volume" aria-label="音量">
+        </div>
+      </div>
+      ${stToggleRow('note', '静音', '关闭所有声音输出', 'mute')}
+    </div>
+    <div class="st-section">输出</div>
+    <div class="st-card">
+      ${stRow('note', '扬声器', 'Realtek High Definition Audio · 默认设备', '')}
+      ${stToggleRow('layers', '空间音效', '适用于耳机的 Windows Sonic', 'spatialAudio')}
+      <div class="st-row">
+        <div class="st-row-main">
+          <div class="st-row-title">测试声音</div>
+          <div class="st-row-sub">播放一段短提示音检查输出设备</div>
+        </div>
+        <button class="st-btn" type="button" data-sound-test>播放</button>
+      </div>
+    </div>
+    <div class="st-section">输入</div>
+    <div class="st-card">
+      ${stRow('mic', '麦克风阵列', 'Intel Smart Sound Technology · 默认设备', '')}
+    </div>`,
+
+  notifications: () => `
+    ${stBack('system')}
+    <div class="st-card">
+      ${stToggleRow('bell', '通知', '允许应用和系统发送通知', 'notifications')}
+    </div>
+    <div class="st-section">通知来源</div>
+    <div class="st-card">
+      ${stToggleRow('monitor', '系统', 'Windows 安全、更新和系统提醒', 'notifSystem')}
+      ${stToggleRow('globe', 'Microsoft Edge', '下载完成、站点提醒', 'notifEdge')}
+      ${stToggleRow('gallery', '本地应用', '收藏夹和工具箱的更新提醒', 'notifLocal')}
+    </div>
+    <div class="st-card">
+      <div class="st-row">
+        <div class="st-row-main">
+          <div class="st-row-title">发送测试通知</div>
+          <div class="st-row-sub">在通知中心显示一条示例通知</div>
+        </div>
+        <button class="st-btn" type="button" data-notif-test>发送</button>
+      </div>
+    </div>`,
+
+  power: () => `
+    ${stBack('system')}
+    <div class="st-card">
+      <div class="st-update-hero">
+        <div class="st-update-check">${svgIcon('power', 16, 2)}</div>
+        <div>
+          <div class="st-row-title" style="font-size:14px;font-weight:600">100% · 已接通电源</div>
+          <div class="st-row-sub">电池状态良好 · 预计剩余时间：不适用</div>
+        </div>
+      </div>
+    </div>
+    <div class="st-section">电源模式</div>
+    <div class="st-card">
+      <div class="st-power-modes">
+        ${stPowerMode('efficiency', 'leaf', '最佳能效', '优先降低功耗')}
+        ${stPowerMode('balanced', 'power', '平衡', '性能与能耗平衡')}
+        ${stPowerMode('performance', 'monitor', '最佳性能', '优先提升性能')}
+      </div>
+    </div>
+    <div class="st-card">
+      ${stToggleRow('leaf', '节电模式', '降低亮度和后台活动以延长续航', 'batterySaver')}
+      ${stToggleRow('refresh', '快速启动', '关机后保留部分系统状态，加快下次启动', 'fastStartup')}
+    </div>
+    <div class="st-card">
+      ${stRow('clock', '屏幕和睡眠', '接通电源时永不关闭', '')}
+    </div>`,
+
+  multitask: () => `
+    ${stBack('system')}
+    <div class="st-card">
+      ${stToggleRow('layers', '贴靠窗口', '拖动窗口到屏幕边缘时自动贴靠', 'snapWindows')}
+      ${stToggleRow('monitor', '任务视图', '双击桌面空白处打开任务视图', 'showTaskView')}
+      ${stToggleRow('refresh', '摇动窗口最小化', '拖动窗口时摇动以最小化其他窗口', 'shakeMinimize')}
+    </div>
+    <div class="st-section">任务切换</div>
+    <div class="st-card">
+      ${stRow('layers', 'Alt + Tab', '显示打开的窗口', '')}
+      ${stRow('monitor', '多显示器', '在所有显示器上显示任务栏', '')}
+      ${stRow('clock', '贴靠窗口布局', '使用 Win + Z 打开布局菜单', '')}
     </div>`,
 
   personalization: () => {
@@ -8520,14 +8819,32 @@ const ST_PAGES = {
         <div class="st-row-icon">${svgIcon('bluetooth', 17, 1.8)}</div>
         <div class="st-row-main">
           <div class="st-row-title">蓝牙</div>
-          <div class="st-row-sub">${OS_STATE.bt ? '已开启 · 未连接设备' : '已关闭'}</div>
+          <div class="st-row-sub">${OS_STATE.bt ? '已开启 · 可发现' : '已关闭'}</div>
         </div>
         <button class="st-toggle${OS_STATE.bt ? ' on' : ''}" data-toggle="bt" aria-label="蓝牙"></button>
       </div>
     </div>
-    <div class="st-section">设备</div>
+    <div class="st-section">已配对设备</div>
     <div class="st-card">
-      ${stRow('bluetooth', '未发现设备', OS_STATE.bt ? '正在搜索附近的蓝牙设备…' : '打开蓝牙后搜索附近的设备', '')}
+      ${BT_DEVICES.map(d => {
+        const on = OS_STATE.bt && getPref('bt-' + d.id, false);
+        return `<div class="st-row">
+          <div class="st-row-icon">${svgIcon(d.icon, 17, 1.8)}</div>
+          <div class="st-row-main">
+            <div class="st-row-title">${d.name}</div>
+            <div class="st-row-sub">${on ? '已连接' : d.type}</div>
+          </div>
+          <button class="st-btn${on ? ' primary' : ''}" type="button" data-bt-device="${d.id}"${OS_STATE.bt ? '' : ' disabled'}>${on ? '断开' : '连接'}</button>
+        </div>`;
+      }).join('')}
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('plus', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">添加设备</div>
+          <div class="st-row-sub">${OS_STATE.bt ? '搜索附近的蓝牙设备' : '打开蓝牙后搜索设备'}</div>
+        </div>
+        <button class="st-btn" type="button" data-bt-scan${OS_STATE.bt ? '' : ' disabled'}>搜索</button>
+      </div>
     </div>`,
   apps: () => `
     <div class="st-section">经典应用</div>
@@ -8574,6 +8891,14 @@ const ST_PAGES = {
           <div class="st-row-sub">任务栏和锁屏使用 ${clock24h ? '24 小时' : '12 小时'}格式</div>
         </div>
         <button class="st-toggle${clock24h ? ' on' : ''}" type="button" data-toggle="clock24" aria-label="24 小时制"></button>
+      </div>
+      <div class="st-row">
+        <div class="st-row-icon">${svgIcon('clock', 17, 1.8)}</div>
+        <div class="st-row-main">
+          <div class="st-row-title">时间同步</div>
+          <div class="st-row-sub">从 time.windows.com 自动同步时间</div>
+        </div>
+        <button class="st-btn" type="button" data-sync-time>立即同步</button>
       </div>
     </div>
     <div class="st-section">区域与语言</div>
@@ -8642,7 +8967,7 @@ const ST_PAGES = {
   privacy: () => `
     <div class="st-section">安全性</div>
     <div class="st-card">
-      ${stRow('shield', 'Windows 安全中心', '病毒和威胁防护、防火墙和网络保护')}
+      ${stLink('shield', 'Windows 安全中心', '病毒和威胁防护、防火墙和网络保护', 'security')}
       ${stRow('lock', '设备加密', '当前设备未启用 BitLocker', '')}
     </div>
     <div class="st-section">隐私</div>
@@ -8681,7 +9006,53 @@ const ST_PAGES = {
       </div>
     </div>
     <div class="st-card">
-      ${stRow('info', '隐私仪表板', '查看哪些应用最近使用了你的数据', '')}
+      ${stLink('info', '隐私仪表板', '查看哪些应用最近使用了你的数据', 'privacyDashboard')}
+    </div>`,
+
+  security: () => `
+    ${stBack('privacy')}
+    <div class="st-security-hero">
+      <div class="st-security-icon">${svgIcon('shield', 30, 1.6)}</div>
+      <div><b>你的设备受到保护</b><span>上次扫描：今天 20:45 · 未发现威胁</span></div>
+    </div>
+    <div class="st-card">
+      ${stToggleRow('shield', '实时保护', '持续扫描病毒和威胁', 'securityRealtime')}
+      ${stToggleRow('net', '防火墙和网络保护', '阻止未经授权的网络访问', 'securityFirewall')}
+      ${stToggleRow('globe', '基于云的保护', '将可疑文件发送到 Microsoft 进行分析', 'securityCloud')}
+    </div>
+    <div class="st-card">
+      ${stRow('refresh', '病毒和威胁防护更新', '已是最新 · 2026/11/05', '')}
+      <div class="st-row">
+        <div class="st-row-main">
+          <div class="st-row-title">快速扫描</div>
+          <div class="st-row-sub">扫描常见位置中的恶意软件</div>
+        </div>
+        <button class="st-btn" type="button" data-security-scan>开始扫描</button>
+      </div>
+    </div>`,
+
+  privacyDashboard: () => `
+    ${stBack('privacy')}
+    <div class="st-card">
+      <div class="st-row">
+        <div class="st-row-main">
+          <div class="st-row-title">最近 7 天的活动</div>
+          <div class="st-row-sub">应用访问权限的使用情况</div>
+        </div>
+      </div>
+      ${stRow('location', '位置', '收藏夹 · 2 次', '')}
+      ${stRow('camera', '相机', '工具箱 · 0 次', '')}
+      ${stRow('mic', '麦克风', 'Microsoft Edge · 1 次', '')}
+      ${stRow('bell', '通知', '系统 · 12 条', '')}
+    </div>
+    <div class="st-card">
+      <div class="st-row">
+        <div class="st-row-main">
+          <div class="st-row-title">活动历史记录</div>
+          <div class="st-row-sub">清除后不会删除已保存的文件</div>
+        </div>
+        <button class="st-btn" type="button" data-privacy-clear>清除</button>
+      </div>
     </div>`,
 };
 
@@ -8778,10 +9149,12 @@ function createSettingsWin(site, initialPage = 'system') {
 
   function goto(id) {
     if (!ST_PAGES[id]) return;
-    title.textContent = ST_TITLES[id];
+    w.settingsPage = id;
+    title.textContent = ST_SUBTITLES[id] || ST_TITLES[id] || '设置';
     body.innerHTML = ST_PAGES[id]();
+    const parent = ST_SUBPARENT[id] || id;
     nav.querySelectorAll('.st-nav-item').forEach(el => {
-      el.classList.toggle('active', el.dataset.page === id);
+      el.classList.toggle('active', el.dataset.page === parent);
     });
     body.scrollTop = 0;
     syncSettingsState();
@@ -8793,6 +9166,10 @@ function createSettingsWin(site, initialPage = 'system') {
   });
 
   body.addEventListener('click', e => {
+    // 已实现的设置子页面入口 / 返回
+    const goEl = e.target.closest('[data-goto]');
+    if (goEl) { goto(goEl.dataset.goto); return; }
+
     // 彩蛋 2：点击没有实现的设置项 / 搜索框，触发假蓝屏
     if (e.target.closest('.st-search')) { triggerCrash(); return; }
     const deadRow = e.target.closest('.st-row');
@@ -8844,6 +9221,59 @@ function createSettingsWin(site, initialPage = 'system') {
       if (s) openSlot(s, idx);
       return;
     }
+
+    const powerBtn = e.target.closest('[data-power-mode]');
+    if (powerBtn) {
+      const mode = powerBtn.dataset.powerMode;
+      savePowerMode(mode);
+      body.querySelectorAll('.st-power-mode').forEach(b => b.classList.toggle('active', b === powerBtn));
+      showToast('电源模式已切换为' + ({ efficiency: '最佳能效', balanced: '平衡', performance: '最佳性能' }[mode] || '平衡'));
+      return;
+    }
+
+    if (e.target.closest('[data-sound-test]')) { playTestSound(); return; }
+
+    if (e.target.closest('[data-notif-test]')) {
+      if (!getPref('notifications', true)) { showToast('通知已关闭'); return; }
+      pushNotif('这是一条来自系统设置的测试通知');
+      showToast('已发送测试通知');
+      return;
+    }
+
+    const scanBtn = e.target.closest('[data-security-scan]');
+    if (scanBtn) {
+      if (scanBtn.disabled) return;
+      scanBtn.disabled = true;
+      scanBtn.textContent = '扫描中…';
+      setTimeout(() => {
+        if (!scanBtn.isConnected) return;
+        scanBtn.disabled = false;
+        scanBtn.textContent = '未发现威胁';
+        showToast('扫描完成，未发现威胁');
+      }, 1600);
+      return;
+    }
+
+    if (e.target.closest('[data-privacy-clear]')) { showToast('已清除活动历史记录'); return; }
+    if (e.target.closest('[data-sync-time]')) { showToast('时间已同步'); return; }
+
+    const btDevice = e.target.closest('[data-bt-device]');
+    if (btDevice) {
+      const id = btDevice.dataset.btDevice;
+      const device = BT_DEVICES.find(d => d.id === id);
+      const on = !getPref('bt-' + id, false);
+      setPref('bt-' + id, on);
+      showToast(device ? `${device.name} ${on ? '已连接' : '已断开'}` : '蓝牙设备状态已更新');
+      goto('bluetooth');
+      return;
+    }
+
+    if (e.target.closest('[data-bt-scan]')) {
+      showToast('正在搜索附近的蓝牙设备…');
+      setTimeout(() => showToast('未发现新设备'), 1200);
+      return;
+    }
+
     const toggle = e.target.closest('.st-toggle');
     if (toggle) {
       const key = toggle.dataset.toggle;
@@ -8875,10 +9305,20 @@ function createSettingsWin(site, initialPage = 'system') {
         const val = !getPref(prefKey, true);
         setPref(prefKey, val);
         toggle.classList.toggle('on', val);
+        if (prefKey === 'nightLight') {
+          applyNightLight();
+          const sub = toggle.closest('.st-row') && toggle.closest('.st-row').querySelector('.st-row-sub');
+          if (sub) sub.textContent = val ? '已开启 · 屏幕色温偏暖' : '减少蓝光，让屏幕色温更暖';
+        }
+        if (prefKey === 'mute') {
+          const sub = toggle.closest('.st-row') && toggle.closest('.st-row').querySelector('.st-row-sub');
+          if (sub) sub.textContent = val ? '已静音' : '关闭所有声音输出';
+        }
         return;
       }
       if (key in OS_STATE) setOSState({ [key]: !OS_STATE[key] });
       else toggle.classList.toggle('on');
+      if (key === 'bt' && w.settingsPage === 'bluetooth') goto('bluetooth');
       return;
     }
     const upd = e.target.closest('[data-update]');
