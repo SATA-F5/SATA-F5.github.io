@@ -2520,13 +2520,6 @@ body.booting { overflow: hidden; }
   font-size: .95em;
   letter-spacing: .02em;
 }
-.bsod-count {
-  margin-top: clamp(24px, 4.5vh, 56px);
-  color: rgba(255, 255, 255, .8);
-  font-size: 12.5px;
-  letter-spacing: .02em;
-}
-.bsod-count b { color: #fff; font-weight: 600; }
 
 /* 锁屏 / 登录（Win11 风格） */
 html.locked #icon-layer,
@@ -6870,14 +6863,12 @@ function triggerBSOD(reason) {
       <p>如果你需要了解更多信息，可稍后在网上搜索此错误：</p>
       <div class="bsod-code">未知错误 · UNKNOWN_ERROR</div>
       <p style="margin-top:12px">停止代码：0x00000000 (0x0000000000000000)</p>
-    </div>
-    <div class="bsod-count"><b id="bsodCount">10</b> 秒后自动重启…</div>`;
+    </div>`;
   document.body.appendChild(el);
   requestAnimationFrame(() => el.classList.add('on'));
 
   const percentEl = el.querySelector('#bsodPercent');
   const barEl = el.querySelector('#bsodBar');
-  const countEl = el.querySelector('#bsodCount');
   const started = performance.now();
   const DURATION = 10000;
 
@@ -6886,13 +6877,22 @@ function triggerBSOD(reason) {
     const pct = Math.floor((elapsed / DURATION) * 100);
     if (percentEl) percentEl.textContent = pct + '% 完成';
     if (barEl) barEl.style.width = pct + '%';
-    if (countEl) countEl.textContent = String(Math.max(0, Math.ceil((DURATION - elapsed) / 1000)));
     if (elapsed < DURATION) requestAnimationFrame(frame);
     else restartPC();
   }
   requestAnimationFrame(frame);
 }
 window.triggerBSOD = triggerBSOD;
+
+/* 其他未开发按钮：点击直接报错 */
+document.addEventListener('click', e => {
+  if (!e.target.closest) return;
+  if (e.target.closest('.exp-search') || e.target.closest('.sm-more-btn:not(#smAllAppsBtn)')) {
+    e.preventDefault();
+    e.stopPropagation();
+    triggerBSOD();
+  }
+}, true);
 
 document.getElementById('powerBtn').addEventListener('click', e => {
   e.stopPropagation();
@@ -7597,14 +7597,14 @@ function createTaskManagerWin() {
         if (p.restart) p.restart();
         else showToast(`已重新启动 ${p.name}`);
         break;
-      case 'resources': showToast('资源值：CPU / 内存 / 磁盘 / 网络'); break;
-      case 'feedback': showToast('已记录你的反馈'); break;
-      case 'efficiency': showToast(`已为「${p.name}」启用效能模式（演示）`); break;
-      case 'dump': showToast('正在创建转储文件…（演示）'); break;
-      case 'details': showToast('已转到详细信息（演示）'); break;
-      case 'location': showToast('打开文件所在的位置（演示）'); break;
-      case 'search': showToast(`正在联机搜索「${p.name}」`); break;
-      case 'props': showToast(`属性：${p.name}`); break;
+      case 'resources': triggerBSOD(); break;
+      case 'feedback': triggerBSOD(); break;
+      case 'efficiency': triggerBSOD(); break;
+      case 'dump': triggerBSOD(); break;
+      case 'details': triggerBSOD(); break;
+      case 'location': triggerBSOD(); break;
+      case 'search': triggerBSOD(); break;
+      case 'props': triggerBSOD(); break;
       default: break;
     }
   }
