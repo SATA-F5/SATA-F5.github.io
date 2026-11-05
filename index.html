@@ -2591,10 +2591,9 @@ body.booting { overflow: hidden; }
   height: auto;
   flex: none;
   display: block;
-  padding: 5px;
   border-radius: 2px;
   background: #fff;
-  shape-rendering: crispEdges;
+  image-rendering: pixelated;
 }
 .bsod-info-text {
   color: rgba(255, 255, 255, .96);
@@ -6996,23 +6995,6 @@ function triggerCrash() {
 window.triggerCrash = triggerCrash;
 
 /* ================= 彩蛋 2：假蓝屏 ================= */
-function bsodQrSvg() {
-  const n = 29;
-  let seed = 0x5a17;
-  const rand = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
-  const inFinder = (x, y) => [[0, 0], [n - 7, 0], [0, n - 7]]
-    .some(([fx, fy]) => x >= fx && x < fx + 8 && y >= fy && y < fy + 8);
-  let cells = '';
-  for (let y = 0; y < n; y++) {
-    for (let x = 0; x < n; x++) {
-      if (inFinder(x, y)) continue;
-      if (rand() > .53) cells += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
-    }
-  }
-  const finder = (x, y) => `<rect x="${x}" y="${y}" width="7" height="7"/><rect x="${x + 1}" y="${y + 1}" width="5" height="5" fill="#fff"/><rect x="${x + 2}" y="${y + 2}" width="3" height="3"/>`;
-  return `<svg class="bsod-qr" viewBox="0 0 ${n} ${n}" aria-hidden="true"><rect width="${n}" height="${n}" fill="#fff"/><g fill="#000">${cells}${finder(0, 0)}${finder(n - 7, 0)}${finder(0, n - 7)}</g></svg>`;
-}
-
 function triggerBSOD(reason) {
   if (document.getElementById('bsodScreen')) return;
 
@@ -7025,7 +7007,7 @@ function triggerBSOD(reason) {
       <div class="bsod-lead">你的设备遇到问题，需要重启。我们只收集某些错误信息，然后为你重启。</div>
       <div class="bsod-percent" id="bsodPercent">0% 完成</div>
       <div class="bsod-info">
-        ${bsodQrSvg()}
+        <img class="bsod-qr" src="./assets/bsod-qr.png" alt="">
         <div class="bsod-info-text">
           <p>有关此问题的详细信息和可能的解决方法，请访问 https://www.windows.com/stopcode</p>
           <p>如果致电支持人员，请向他们提供以下信息：</p>
