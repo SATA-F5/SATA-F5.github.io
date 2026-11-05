@@ -247,12 +247,12 @@ html.dark #wallpaper::after {
   transition: background .12s, border-color .12s;
 }
 .dicon:hover {
-  background: rgba(127, 127, 127, .16);
-  border-color: rgba(127, 127, 127, .22);
+  background: transparent;
+  border-color: transparent;
 }
 .dicon:active {
-  background: rgba(127, 127, 127, .28);
-  border-color: rgba(127, 127, 127, .45);
+  background: transparent;
+  border-color: transparent;
 }
 
 .dicon-glyph {
@@ -1036,8 +1036,8 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
   cursor: pointer;
   transition: background .12s;
 }
-#startBtn:hover { background: var(--tb-hover); }
-#startBtn:active { background: var(--tb-active); transform: translateY(-50%) scale(.94); }
+#startBtn:hover { background: transparent; }
+#startBtn:active { background: transparent; transform: translateY(-50%) scale(.94); }
 
 /* 任务栏应用按钮（Win11 风格：40×40 命中区 + 底部运行指示条） */
 #taskbarApps {
@@ -1061,8 +1061,8 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
   cursor: pointer;
   transition: background .12s;
 }
-.tb-app-btn:hover { background: var(--tb-hover); }
-.tb-app-btn:active { background: var(--tb-active); }
+.tb-app-btn:hover { background: transparent; }
+.tb-app-btn:active { background: transparent; }
 .tb-app-btn.active { background: transparent; }
 .tb-app-btn.minimized { opacity: .62; }
 .tb-app-btn.minimized:hover { opacity: .85; }
@@ -1129,7 +1129,7 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
   transition: background .12s;
   position: relative;
 }
-#tray .tray-btn:hover { background: var(--tb-hover); }
+#tray .tray-btn:hover { background: transparent; }
 #tray .tray-icons {
   display: flex; align-items: center; gap: 8px;
 }
@@ -1269,7 +1269,7 @@ html.dark .file-icon { color: #aeb6c4; background: rgba(160, 170, 190, .13); }
   cursor: pointer;
   transition: background .12s;
 }
-.start-item:hover { background: var(--flyout-hover); }
+.start-item:hover { background: transparent; }
 .start-item .si-icon {
   width: 32px; height: 32px;
   display: grid; place-items: center;
@@ -1394,7 +1394,7 @@ html.dark .sm-footer { background: rgba(255, 255, 255, .02); }
   cursor: pointer;
   transition: background .12s;
 }
-.sm-power:hover { background: var(--flyout-hover); }
+.sm-power:hover { background: transparent; }
 .sm-actions { display: flex; align-items: center; gap: 4px; }
 
 /* =========================================================
