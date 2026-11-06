@@ -1,16 +1,30 @@
 /* 由 File 目录快照生成（离线兜底）。站点优先实时读取 GitHub 文件树，新文件无需改网页。 */
 window.FAVORITES = {
-    "generated": "2026-11-03 18:54",
-    "totalSize": 769118856,
+    "generated": "2026-11-06 22:04",
+    "totalSize": 805482677,
     "counts": {
-        "all": 144,
+        "all": 145,
         "music": 116,
-        "video": 28,
-        "bilibili": 23,
+        "video": 29,
+        "bilibili": 24,
         "musicLocal": 99,
         "videoLocal": 22
     },
     "items": [
+        {
+            "id": "auto-d21b3253",
+            "title": "[Mili_熟肉] world.execute(me);",
+            "type": "video",
+            "source": "bilibili",
+            "file": "File/bilibili/[Mili_熟肉] world.execute(me);.mp4",
+            "audio": null,
+            "video": "File/bilibili/[Mili_熟肉] world.execute(me);.mp4",
+            "cover": "File/bilibili/[Mili_熟肉] world.execute(me);_cover.jpg",
+            "size": 36363821,
+            "date": "2026-11-06",
+            "ts": 1793973889438,
+            "ext": "MP4"
+        },
         {
             "id": "bili-af0aadd756",
             "title": "[Mili_熟肉] world.execute(me);",
