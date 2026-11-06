@@ -1,14 +1,14 @@
 /* 由 File 目录快照生成（离线兜底）。站点优先实时读取 GitHub 文件树，新文件无需改网页。 */
 window.FAVORITES = {
     "generated": "2026-11-06 22:04",
-    "totalSize": 805482677,
+    "totalSize": 786793885,
     "counts": {
-        "all": 145,
+        "all": 143,
         "music": 116,
-        "video": 29,
+        "video": 27,
         "bilibili": 24,
         "musicLocal": 99,
-        "videoLocal": 22
+        "videoLocal": 20
     },
     "items": [
         {
@@ -460,20 +460,6 @@ window.FAVORITES = {
             "ext": "MP4"
         },
         {
-            "id": "video-80695af453",
-            "title": "202608201158",
-            "type": "video",
-            "source": "video",
-            "file": "File/videos/202608201158.mp4",
-            "audio": null,
-            "video": "File/videos/202608201158.mp4",
-            "cover": "File/videos/202608201158_cover.jpg",
-            "size": 1190425,
-            "date": "2026-08-20",
-            "ts": 1787198901187,
-            "ext": "MP4"
-        },
-        {
             "id": "music-7725d9e677",
             "title": "The Library",
             "type": "music",
@@ -513,20 +499,6 @@ window.FAVORITES = {
             "size": 32835404,
             "date": "2026-08-06",
             "ts": 1785987901734,
-            "ext": "MP4"
-        },
-        {
-            "id": "video-9514fc1924",
-            "title": "35422145108-1-192",
-            "type": "video",
-            "source": "video",
-            "file": "File/videos/35422145108-1-192.mp4",
-            "audio": null,
-            "video": "File/videos/35422145108-1-192.mp4",
-            "cover": "File/videos/35422145108-1-192_cover.jpg",
-            "size": 17498367,
-            "date": "2026-07-27",
-            "ts": 1785148571078,
             "ext": "MP4"
         },
         {
