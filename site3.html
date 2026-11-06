@@ -680,6 +680,27 @@
     object-fit:contain;
     background:#000;
   }
+  .m-fallback{
+    position:absolute;inset:0;z-index:2;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:9px;padding:24px;text-align:center;
+    background:rgba(0,0,0,.78);color:#fff;
+  }
+  .m-fallback[hidden]{display:none}
+  .m-fallback b{font-size:15px}
+  .m-fallback p{margin:0;max-width:520px;color:rgba(255,255,255,.72);font-size:11.5px;line-height:1.6}
+  .m-fallback-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+  .m-fallback-actions button,
+  .m-fallback-actions a{
+    height:32px;padding:0 14px;
+    display:inline-flex;align-items:center;justify-content:center;
+    border-radius:6px;
+    border:1px solid rgba(255,255,255,.32);
+    background:rgba(255,255,255,.10);
+    color:#fff;font:inherit;font-size:11.5px;text-decoration:none;cursor:pointer;
+  }
+  .m-fallback-actions button:hover,
+  .m-fallback-actions a:hover{background:rgba(255,255,255,.20)}
   .m-close{
     position:absolute;z-index:3;
     right:12px;top:12px;
@@ -945,7 +966,17 @@
   <div class="modal-back" data-close></div>
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mTitle">
     <button class="m-close" data-close type="button" aria-label="关闭">×</button>
-    <div class="m-video"><video id="mVideo" controls controlslist="nodownload" draggable="false" playsinline preload="metadata"></video></div>
+    <div class="m-video">
+      <video id="mVideo" controls controlslist="nodownload" draggable="false" playsinline preload="metadata"></video>
+      <div class="m-fallback" id="mVideoFallback" hidden>
+        <b>视频加载失败</b>
+        <p>可能是网络波动或浏览器编码支持问题。可以重试，或直接打开原视频播放。</p>
+        <div class="m-fallback-actions">
+          <button type="button" id="mVideoRetry">重试</button>
+          <a id="mVideoOpen" href="#" target="_blank" rel="noopener">打开原视频</a>
+        </div>
+      </div>
+    </div>
     <div class="m-info">
       <div class="m-text">
         <span class="m-kicker" id="mKicker">VIDEO</span>
@@ -1807,6 +1838,11 @@
      ========================================================= */
   const modal = $('#modal');
   const mVideo = $('#mVideo');
+  const mVideoFallback = $('#mVideoFallback');
+  const mVideoRetry = $('#mVideoRetry');
+  const mVideoOpen = $('#mVideoOpen');
+  let currentVideoItem = null;
+  let videoLoadTimer = 0;
   const mTitle = $('#mTitle');
   const mKicker = $('#mKicker');
   const mMeta = $('#mMeta');
@@ -1832,13 +1868,24 @@
     mVideo.play().catch(() => { /* 用户可手动播放 */ });
   }
 
+  function armVideoFallback() {
+    clearTimeout(videoLoadTimer);
+    videoLoadTimer = setTimeout(() => {
+      if (mVideo.src && mVideo.readyState < 1) showVideoFallback();
+    }, 8000);
+  }
+
   function fillVideo(item) {
+    currentVideoItem = item;
     mVideo.pause();
     mVideo.removeAttribute('src');
     mVideo.load();
     mVideo.src = fileUrl(item.file);
     if (item.cover) mVideo.poster = fileUrl(item.cover);
     else mVideo.removeAttribute('poster');
+    if (mVideoFallback) mVideoFallback.hidden = true;
+    if (mVideoOpen) mVideoOpen.href = fileUrl(item.file);
+    armVideoFallback();
 
     mTitle.textContent = item.title;
     mKicker.textContent = labelOf(item).toUpperCase();
@@ -1863,6 +1910,8 @@
     mVideo.pause();
     mVideo.removeAttribute('src');
     mVideo.load();
+    clearTimeout(videoLoadTimer);
+    if (mVideoFallback) mVideoFallback.hidden = true;
     modal.classList.remove('show');
     modal.setAttribute('aria-hidden', 'true');
     modal.inert = true;
@@ -1874,9 +1923,31 @@
   modal.addEventListener('click', e => {
     if (e.target.closest('[data-close]')) closeVideo();
   });
+  function showVideoFallback() {
+    clearTimeout(videoLoadTimer);
+    if (!mVideoFallback) return;
+    mVideoFallback.hidden = false;
+  }
+  function hideVideoFallback() {
+    clearTimeout(videoLoadTimer);
+    if (mVideoFallback) mVideoFallback.hidden = true;
+  }
+  mVideo.addEventListener('loadedmetadata', hideVideoFallback);
+  mVideo.addEventListener('canplay', hideVideoFallback);
   mVideo.addEventListener('error', () => {
-    if (mVideo.src) toast('视频加载失败，请确认 File 目录完整');
+    if (!mVideo.src) return;
+    showVideoFallback();
+    toast('视频加载失败，可以重试或直接打开原视频');
   });
+  mVideoRetry.addEventListener('click', () => {
+    if (!currentVideoItem) return;
+    hideVideoFallback();
+    mVideo.src = fileUrl(currentVideoItem.file) + '?retry=' + Date.now();
+    mVideo.load();
+    armVideoFallback();
+    mVideo.play().catch(() => { /* 用户可手动播放 */ });
+  });
+  mVideoOpen.addEventListener('click', e => e.stopPropagation());
   // 播放器内不提供下载：屏蔽右键“视频另存为”
   mVideo.addEventListener('contextmenu', e => e.preventDefault());
 

@@ -1,25 +1,25 @@
 /* 由 File 目录快照生成（离线兜底）。站点优先实时读取 GitHub 文件树，新文件无需改网页。 */
 window.FAVORITES = {
     "generated": "2026-11-06 22:04",
-    "totalSize": 786793885,
+    "totalSize": 781067740,
     "counts": {
-        "all": 143,
+        "all": 142,
         "music": 116,
-        "video": 27,
+        "video": 26,
         "bilibili": 24,
         "musicLocal": 99,
-        "videoLocal": 20
+        "videoLocal": 19
     },
     "items": [
         {
-            "id": "auto-d21b3253",
+            "id": "auto-15d13ecb",
             "title": "[Mili_熟肉] world.execute(me);",
             "type": "video",
             "source": "bilibili",
-            "file": "File/bilibili/[Mili_熟肉] world.execute(me);.mp4",
+            "file": "File/bilibili/world.execute.me.mp4",
             "audio": null,
-            "video": "File/bilibili/[Mili_熟肉] world.execute(me);.mp4",
-            "cover": "File/bilibili/[Mili_熟肉] world.execute(me);_cover.jpg",
+            "video": "File/bilibili/world.execute.me.mp4",
+            "cover": "File/bilibili/world.execute.me_cover.jpg",
             "size": 36363821,
             "date": "2026-11-06",
             "ts": 1793973889438,
@@ -499,20 +499,6 @@ window.FAVORITES = {
             "size": 32835404,
             "date": "2026-08-06",
             "ts": 1785987901734,
-            "ext": "MP4"
-        },
-        {
-            "id": "video-baad7c6c7e",
-            "title": "iluvslapbass",
-            "type": "video",
-            "source": "video",
-            "file": "File/videos/iluvslapbass.mp4",
-            "audio": null,
-            "video": "File/videos/iluvslapbass.mp4",
-            "cover": "File/videos/iluvslapbass_cover.jpg",
-            "size": 5726145,
-            "date": "2026-07-15",
-            "ts": 1784091881488,
             "ext": "MP4"
         },
         {
