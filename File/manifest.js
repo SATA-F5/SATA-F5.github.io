@@ -1,16 +1,44 @@
 /* 由 File 目录快照生成（离线兜底）。站点优先实时读取 GitHub 文件树，新文件无需改网页。 */
 window.FAVORITES = {
-    "generated": "2026-11-06 22:04",
-    "totalSize": 781067740,
+    "generated": "2026-11-07 08:42",
+    "totalSize": 879621835,
     "counts": {
-        "all": 142,
+        "all": 144,
         "music": 116,
-        "video": 26,
-        "bilibili": 24,
+        "video": 28,
+        "bilibili": 25,
         "musicLocal": 99,
-        "videoLocal": 19
+        "videoLocal": 20
     },
     "items": [
+        {
+            "id": "auto-832e4e66",
+            "title": "The Other Side of Paradise",
+            "type": "video",
+            "source": "video",
+            "file": "File/videos/the-other-side-of-paradise.mp4",
+            "audio": null,
+            "video": "File/videos/the-other-side-of-paradise.mp4",
+            "cover": "File/videos/the-other-side-of-paradise_cover.jpg",
+            "size": 92235163,
+            "date": "2026-11-07",
+            "ts": 1794012175678,
+            "ext": "MP4"
+        },
+        {
+            "id": "auto-333f2795",
+            "title": "“前奏有一种快温柔死的爽感！！！”__《Love Me Back》",
+            "type": "video",
+            "source": "bilibili",
+            "file": "File/bilibili/love-me-back.mp4",
+            "audio": null,
+            "video": "File/bilibili/love-me-back.mp4",
+            "cover": "File/bilibili/love-me-back_cover.jpg",
+            "size": 6318932,
+            "date": "2026-11-07",
+            "ts": 1794012175677,
+            "ext": "MP4"
+        },
         {
             "id": "auto-15d13ecb",
             "title": "[Mili_熟肉] world.execute(me);",
