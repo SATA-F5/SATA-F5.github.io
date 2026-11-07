@@ -1,7 +1,7 @@
 /* 由 File 目录快照生成（离线兜底）。站点优先实时读取 GitHub 文件树，新文件无需改网页。 */
 window.FAVORITES = {
     "generated": "2026-11-07 08:42",
-    "totalSize": 879621835,
+    "totalSize": 673886734,
     "counts": {
         "all": 144,
         "music": 116,
@@ -20,7 +20,7 @@ window.FAVORITES = {
             "audio": null,
             "video": "File/videos/the-other-side-of-paradise.mp4",
             "cover": "File/videos/the-other-side-of-paradise_cover.jpg",
-            "size": 92235163,
+            "size": 70135652,
             "date": "2026-11-07",
             "ts": 1794012175678,
             "ext": "MP4"
@@ -48,7 +48,7 @@ window.FAVORITES = {
             "audio": null,
             "video": "File/bilibili/world.execute.me.mp4",
             "cover": "File/bilibili/world.execute.me_cover.jpg",
-            "size": 36363821,
+            "size": 16442175,
             "date": "2026-11-06",
             "ts": 1793973889438,
             "ext": "MP4"
@@ -90,7 +90,7 @@ window.FAVORITES = {
             "audio": "File/bilibili/有兽焉 - 1 《有兽焉》第1话 貔貅驾到.mp3",
             "video": null,
             "cover": null,
-            "size": 8954596,
+            "size": 5969764,
             "date": "2026-09-26",
             "ts": 1790405083794,
             "ext": "MP3"
@@ -160,7 +160,7 @@ window.FAVORITES = {
             "audio": null,
             "video": "File/bilibili/月色无法抵达的星球.mp4",
             "cover": "File/bilibili/月色无法抵达的星球_cover.jpg",
-            "size": 8559006,
+            "size": 4954442,
             "date": "2026-09-25",
             "ts": 1790297959629,
             "ext": "MP4"
@@ -174,7 +174,7 @@ window.FAVORITES = {
             "audio": "File/bilibili/单曲循环｜巴西Funk｜⚡️买只儿～炸毛蛋⚡️｜卖毛蛋の小曲｜张力の小曲｜MONTAGEM ONE MORE GAME.mp3",
             "video": null,
             "cover": "File/bilibili/单曲循环｜巴西Funk｜⚡️买只儿～炸毛蛋⚡️｜卖毛蛋の小曲｜张力の小曲｜MONTAGEM ONE MORE GAME_cover.jpg",
-            "size": 43265152,
+            "size": 28843470,
             "date": "2026-09-22",
             "ts": 1790090259691,
             "ext": "MP3"
@@ -258,7 +258,7 @@ window.FAVORITES = {
             "audio": null,
             "video": "File/videos/在自家后院制作DRAM存储单元_1790001664.mp4",
             "cover": "File/videos/在自家后院制作DRAM存储单元_1790001664_cover.jpg",
-            "size": 25879370,
+            "size": 19712792,
             "date": "2026-09-21",
             "ts": 1790001692150,
             "ext": "MP4"
@@ -272,7 +272,7 @@ window.FAVORITES = {
             "audio": "File/bilibili/日推循环 _ 《unhappy》- s0rrow.mp3",
             "video": null,
             "cover": "File/bilibili/日推循环 _ 《unhappy》- s0rrow_cover.jpg",
-            "size": 58899743,
+            "size": 39266528,
             "date": "2026-09-20",
             "ts": 1789903420424,
             "ext": "MP3"
@@ -370,7 +370,7 @@ window.FAVORITES = {
             "audio": null,
             "video": "File/videos/如何快速给你的exe签名？_1789382907.mp4",
             "cover": "File/videos/如何快速给你的exe签名？_1789382907_cover.jpg",
-            "size": 10483965,
+            "size": 6941455,
             "date": "2026-09-14",
             "ts": 1789382919501,
             "ext": "MP4"
@@ -426,7 +426,7 @@ window.FAVORITES = {
             "audio": null,
             "video": "File/bilibili/【Part 3】_微波炉到货了!_,_你买了个核弹回来__—— 一大堆歌姬的奇妙历险8【术力口两句话小剧场】.mp4",
             "cover": "File/bilibili/【Part 3】_微波炉到货了!_,_你买了个核弹回来__—— 一大堆歌姬的奇妙历险8【术力口两句话小剧场】_cover.jpg",
-            "size": 21119277,
+            "size": 12931816,
             "date": "2026-08-23",
             "ts": 1787489143729,
             "ext": "MP4"
@@ -440,7 +440,7 @@ window.FAVORITES = {
             "audio": null,
             "video": "File/bilibili/java模组，3款原版增强模组.mp4",
             "cover": "File/bilibili/java模组，3款原版增强模组_cover.jpg",
-            "size": 8694504,
+            "size": 5975312,
             "date": "2026-08-22",
             "ts": 1787389985884,
             "ext": "MP4"
@@ -492,14 +492,14 @@ window.FAVORITES = {
             "title": "The Library",
             "type": "music",
             "source": "music",
-            "file": "File/music/The Library.wav",
-            "audio": "File/music/The Library.wav",
+            "file": "File/music/The Library.mp3",
+            "audio": "File/music/The Library.mp3",
             "video": null,
             "cover": null,
-            "size": 16970692,
+            "size": 3074815,
             "date": "2026-08-06",
             "ts": 1785998895451,
-            "ext": "WAV"
+            "ext": "MP3"
         },
         {
             "id": "music-aa1268aa43",
@@ -524,7 +524,7 @@ window.FAVORITES = {
             "audio": null,
             "video": "File/videos/otherside new.mp4",
             "cover": "File/videos/otherside new_cover.jpg",
-            "size": 32835404,
+            "size": 18888759,
             "date": "2026-08-06",
             "ts": 1785987901734,
             "ext": "MP4"
@@ -538,7 +538,7 @@ window.FAVORITES = {
             "audio": null,
             "video": "File/videos/人是猫[铁砧音质].mp4",
             "cover": "File/videos/人是猫[铁砧音质]_cover.jpg",
-            "size": 13311962,
+            "size": 7064974,
             "date": "2026-07-14",
             "ts": 1784018320213,
             "ext": "MP4"
@@ -664,7 +664,7 @@ window.FAVORITES = {
             "audio": "File/music/Collapse whithout being attacked-不攻自破.mp3",
             "video": null,
             "cover": null,
-            "size": 11271080,
+            "size": 1534789,
             "date": "2026-06-14",
             "ts": 1781416020000,
             "ext": "MP3"
@@ -1374,14 +1374,14 @@ window.FAVORITES = {
             "title": "ピノキオピー - ねぇねぇねぇ。",
             "type": "music",
             "source": "music",
-            "file": "File/music/ピノキオピー - ねぇねぇねぇ。.flac",
-            "audio": "File/music/ピノキオピー - ねぇねぇねぇ。.flac",
+            "file": "File/music/ピノキオピー - ねぇねぇねぇ。.mp3",
+            "audio": "File/music/ピノキオピー - ねぇねぇねぇ。.mp3",
             "video": null,
             "cover": null,
-            "size": 26880048,
+            "size": 6741853,
             "date": "2026-06-14",
             "ts": 1781416020000,
-            "ext": "FLAC"
+            "ext": "MP3"
         },
         {
             "id": "music-763922fa23",
@@ -1896,7 +1896,7 @@ window.FAVORITES = {
             "audio": null,
             "video": "File/videos/正面交锋.mp4",
             "cover": "File/videos/正面交锋_cover.jpg",
-            "size": 23436133,
+            "size": 13255797,
             "date": "2026-05-17",
             "ts": 1779029224664,
             "ext": "MP4"
@@ -1924,7 +1924,7 @@ window.FAVORITES = {
             "audio": null,
             "video": "File/videos/音 特 尔.mp4",
             "cover": "File/videos/音 特 尔_cover.jpg",
-            "size": 20320982,
+            "size": 5528584,
             "date": "2026-05-17",
             "ts": 1779012963773,
             "ext": "MP4"
@@ -1966,7 +1966,7 @@ window.FAVORITES = {
             "audio": null,
             "video": "File/videos/洛天依_蝴蝶.mp4",
             "cover": "File/videos/洛天依_蝴蝶_cover.jpg",
-            "size": 17986030,
+            "size": 11787046,
             "date": "2026-05-17",
             "ts": 1779012061001,
             "ext": "MP4"
@@ -1994,7 +1994,7 @@ window.FAVORITES = {
             "audio": null,
             "video": "File/videos/开场动画.mp4",
             "cover": "File/videos/开场动画_cover.jpg",
-            "size": 10824188,
+            "size": 3505992,
             "date": "2026-05-03",
             "ts": 1777783401284,
             "ext": "MP4"
