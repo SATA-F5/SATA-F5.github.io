@@ -356,7 +356,8 @@ html.dark #wallpaper::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-left: 12px;
+  padding-left: calc(12px + env(safe-area-inset-left, 0px));
+  padding-right: env(safe-area-inset-right, 0px);
   cursor: default;
   touch-action: none;
 }
@@ -390,16 +391,26 @@ html.dark #wallpaper::after {
 .wbtn {
   width: 46px;
   height: 100%;
+  flex-shrink: 0;
   display: grid;
   place-items: center;
   border: none;
   background: transparent;
   color: inherit;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: background .12s, color .12s;
 }
 .wbtn:hover { background: var(--tb-hover); }
 .wbtn.close:hover { background: #c42b1c; color: #fff; }
+.wbtn:active { background: var(--tb-active); }
+
+@media (pointer: coarse), (max-width: 720px) {
+  .titlebar { height: 42px; }
+  .wbtn { width: 54px; }
+  .wbtn svg { width: 12px; height: 12px; }
+}
 
 /* 贴靠布局弹层（悬停最大化按钮时出现） */
 .snap-popover {
@@ -4407,7 +4418,7 @@ function buildWindow({ site, title, color, bodyHTML, extraClass = '' }) {
   el.className = 'window opening ' + extraClass;
   el.dataset.id = id;
 
-  const W0 = Math.min(940, Math.max(isMobile ? 280 : 380, window.innerWidth - 170));
+  const W0 = Math.min(940, Math.max(isMobile ? 260 : 380, window.innerWidth - (isMobile ? 16 : 170)));
   const H   = Math.min(620, Math.max(isMobile ? 200 : 280, window.innerHeight - 200));
   const n = wins.size;
   // 窄视口（手机横屏/平板/小窗口）下让开左侧桌面图标列，
@@ -4417,9 +4428,14 @@ function buildWindow({ site, title, color, bodyHTML, extraClass = '' }) {
   const cascade = n % 6;
   let W, left;
   if (tight) {
-    const step = 30;                                 // 每个后续窗口右移/收窄的量
-    W = Math.max(260, Math.min(W0, window.innerWidth - iconCol - 14 - cascade * step));
-    left = Math.max(iconCol, Math.min(window.innerWidth - W - 6, iconCol + cascade * step));
+    const phone = window.innerWidth <= 720;
+    const margin = phone ? 8 : 14;
+    const startX = phone ? margin : iconCol;
+    const step = phone ? Math.min(18, Math.max(0, Math.floor((window.innerWidth - 300) / 6))) : 30;
+    const avail = Math.max(phone ? 240 : 260, window.innerWidth - startX - margin - cascade * step);
+    W = Math.max(phone ? 240 : 260, Math.min(W0, avail));
+    left = Math.max(startX, Math.min(window.innerWidth - W - margin, startX + cascade * step));
+    if (left < 0) left = 0;
   } else {
     W = W0;
     left = Math.max(14, Math.round((window.innerWidth - W) / 2 - 110 + cascade * 32));
@@ -4483,13 +4499,33 @@ function bindWindowBase(el, w) {
   el.addEventListener('pointerdown', () => focusWin(id), true);
 
   el.querySelectorAll('.wbtn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
+    let lastAct = 0;
+    const run = e => {
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      // iOS 会在 pointerup 后再补发 click，防止重复触发
+      const now = Date.now();
+      if (now - lastAct < 350) return;
+      lastAct = now;
       const act = btn.dataset.act;
       if (act === 'min')   minimizeWin(id);
       if (act === 'max')   toggleMax(id);
       if (act === 'close') closeWin(id);
+    };
+    btn.addEventListener('pointerdown', e => {
+      e.stopPropagation();
+      // iOS / 触屏：pointerdown 直接执行，避免 pointerup/click 被手势吞掉
+      if (e.pointerType === 'touch' || e.pointerType === 'pen') run(e);
     });
+    btn.addEventListener('click', run);
+    btn.addEventListener('pointerup', e => {
+      if (e.pointerType === 'touch' || e.pointerType === 'pen') run(e);
+    });
+    if (!window.PointerEvent) {
+      btn.addEventListener('touchend', e => { e.preventDefault(); run(e); }, { passive: false });
+    }
   });
 
   titlebar.addEventListener('pointerdown', e => {
@@ -6016,7 +6052,8 @@ function toggleMax(id) {
 
 function closeWin(id) {
   const w = wins.get(id);
-  if (!w) return;
+  if (!w || w.closing) return;
+  w.closing = true;
   w.el.classList.add('closing');
   setTimeout(() => {
     w.el.remove();
