@@ -4,7 +4,7 @@
 不再是看一个静态页面，而是坐在一台"电脑"前：双击图标开窗口、用里面的
 浏览器上网、在"此电脑"里翻文件夹，甚至能找到作者藏起来的小彩蛋。
 
-在线体验：<https://sata-f5.github.io/>
+在线体验：<https://shou-lu.github.io/>
 
 ## 里面有什么
 
@@ -31,5 +31,5 @@
 
 ## 关于作者
 
-- GitHub：<https://github.com/SATA-F5>
+- GitHub：<https://github.com/Shou-Lu>
 - B站：<https://space.bilibili.com/3546889876146751>
